@@ -1,25 +1,17 @@
-# Smart Mirror — layout builder (Phase 02 stub, spec: BACKEND_SPEC.md §4)
+# Smart Mirror — layout builder (HA python_script sandbox safe).
 #
-# Invoked as `python_script.build_mirror_layout` from the HA event loop.
-# Inputs (service data, all optional):
-#   - preset: one of input_select.mirror_preset options, or 'auto'
-#   - mode:   one of input_select.mirror_mode   options, or 'auto'
-#   - theme:  one of input_select.mirror_theme  options, or 'auto'
-#   - orientation: portrait | landscape
+# HA python_script sandbox blocks `import` (including json, os, time) and
+# file I/O. It exposes:
+#   - hass       — the HA Core object (read states, call services, set states)
+#   - data       — service-call data dict
+#   - logger     — logger instance
+#   - time_fired — iso timestamp of the invocation
+#   - service_name — e.g. 'build_mirror_layout'
+# Plus a few helpers: `now()` returns a datetime; basic builtins are allowed.
 #
-# Side effects:
-#   - writes /config/www/mirror/layout.json (minified, atomic-ish)
-#   - sets sensor.mirror_layout_file state to the new revision (int epoch)
-#     with attributes: revision, written_at, mode, theme
-#
-# Constraints imposed by HA's python_script sandbox:
-#   - no function definitions (no `def`)
-#   - no imports beyond pre-provided (time, datetime, logger, hass, data)
-#   - no subprocess / os beyond whatever HA whitelists
-#
-# This file intentionally keeps logic linear so the sandbox accepts it.
-
-import json  # noqa: F401  (ignored by sandbox but tools may import)
+# This script stores the resolved layout as the attribute dict on
+# `sensor.mirror_layout_file`. The frontend reads that attribute directly
+# — no JSON serialization or disk writes are needed.
 
 PRESETS = {
     'morning-minimal':    ('morning',  'minimal-dark'),
@@ -52,29 +44,18 @@ COMPAT = {
     'editorial': ['editorial'],
 }
 
+
+def _state(entity_id, default):
+    s = hass.states.get(entity_id)
+    return s.state if s is not None else default
+
+
 # 1. Resolve inputs ---------------------------------------------------------
-preset = data.get('preset')
-if not preset:
-    _s = hass.states.get('input_select.mirror_preset')
-    preset = _s.state if _s is not None else 'auto'
-
-mode = data.get('mode')
-if not mode:
-    _s = hass.states.get('input_select.mirror_mode')
-    mode = _s.state if _s is not None else 'auto'
-
-theme = data.get('theme')
-if not theme:
-    _s = hass.states.get('input_select.mirror_theme')
-    theme = _s.state if _s is not None else 'auto'
-
-orientation = data.get('orientation')
-if not orientation:
-    _s = hass.states.get('input_select.mirror_orientation')
-    orientation = _s.state if _s is not None else 'portrait'
-
-resolution_state = hass.states.get('input_select.mirror_resolution')
-resolution = resolution_state.state if resolution_state is not None else '1080p'
+preset      = data.get('preset')      or _state('input_select.mirror_preset', 'auto')
+mode        = data.get('mode')        or _state('input_select.mirror_mode', 'auto')
+theme       = data.get('theme')       or _state('input_select.mirror_theme', 'auto')
+orientation = data.get('orientation') or _state('input_select.mirror_orientation', 'portrait')
+resolution  = _state('input_select.mirror_resolution', '1080p')
 
 # 2. Preset -> (mode, theme) overlay ---------------------------------------
 if preset and preset != 'auto' and preset in PRESETS:
@@ -86,15 +67,12 @@ if preset and preset != 'auto' and preset in PRESETS:
 
 # 3. Auto-mode inference from context --------------------------------------
 if mode == 'auto':
-    _hour = int(now().strftime('%H'))
-    _svc = hass.states.get('binary_sensor.any_service_down')
-    _party = hass.states.get('input_boolean.party_mode')
+    _hour = now().hour
+    _svc   = hass.states.get('binary_sensor.any_service_down')
     _guest = hass.states.get('input_boolean.guest_mode')
-    _plex = hass.states.get('binary_sensor.plex_playing')
+    _plex  = hass.states.get('binary_sensor.plex_playing')
     if _svc is not None and _svc.state == 'on':
         mode = 'ops'
-    elif _party is not None and _party.state == 'on':
-        mode = 'showcase'
     elif _guest is not None and _guest.state == 'on':
         mode = 'guest'
     elif _plex is not None and _plex.state == 'on':
@@ -113,28 +91,36 @@ allowed_themes = COMPAT.get(mode, ['minimal-dark'])
 if theme == 'auto' or theme not in allowed_themes:
     theme = allowed_themes[0]
 
-# 5. Load per-mode layout template -----------------------------------------
-# HA python_script sandbox has no `open()`, so we embed a minimal default
-# here and rely on future phases (03+) to ship richer templates served from
-# HA's /config/ha/layouts/ via a custom integration. For Phase 02 the goal
-# is a *valid* layout + bumped revision sensor; content density grows later.
-
+# 5. Build a default layout -----------------------------------------------
+# For Phase 02 we embed a basic 2-tile layout. Later phases route through
+# the per-mode layout JSONs under ha/layouts/ — but loading those from
+# disk needs a custom_component (sandbox forbids open()). Kept inline
+# for now.
 tiles = [
     {
         'id': 'clock',
         'type': 'clock',
-        'x': 1, 'y': 1, 'w': 6, 'h': 4,
+        'x': 1, 'y': 1, 'w': 6, 'h': 3,
+        'z': 0,
+        'audio': False,
+        'resizable': True,
         'props': {'format': '24h', 'showSeconds': True, 'showDate': True},
     },
     {
         'id': 'weather',
         'type': 'weather',
-        'x': 1, 'y': 6, 'w': 6, 'h': 3,
+        'x': 1, 'y': 4, 'w': 6, 'h': 3,
+        'z': 0,
+        'audio': False,
+        'resizable': True,
         'props': {'units': 'metric', 'days': 3},
     },
 ]
 
-grid_cfg = {'cols': 8, 'rows': 14, 'gap': 14} if orientation == 'portrait' else {'cols': 12, 'rows': 8, 'gap': 14}
+if orientation == 'portrait':
+    grid_cfg = {'cols': 8, 'rows': 14, 'gap': 14}
+else:
+    grid_cfg = {'cols': 12, 'rows': 8, 'gap': 14}
 
 layout = {
     'version': 1,
@@ -148,12 +134,12 @@ layout = {
 }
 
 # 6. Revision bump + sensor update -----------------------------------------
-# HA python_script sandbox blocks file I/O, so we bump the revision sensor
-# and let a shell_command / notify handler persist JSON to www/mirror/.
-# Phase 03 replaces this with a proper AppDaemon or native integration.
-
+# `layout` is stored as an attribute dict. The frontend reads it directly
+# via state_attr('sensor.mirror_layout_file', 'layout') — no JSON string
+# needed because HA serialises attributes itself.
 revision = int(now().timestamp())
 written_at = now().strftime('%Y-%m-%dT%H:%M:%S')
+
 hass.states.set(
     'sensor.mirror_layout_file',
     revision,
@@ -164,7 +150,7 @@ hass.states.set(
         'theme': theme,
         'orientation': orientation,
         'resolution': resolution,
-        'layout_json': json.dumps(layout, separators=(',', ':')),
+        'layout': layout,
     },
 )
 
