@@ -1,21 +1,18 @@
 import type { RequestHandler } from './$types';
 import { spawn } from 'node:child_process';
 
-type Action = 'reload_browser' | 'restart_frontend' | 'reboot' | 'screen_off' | 'screen_on';
+type Action = 'reload_browser' | 'restart_frontend' | 'reboot';
 const ALLOWED: readonly Action[] = [
   'reload_browser',
   'restart_frontend',
   'reboot',
-  'screen_off',
-  'screen_on',
 ] as const;
 
-function runLogged(cmd: string, args: string[], env?: Record<string, string>): void {
+function runLogged(cmd: string, args: string[]): void {
   console.log(`[admin] exec: ${cmd} ${args.join(' ')}`);
   const child = spawn(cmd, args, {
     detached: true,
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: env ? { ...process.env, ...env } : process.env,
   });
   child.stdout?.on('data', (d) => process.stdout.write(`[admin:${cmd}] ${d}`));
   child.stderr?.on('data', (d) => process.stderr.write(`[admin:${cmd}] ${d}`));
@@ -28,11 +25,6 @@ function runLogged(cmd: string, args: string[], env?: Record<string, string>): v
   child.unref();
 }
 
-// xset needs both DISPLAY and XAUTHORITY because the mirror-frontend
-// systemd unit runs as mirror but outside the X login session. The
-// kiosk's X server belongs to the same user, so pointing XAUTHORITY
-// at mirror's home cookie lets xset attach.
-const X_ENV = { DISPLAY: ':0', XAUTHORITY: '/home/mirror/.Xauthority' };
 
 function isLocal(req: Request): boolean {
   // The mirror's Chromium runs on the same host; we only accept admin
@@ -79,16 +71,6 @@ export const POST: RequestHandler = async ({ request }) => {
       // /sbin/reboot is a symlink to /bin/systemctl on Ubuntu 24.04; the
       // canonical, unambiguous command is `systemctl reboot`.
       runLogged('/usr/bin/sudo', ['-n', '/usr/bin/systemctl', 'reboot']);
-      break;
-    case 'screen_off':
-      // DPMS off — panel goes dark, Node/Chromium keep running.
-      runLogged('/usr/bin/xset', ['dpms', 'force', 'off'], X_ENV);
-      break;
-    case 'screen_on':
-      // DPMS on — wake the panel. Some panels need an input event on
-      // top of the xset call; the kiosk mouse move on gesture-enable
-      // covers that path when wired.
-      runLogged('/usr/bin/xset', ['dpms', 'force', 'on'], X_ENV);
       break;
   }
 
