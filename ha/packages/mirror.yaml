@@ -157,42 +157,49 @@ input_number:
     initial: 2
     unit_of_measurement: "%"
 
-# Drive the Samsung TV's "Energy Saving / Picture Off" mode from the
-# mirror_screen_on toggle. This is intentionally NOT a standby /
-# power_off: a real standby requires Wake-on-LAN to come back, and on
-# TU7000 WOL is flaky without a TV-menu opt-in. Picture-off keeps the
-# TV awake and HDMI alive, so flipping the toggle back sends the same
-# key a second time and the backlight returns in ~200ms. No wake race.
+# Pull CPU / RAM / DISK from the mirror's /api/admin/stats endpoint
+# and surface as HA sensors. The HA dashboard renders them as three
+# chips above the Controls card.
 #
-# KEY_ENERGY_SAVING is the Tizen remote code that toggles picture-off
-# on most Samsung models. If the TV model doesn't honour it, try
-# KEY_AMBIENT or the long-press-of-Play remote sequence.
+# Resource URL: edit to match the mirror's LAN IP or mDNS name.
+rest:
+  - resource: "http://192.168.20.106:3000/api/admin/stats"
+    scan_interval: 10
+    timeout: 4
+    sensor:
+      - name: Mirror CPU
+        unique_id: mirror_cpu
+        value_template: "{{ value_json.cpu }}"
+        unit_of_measurement: "%"
+        state_class: measurement
+        icon: mdi:chip
+      - name: Mirror RAM
+        unique_id: mirror_ram
+        value_template: "{{ value_json.ram }}"
+        unit_of_measurement: "%"
+        state_class: measurement
+        icon: mdi:memory
+      - name: Mirror Disk
+        unique_id: mirror_disk
+        value_template: "{{ value_json.disk }}"
+        unit_of_measurement: "%"
+        state_class: measurement
+        icon: mdi:harddisk
+
+# The mirror toggle is handled entirely on the mirror PC (xset DPMS).
+# We tried KEY_ENERGY_SAVING → TU7000 didn't honour it, and we tried
+# media_player.turn_off/on → standby wake needs Wake-on-LAN.
 #
-# Swap the entity_id if the mirror moves to a different TV.
-automation:
-  - alias: "Mirror · screen off → TV picture off"
-    id: mirror_screen_off_tv_picture_off
-    mode: single
-    trigger:
-      - platform: state
-        entity_id: input_boolean.mirror_screen_on
-        to: "off"
-    action:
-      - service: remote.send_command
-        target:
-          entity_id: remote.study_room_tv_2
-        data:
-          command: KEY_ENERGY_SAVING
-  - alias: "Mirror · screen on → TV wake"
-    id: mirror_screen_on_tv_wake
-    mode: single
-    trigger:
-      - platform: state
-        entity_id: input_boolean.mirror_screen_on
-        to: "on"
-    action:
-      - service: remote.send_command
-        target:
-          entity_id: remote.study_room_tv_2
-        data:
-          command: KEY_ENERGY_SAVING
+# Working combo on TU7000:
+#   1. Mirror PC DPMS cuts HDMI signal → TV drops to eco-standby on
+#      its own ~15 s after losing sync.
+#   2. On toggle-on, DPMS restores HDMI → TV auto-wakes via Anynet+.
+#
+# TV settings required (one-time, on TU7000):
+#   • Settings → General → External Device Manager → Anynet+ (HDMI-CEC) → On
+#   • Settings → General → Power & Energy Saving → Auto Power Off → Off
+#     (so the TV doesn't permanently kill itself after 4 h of no signal)
+#
+# If this setup ever needs a hard TV-side command again, add a new
+# automation block here; nothing else depends on automations living
+# in this package.

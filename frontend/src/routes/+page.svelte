@@ -42,6 +42,12 @@
   const lastSeenButton: Record<string, string | null> = {};
   let buttonBaselined = false;
 
+  // Boolean-backed toggle: screen power. Watch input_boolean, dispatch
+  // DPMS on transition. Baselined on first tick so a page reload
+  // doesn't flip the panel.
+  let lastScreenState: string | null = null;
+  let screenBaselined = false;
+
   async function dispatchAction(action: string) {
     try {
       await fetch('/api/admin/command', {
@@ -75,6 +81,20 @@
         lastSeenButton[k] = cur;
       }
     });
+  }
+
+  async function pollScreenToggle(base: string, token: string) {
+    const cur = await fetchState(base, token, 'input_boolean.mirror_screen_on');
+    if (!cur) return;
+    if (!screenBaselined) {
+      lastScreenState = cur;
+      screenBaselined = true;
+      return;
+    }
+    if (cur !== lastScreenState) {
+      lastScreenState = cur;
+      void dispatchAction(cur === 'on' ? 'screen_on' : 'screen_off');
+    }
   }
 
 
@@ -151,9 +171,11 @@
     // Fire immediately + every 2s. No WS, no abstractions.
     void applyHa(hassUrl, hassToken);
     void pollAdminButtons(hassUrl, hassToken);
+    void pollScreenToggle(hassUrl, hassToken);
     pollTimer = setInterval(() => {
       void applyHa(hassUrl, hassToken);
       void pollAdminButtons(hassUrl, hassToken);
+      void pollScreenToggle(hassUrl, hassToken);
     }, 2000);
   });
 
