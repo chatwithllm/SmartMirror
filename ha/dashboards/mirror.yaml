@@ -53,6 +53,9 @@ views:
           - type: entities
             show_header_toggle: false
             entities:
+              - entity: input_boolean.mirror_screen_on
+                name: Screen
+                icon: mdi:monitor
               - entity: input_boolean.mirror_edit_mode
                 name: Edit mode
               - entity: input_boolean.mirror_gesture_enable
