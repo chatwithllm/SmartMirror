@@ -26,6 +26,56 @@
   let lastHash = '';
   let overscan = $state({ top: 2, right: 2, bottom: 2, left: 2 });
 
+  // Track last-seen press timestamp per admin button entity. HA's
+  // input_button state is the ISO timestamp of the most recent press,
+  // so a change in state == a fresh press. Baseline on first tick so we
+  // don't fire any action on startup.
+  const adminButtons: Record<string, { entity: string; action: string }> = {
+    reload_browser: { entity: 'input_button.mirror_reload_browser', action: 'reload_browser' },
+    restart_frontend: {
+      entity: 'input_button.mirror_restart_frontend',
+      action: 'restart_frontend'
+    },
+    reboot: { entity: 'input_button.mirror_reboot', action: 'reboot' }
+  };
+  const lastSeenButton: Record<string, string | null> = {};
+  let buttonBaselined = false;
+
+  async function dispatchAction(action: string) {
+    try {
+      await fetch('/api/admin/command', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action })
+      });
+      toasts.push('info', `mirror · ${action.replace('_', ' ')}`);
+    } catch (e) {
+      toasts.push('error', `admin ${action} failed`);
+    }
+  }
+
+  async function pollAdminButtons(base: string, token: string) {
+    const states = await Promise.all(
+      Object.values(adminButtons).map((b) => fetchState(base, token, b.entity))
+    );
+    const keys = Object.keys(adminButtons);
+    if (!buttonBaselined) {
+      // First tick — just snapshot, don't fire. Avoids reboot on page load.
+      keys.forEach((k, i) => (lastSeenButton[k] = states[i]));
+      buttonBaselined = true;
+      return;
+    }
+    keys.forEach((k, i) => {
+      const cur = states[i];
+      if (cur && cur !== lastSeenButton[k]) {
+        lastSeenButton[k] = cur;
+        void dispatchAction(adminButtons[k].action);
+      } else if (cur) {
+        lastSeenButton[k] = cur;
+      }
+    });
+  }
+
   async function fetchState(base: string, token: string, id: string): Promise<string | null> {
     try {
       const r = await fetch(`${base}/api/states/${id}`, {
@@ -98,8 +148,10 @@
 
     // Fire immediately + every 2s. No WS, no abstractions.
     void applyHa(hassUrl, hassToken);
+    void pollAdminButtons(hassUrl, hassToken);
     pollTimer = setInterval(() => {
       void applyHa(hassUrl, hassToken);
+      void pollAdminButtons(hassUrl, hassToken);
     }, 2000);
   });
 
