@@ -71,18 +71,68 @@
   });
 
   const label = $derived(props.entity_id?.replace(/^camera\./, '') ?? props.camera ?? 'cam');
+  const fit = $derived(props.fit ?? 'cover');
+
+  // Track whether the most recent <img> load succeeded. Camera entities
+  // in HA rarely flip to 'unavailable' — Frigate reports 'idle'/'recording'
+  // while the stream endpoint can still 401 or hang. The only honest
+  // signal is whether the browser actually decoded a frame.
+  let imgLoaded = $state(false);
+  let imgErrored = $state(false);
+  let lastLoadedAt = $state(0);
+
+  $effect(() => {
+    // Reset whenever the URL changes (new token / new frame request).
+    void url;
+    imgLoaded = false;
+    imgErrored = false;
+  });
+
+  // Consider the feed stale if no successful frame landed in the last
+  // 3× refresh interval. Keeps "live" honest when the stream 200s once
+  // then stops producing bytes.
+  let staleTick = $state(0);
+  $effect(() => {
+    if (!browser) return;
+    const iv = setInterval(() => (staleTick += 1), 1000);
+    return () => clearInterval(iv);
+  });
+  const stale = $derived.by(() => {
+    void staleTick;
+    if (!lastLoadedAt) return false;
+    return Date.now() - lastLoadedAt > Math.max(refreshMs * 3, 5_000);
+  });
+
   const status = $derived.by(() => {
     if (!haEntity) return 'connecting';
     if (haEntity.state === 'unavailable') return 'offline';
+    if (!url) return 'no-feed';
+    if (imgErrored) return 'error';
+    if (!imgLoaded) return 'connecting';
+    if (stale) return 'stalled';
     return 'live';
   });
-  const fit = $derived(props.fit ?? 'cover');
 </script>
 
 <BaseTile {id} type="frigate_camera" label={label}>
   <div class="cam" data-testid="frigate-cam">
     {#if url}
-      <img class="feed" alt={label} src={url} referrerpolicy="no-referrer" style:object-fit={fit} />
+      <img
+        class="feed"
+        alt={label}
+        src={url}
+        referrerpolicy="no-referrer"
+        style:object-fit={fit}
+        onload={() => {
+          imgLoaded = true;
+          imgErrored = false;
+          lastLoadedAt = Date.now();
+        }}
+        onerror={() => {
+          imgErrored = true;
+          imgLoaded = false;
+        }}
+      />
     {:else}
       <div class="placeholder mono">no camera</div>
     {/if}
@@ -133,7 +183,13 @@
   .s-live {
     color: var(--ok);
   }
-  .s-offline {
+  .s-offline,
+  .s-error {
     color: var(--bad);
+  }
+  .s-stalled,
+  .s-connecting,
+  .s-no-feed {
+    color: var(--warn);
   }
 </style>
