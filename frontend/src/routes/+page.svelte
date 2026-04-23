@@ -44,9 +44,13 @@
     void (async () => {
       try {
         await client.start();
-        unsub = await wireLayoutUpdates(client, { baseUrl: hassUrl });
-        // Initial pull — revision 0 forces a cache-busted GET.
-        const { layout } = await fetchLayout({ baseUrl: hassUrl, revision: 0 });
+        unsub = await wireLayoutUpdates(client, { baseUrl: hassUrl, token: hassToken });
+        // Initial pull via HA REST attribute (cache-busted).
+        const { layout } = await fetchLayout({
+          baseUrl: hassUrl,
+          token: hassToken,
+          revision: 0
+        });
         layoutStore.setLayout(layout, 0);
       } catch (err) {
         toasts.push('error', `HA bootstrap failed: ${(err as Error).message}`);

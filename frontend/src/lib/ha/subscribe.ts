@@ -5,12 +5,13 @@ import { toasts } from '$lib/stores/connection.js';
 
 /**
  * Subscribe to `sensor.mirror_layout_revision` state_changed. On every
- * bump, fetch the fresh layout JSON, validate, and push to the layout
- * store. Errors are toasted; the prior layout stays rendered.
+ * bump, pull the fresh layout from HA REST (or the legacy www/mirror path),
+ * validate, and push into the layout store. Errors are toasted; the
+ * previous layout stays rendered.
  */
 export async function wireLayoutUpdates(
   client: HAClient,
-  opts: { baseUrl: string; revisionEntity?: string } = { baseUrl: '' }
+  opts: { baseUrl: string; token?: string; revisionEntity?: string } = { baseUrl: '' }
 ): Promise<() => void> {
   const entity = opts.revisionEntity ?? 'sensor.mirror_layout_revision';
   let lastRev = -1;
@@ -22,7 +23,11 @@ export async function wireLayoutUpdates(
     if (!Number.isFinite(rev) || rev <= lastRev) return;
     lastRev = rev;
     try {
-      const { layout } = await fetchLayout({ baseUrl: opts.baseUrl, revision: rev });
+      const { layout } = await fetchLayout({
+        baseUrl: opts.baseUrl,
+        token: opts.token,
+        revision: rev
+      });
       layoutStore.setLayout(layout, rev);
     } catch (err) {
       toasts.push(
