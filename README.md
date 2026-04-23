@@ -4,6 +4,10 @@ Dynamic, Home-Assistant-driven dashboard for a 43" TV mounted vertical. Live til
 
 > **Status:** spec complete, autonomous build starting. See [CHANGELOG.md](CHANGELOG.md) for progress.
 
+## Starting on a new machine
+
+👉 **[NEW_MACHINE.md](NEW_MACHINE.md)** — copy-paste quickstart: install tools, clone, auth, paste prompt.
+
 ## Documentation
 
 1. [DESIGN_SPEC.md](DESIGN_SPEC.md) — product, hardware, modes, themes, build phases
@@ -12,6 +16,7 @@ Dynamic, Home-Assistant-driven dashboard for a 43" TV mounted vertical. Live til
 4. [PHASES.md](PHASES.md) — 14 autonomous build phases with acceptance criteria
 5. [AGENT_INSTRUCTIONS.md](AGENT_INSTRUCTIONS.md) — agent workflow rules
 6. [BUILD_PROMPT.md](BUILD_PROMPT.md) — how to boot / resume the autonomous agent
+7. [NEW_MACHINE.md](NEW_MACHINE.md) — quickstart to start/resume on any new machine
 
 ## Visual reference
 
