@@ -68,7 +68,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -99,7 +99,7 @@
     border-radius: var(--radius-sm);
   }
   .name {
-    font-size: 10px;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
   }

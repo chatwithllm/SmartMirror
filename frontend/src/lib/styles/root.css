@@ -65,6 +65,13 @@
   padding: 0;
 }
 
+html {
+  /* Scale root font-size with viewport width so 1rem is ~16px on
+   * laptop preview, ~32px on the 2160-wide portrait panel. Tile
+   * CSS below uses rem so everything grows together. */
+  font-size: clamp(16px, 1.5vw, 36px);
+}
+
 html,
 body,
 #app {
@@ -73,16 +80,8 @@ body,
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-ui);
-  font-size: 16px;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
-}
-
-/* Zoom the entire stage so tile typography that's designed around
- * 1080×1920 cells reads correctly on 2160×3840 portrait panels
- * from across the room. 1.0 on laptop preview, 1.8 on 4K portrait. */
-.stage {
-  zoom: clamp(1, calc(100vh / 1920 * 0.95), 2);
 }
 
 .mono {

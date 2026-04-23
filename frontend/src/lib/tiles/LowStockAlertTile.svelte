@@ -53,13 +53,13 @@
   }
   h4 {
     color: var(--bad);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
   .none {
     color: var(--ok);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   ul {
     list-style: none;
@@ -73,7 +73,7 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    font-size: 12px;
+    font-size: 0.85rem;
     padding: 3px 0;
     border-bottom: 1px solid var(--line);
   }
@@ -82,6 +82,6 @@
   }
   .q {
     color: var(--bad);
-    font-size: 11px;
+    font-size: 0.8rem;
   }
 </style>

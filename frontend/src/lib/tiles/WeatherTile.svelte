@@ -141,13 +141,13 @@
     line-height: 1;
   }
   .cond {
-    font-size: 14px;
+    font-size: 1.05rem;
     color: var(--dim);
     letter-spacing: 0.02em;
     text-transform: capitalize;
   }
   .hilo {
-    font-size: 12px;
+    font-size: 0.85rem;
     color: var(--dimmer);
   }
   .forecast {
@@ -162,16 +162,16 @@
     border-top: 1px solid var(--line);
   }
   .f-day {
-    font-size: 10px;
+    font-size: 0.75rem;
     color: var(--dim);
     text-transform: uppercase;
   }
   .f-icon {
-    font-size: 18px;
+    font-size: 1.3rem;
     line-height: 1.4;
   }
   .f-t {
-    font-size: 12px;
+    font-size: 0.85rem;
     color: var(--fg);
     font-variant-numeric: tabular-nums;
   }

@@ -129,7 +129,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -149,7 +149,7 @@
   header {
     display: flex;
     justify-content: space-between;
-    font-size: 11px;
+    font-size: 0.8rem;
   }
   .name {
     color: var(--fg);
@@ -162,7 +162,7 @@
     grid-template-columns: 32px 1fr 34px;
     gap: 6px;
     align-items: center;
-    font-size: 10px;
+    font-size: 0.75rem;
   }
   .label {
     color: var(--dim);

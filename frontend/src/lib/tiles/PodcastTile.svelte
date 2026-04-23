@@ -126,17 +126,17 @@
     align-items: center;
     justify-content: center;
     object-fit: cover;
-    font-size: 22px;
+    font-size: 1.7rem;
   }
   .show {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
   }
   .title {
     color: var(--fg);
-    font-size: 13px;
+    font-size: 0.95rem;
     font-weight: 500;
   }
   .controls {
@@ -152,7 +152,7 @@
     color: var(--fg);
     padding: 4px 8px;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 0.8rem;
     cursor: pointer;
   }
   .play {
@@ -175,7 +175,7 @@
   .times {
     display: flex;
     justify-content: space-between;
-    font-size: 10px;
+    font-size: 0.75rem;
     color: var(--dim);
   }
 </style>

@@ -69,7 +69,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -102,10 +102,10 @@
     transform: scale(0.98);
   }
   .icon {
-    font-size: 18px;
+    font-size: 1.3rem;
   }
   .label {
-    font-size: 10px;
+    font-size: 0.75rem;
     font-family: var(--font-mono);
   }
 </style>

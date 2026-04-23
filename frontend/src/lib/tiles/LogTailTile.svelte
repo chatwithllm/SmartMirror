@@ -55,14 +55,14 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
   pre {
     margin: 0;
     padding: 0;
-    font-size: 11px;
+    font-size: 0.8rem;
     line-height: 1.5;
     overflow: hidden;
     white-space: pre;

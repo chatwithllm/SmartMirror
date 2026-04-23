@@ -59,7 +59,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -82,7 +82,7 @@
   }
   .n {
     color: var(--fg);
-    font-size: 11px;
+    font-size: 0.8rem;
   }
   .bar {
     height: 3px;
@@ -98,7 +98,7 @@
     background: var(--bad);
   }
   .q {
-    font-size: 10px;
+    font-size: 0.75rem;
     color: var(--dim);
     text-align: right;
   }

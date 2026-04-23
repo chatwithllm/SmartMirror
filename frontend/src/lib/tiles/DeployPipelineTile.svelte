@@ -51,7 +51,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -68,7 +68,7 @@
     grid-template-columns: 24px 1fr 10px;
     gap: 8px;
     align-items: center;
-    font-size: 12px;
+    font-size: 0.85rem;
     padding: 3px 0;
     border-bottom: 1px solid var(--line);
   }

@@ -56,7 +56,7 @@
     justify-content: center;
   }
   .state {
-    font-size: 20px;
+    font-size: 1.5rem;
     font-weight: 500;
     letter-spacing: 0.02em;
     padding: 8px 10px;
@@ -87,7 +87,7 @@
     border-radius: var(--radius-sm);
     padding: 6px 0;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
     cursor: pointer;

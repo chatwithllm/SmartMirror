@@ -51,7 +51,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -70,11 +70,11 @@
     align-items: baseline;
     padding: 3px 0;
     border-bottom: 1px solid var(--line);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   .from {
     color: var(--accent);
-    font-size: 11px;
+    font-size: 0.8rem;
   }
   .p {
     color: var(--dim);
@@ -84,7 +84,7 @@
   }
   .when {
     color: var(--dim);
-    font-size: 11px;
+    font-size: 0.8rem;
     text-align: right;
   }
   li.unread .p {

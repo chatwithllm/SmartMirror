@@ -81,7 +81,7 @@
   h4 {
     grid-area: h;
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -93,7 +93,7 @@
   .rt {
     fill: var(--fg);
     font-family: var(--font-mono);
-    font-size: 16px;
+    font-size: 1.15rem;
   }
   ul {
     grid-area: list;
@@ -108,13 +108,13 @@
     display: flex;
     gap: 6px;
     align-items: center;
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   button {
     background: none;
     border: 0;
     color: var(--dim);
-    font-size: 14px;
+    font-size: 1.05rem;
     cursor: pointer;
     padding: 0;
   }

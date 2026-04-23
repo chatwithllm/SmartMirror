@@ -94,7 +94,7 @@
     padding: 3px 6px;
     background: rgba(0, 0, 0, 0.6);
     border-radius: var(--radius-sm);
-    font-size: 10px;
+    font-size: 0.75rem;
     color: var(--fg);
     letter-spacing: 0.08em;
   }

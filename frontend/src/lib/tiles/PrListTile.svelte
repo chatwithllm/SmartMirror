@@ -53,7 +53,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -72,7 +72,7 @@
     align-items: center;
     padding: 3px 0;
     border-bottom: 1px solid var(--line);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   .pip {
     width: 8px;
@@ -105,7 +105,7 @@
     color: var(--fg);
   }
   .st {
-    font-size: 10px;
+    font-size: 0.75rem;
     text-transform: uppercase;
     text-align: right;
   }

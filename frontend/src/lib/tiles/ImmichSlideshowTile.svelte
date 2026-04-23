@@ -108,12 +108,12 @@
     background: none;
     border: 0;
     color: var(--fg);
-    font-size: 18px;
+    font-size: 1.3rem;
     line-height: 1;
     cursor: pointer;
   }
   .idx {
-    font-size: 10px;
+    font-size: 0.75rem;
     color: var(--dim);
   }
 </style>

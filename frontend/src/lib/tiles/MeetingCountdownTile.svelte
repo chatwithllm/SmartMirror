@@ -71,16 +71,16 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
   .title {
     color: var(--fg);
-    font-size: 14px;
+    font-size: 1.05rem;
   }
   .count {
-    font-size: 28px;
+    font-size: 2.2rem;
     color: var(--fg);
     font-variant-numeric: tabular-nums;
   }
@@ -98,7 +98,7 @@
   }
   .join {
     color: var(--accent);
-    font-size: 12px;
+    font-size: 0.85rem;
     text-decoration: none;
   }
 </style>
