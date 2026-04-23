@@ -45,7 +45,7 @@ dashboard to get a minimal "Smart Mirror" sidebar entry exposing only
 the mirror_* helpers:
 
 1. *Settings → Dashboards → Add Dashboard → New dashboard from scratch*.
-   Title `Smart Mirror`, URL `mirror`, icon `mdi:monitor-dashboard`,
+   Title `Smart Mirror`, URL `smart-mirror`, icon `mdi:monitor-dashboard`,
    *Show in sidebar* on.
 2. Open the new dashboard → pencil (edit) → three-dot menu →
    *Raw configuration editor*.

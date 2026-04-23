@@ -7,7 +7,7 @@
 # Install:
 #   1. Settings → Dashboards → Add Dashboard → "New dashboard from scratch"
 #      Title: Smart Mirror
-#      URL:   mirror
+#      URL:   smart-mirror   # HA requires a hyphen in url_path
 #      Icon:  mdi:monitor-dashboard
 #      Show in sidebar: on
 #   2. Open the dashboard → pencil (edit) → three-dot menu →
