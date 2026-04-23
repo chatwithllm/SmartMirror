@@ -157,33 +157,42 @@ input_number:
     initial: 2
     unit_of_measurement: "%"
 
-# Mirror the Screen toggle onto the TV itself so the panel doesn't
-# sit on a "no signal" banner after DPMS kills HDMI sync. The PC side
-# still runs its own DPMS in the mirror-frontend admin endpoint; this
-# is the belt-and-suspenders partner that drives the TV via HA's
-# Samsung Tizen integration.
+# Drive the Samsung TV's "Energy Saving / Picture Off" mode from the
+# mirror_screen_on toggle. This is intentionally NOT a standby /
+# power_off: a real standby requires Wake-on-LAN to come back, and on
+# TU7000 WOL is flaky without a TV-menu opt-in. Picture-off keeps the
+# TV awake and HDMI alive, so flipping the toggle back sends the same
+# key a second time and the backlight returns in ~200ms. No wake race.
+#
+# KEY_ENERGY_SAVING is the Tizen remote code that toggles picture-off
+# on most Samsung models. If the TV model doesn't honour it, try
+# KEY_AMBIENT or the long-press-of-Play remote sequence.
 #
 # Swap the entity_id if the mirror moves to a different TV.
 automation:
-  - alias: "Mirror · screen off → TV standby"
-    id: mirror_screen_off_tv_standby
+  - alias: "Mirror · screen off → TV picture off"
+    id: mirror_screen_off_tv_picture_off
     mode: single
     trigger:
       - platform: state
         entity_id: input_boolean.mirror_screen_on
         to: "off"
     action:
-      - service: media_player.turn_off
+      - service: remote.send_command
         target:
-          entity_id: media_player.study_room_tv_2
-  - alias: "Mirror · screen on → TV on"
-    id: mirror_screen_on_tv_on
+          entity_id: remote.study_room_tv_2
+        data:
+          command: KEY_ENERGY_SAVING
+  - alias: "Mirror · screen on → TV wake"
+    id: mirror_screen_on_tv_wake
     mode: single
     trigger:
       - platform: state
         entity_id: input_boolean.mirror_screen_on
         to: "on"
     action:
-      - service: media_player.turn_on
+      - service: remote.send_command
         target:
-          entity_id: media_player.study_room_tv_2
+          entity_id: remote.study_room_tv_2
+        data:
+          command: KEY_ENERGY_SAVING
