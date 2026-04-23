@@ -16,8 +16,8 @@ if [[ ! -r "$ENV_FILE" ]]; then
   echo "cannot read $ENV_FILE — run as mirror user: sudo -u mirror bash $0" >&2
   exit 1
 fi
-# shellcheck source=/dev/null
 set -a
+# shellcheck source=/dev/null
 . "$ENV_FILE"
 set +a
 
