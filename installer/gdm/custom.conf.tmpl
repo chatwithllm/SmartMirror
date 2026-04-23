@@ -1,0 +1,16 @@
+# GDM config — managed by Smart Mirror installer.
+# Autologin the 'mirror' user into a kiosk session on boot.
+# User 'mirror' is separate from your daily desktop user; switch via GDM user menu.
+
+[daemon]
+AutomaticLoginEnable=true
+AutomaticLogin=mirror
+
+[security]
+DisallowTCP=true
+
+[xdmcp]
+
+[chooser]
+
+[debug]
