@@ -105,10 +105,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - Landscape layout variants for every mode (morning/work/relax/shopping/security/night/ops/guest/showcase/editorial) + portrait variants for guest/showcase/editorial
 - Registry at 39 tile types (full spec surface)
 
-### Phase 11 — themes
+### Phase 11 — themes (PR #12, merged 2026-04-23)
 - 4 theme CSS files: `minimal-dark`, `ops-cyberpunk`, `editorial`, `security`
 - `lib/themes/loader.ts` — lazy-import `?inline` + 400ms cross-fade
 - `lib/themes/compat.ts` + `coerceTheme()` — enforces legal (mode × theme) combos
 - `lib/stores/theme.ts` — active theme store
 - `+page.svelte` wires an `$effect` that coerces + applies theme on every layout change
 - Unit tests: 5 compat cases
+
+### Phase 12 — resize / FLIP / edit mode
+- `lib/grid/edit-mode.ts` — `editMode` store + patch buffer (overwrites per id)
+- `lib/grid/burnin.ts` — 8-min rotating offset store for static-tile guard
+- `ha/python_scripts/patch_mirror_layout.py` — merges tile patch into layout_json attribute
+- `ha/scripts/mirror_patch_tile.yaml` — wires service → python_script
+- `ha/automations/07_mirror_edit_mode_timeout.yaml` — auto-off after 15 min
