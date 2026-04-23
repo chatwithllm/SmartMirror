@@ -24,6 +24,7 @@
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let lastHash = '';
+  let overscan = $state({ top: 2, right: 2, bottom: 2, left: 2 });
 
   async function fetchState(base: string, token: string, id: string): Promise<string | null> {
     try {
@@ -40,12 +41,27 @@
   }
 
   async function applyHa(base: string, token: string) {
-    const [preset, mode, theme, orientation] = await Promise.all([
+    const [preset, mode, theme, orientation, osT, osR, osB, osL] = await Promise.all([
       fetchState(base, token, 'input_select.mirror_preset'),
       fetchState(base, token, 'input_select.mirror_mode'),
       fetchState(base, token, 'input_select.mirror_theme'),
-      fetchState(base, token, 'input_select.mirror_orientation')
+      fetchState(base, token, 'input_select.mirror_orientation'),
+      fetchState(base, token, 'input_number.mirror_overscan_top'),
+      fetchState(base, token, 'input_number.mirror_overscan_right'),
+      fetchState(base, token, 'input_number.mirror_overscan_bottom'),
+      fetchState(base, token, 'input_number.mirror_overscan_left')
     ]);
+
+    // Overscan updates independently of layout — no hash short-circuit.
+    const parseN = (s: string | null, fallback: number) =>
+      s == null ? fallback : Number(s) || fallback;
+    overscan = {
+      top: parseN(osT, 2),
+      right: parseN(osR, 2),
+      bottom: parseN(osB, 2),
+      left: parseN(osL, 2)
+    };
+
     const hash = `${preset}|${mode}|${theme}|${orientation}`;
     if (hash === lastHash) return;
     lastHash = hash;
@@ -111,7 +127,10 @@
   });
 </script>
 
-<main class="stage">
+<main
+  class="stage"
+  style="padding: {overscan.top}vh {overscan.right}vw {overscan.bottom}vh {overscan.left}vw;"
+>
   {#if $currentLayout}
     <Grid layout={$currentLayout} />
   {:else}
@@ -136,6 +155,8 @@
     width: 100%;
     height: 100vh;
     position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
   }
   .boot-splash {
     position: absolute;
