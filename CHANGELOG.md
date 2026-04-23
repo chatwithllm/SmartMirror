@@ -89,8 +89,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `ha/automations/03_mirror_inventory_weekly.yaml` — Sunday 19:00 → shopping window for 15m
 - Registry now at 23 tile types
 
-### Phase 08 — work + focus bundle
+### Phase 08 — work + focus bundle (PR #9, merged 2026-04-23)
 - Tiles: `PomodoroTile` (state persists across layout swaps via store), `MeetingCountdownTile`, `ProjectBoardTile`, `PrListTile`, `DeployPipelineTile`, `MessagesTile`
 - `lib/stores/pomodoro.ts` — idle/running/paused/done machine
 - `ha/layouts/work.landscape.json` — landscape work dashboard
 - Registry at 29 tile types
+
+### Phase 09 — security + night bundle
+- Tiles: `AlarmPanelTile` (home/away/night/disarmed modes, dispatches `mirror:alarm_arm`), `EventTimelineTile` (ack), `SensorGridTile`, `QuickActionsTile`
+- `ha/layouts/security.portrait.json`, `ha/layouts/night.portrait.json`
+- Registry at 33 tile types
