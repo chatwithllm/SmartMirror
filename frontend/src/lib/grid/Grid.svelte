@@ -15,6 +15,15 @@
   // gridstack is a browser-only DOM lib. Import lazily so SSR stays clean.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let grid: any = null;
+  let resizeHandler: (() => void) | null = null;
+
+  function computeCellHeight(): number {
+    if (!container || !layout.grid.rows) return 64;
+    const h = container.clientHeight || window.innerHeight;
+    // Subtract the overscan padding (2vw on each axis — negligible but
+    // fall back to a sane minimum).
+    return Math.max(32, Math.floor(h / layout.grid.rows));
+  }
 
   onMount(async () => {
     if (!browser || !container) return;
@@ -24,7 +33,7 @@
     grid = mod.GridStack.init(
       {
         column: layout.grid.cols,
-        cellHeight: `${100 / layout.grid.rows}vh`,
+        cellHeight: computeCellHeight(),
         margin: layout.grid.gap,
         float: false,
         disableDrag: true,
@@ -34,9 +43,19 @@
       },
       container
     );
+    // Keep cellHeight honest across rotation / window resize. Kiosk only
+    // rotates at boot but browser zoom, unplug-replug, etc. can resize.
+    resizeHandler = () => {
+      if (grid?.cellHeight) grid.cellHeight(computeCellHeight(), false);
+    };
+    window.addEventListener('resize', resizeHandler);
   });
 
   onDestroy(() => {
+    if (resizeHandler) {
+      window.removeEventListener('resize', resizeHandler);
+      resizeHandler = null;
+    }
     if (grid) {
       grid.destroy(false);
       grid = null;
