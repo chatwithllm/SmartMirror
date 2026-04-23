@@ -22,6 +22,12 @@ import ShoppingListTile from './ShoppingListTile.svelte';
 import RecipeSuggestTile from './RecipeSuggestTile.svelte';
 import ExpiryTile from './ExpiryTile.svelte';
 import BudgetTile from './BudgetTile.svelte';
+import PomodoroTile from './PomodoroTile.svelte';
+import MeetingCountdownTile from './MeetingCountdownTile.svelte';
+import ProjectBoardTile from './ProjectBoardTile.svelte';
+import PrListTile from './PrListTile.svelte';
+import DeployPipelineTile from './DeployPipelineTile.svelte';
+import MessagesTile from './MessagesTile.svelte';
 
 /**
  * Tile registry. Each build phase registers a new batch. Grid.svelte
@@ -51,7 +57,13 @@ export const TILES: Record<string, Component<any>> = {
   shopping_list: ShoppingListTile,
   recipe_suggest: RecipeSuggestTile,
   expiry: ExpiryTile,
-  budget: BudgetTile
+  budget: BudgetTile,
+  pomodoro: PomodoroTile,
+  meeting_countdown: MeetingCountdownTile,
+  project_board: ProjectBoardTile,
+  pr_list: PrListTile,
+  deploy_pipeline: DeployPipelineTile,
+  messages: MessagesTile
 };
 
 export type TileType = keyof typeof TILES;
