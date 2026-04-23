@@ -120,10 +120,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `ha/scripts/mirror_patch_tile.yaml` — wires service → python_script
 - `ha/automations/07_mirror_edit_mode_timeout.yaml` — auto-off after 15 min
 
-### Phase 13 — gesture subsystem
+### Phase 13 — gesture subsystem (PR #14, merged 2026-04-23)
 - `addons/mirror-gesture/` full HA addon: `config.yaml`, `Dockerfile`, `run.sh`, `requirements.txt`
 - `addons/mirror-gesture/src/` — `main.py` loop, `camera.py`, `privacy.py` (face blur), `gestures.py` (rule-based classifier), `mqtt.py` publisher
 - `ha/mqtt/discovery.yaml` — MQTT event + sensors for gesture + metrics
 - `ha/automations/05_mirror_gesture_router.yaml` — MQTT → `mirror_gesture` event + service fanout
 - Frontend: `lib/gesture/events.ts` subscribes, `lib/gesture/router.ts` dispatches, `focusedTile` store
 - `docs/gesture-demo.md` — demo flow + kill-switches + privacy
+
+### Phase 14 — telemetry + installer polish + docs
+- `lib/telemetry/fps.ts` — rAF-based FPS sampler + DOM/heap sampler stores
+- `lib/telemetry/report.ts` — posts `sensor.mirror_frontend_*` every 60s
+- `ha/rest_command.yaml` — `mirror_set_resolution` via SSH to the mirror box
+- `scripts/set-mode-via-ssh.sh` — wlr-randr rotate + restart kiosk
+- `ha/automations/02_mirror_alert_swap.yaml`, `06_mirror_perf_downshift.yaml`
+- `tests/e2e-smoke.sh` — local + (optional) live HA smoke gate
+- `docs/` — architecture, install, troubleshooting, tile-authoring, theme-authoring, gesture-setup
