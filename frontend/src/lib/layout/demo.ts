@@ -34,7 +34,7 @@ export const DEMO_LAYOUT: Layout = {
       w: 4,
       h: 2,
       z: 0,
-      props: { units: 'metric', days: 3 },
+      props: { entity_id: 'weather.4340', units: 'imperial', days: 3 },
       audio: false,
       resizable: true
     },
@@ -70,7 +70,16 @@ export const DEMO_LAYOUT: Layout = {
       w: 4,
       h: 3,
       z: 0,
-      props: {},
+      props: {
+        hosts: [
+          {
+            name: 'ha',
+            cpu: 'sensor.processor_use',
+            ram: 'sensor.memory_use_percent',
+            disk: 'sensor.disk_use_percent_config'
+          }
+        ]
+      },
       audio: false,
       resizable: true
     },
@@ -94,7 +103,7 @@ export const DEMO_LAYOUT: Layout = {
       w: 4,
       h: 2,
       z: 0,
-      props: { count: 4 },
+      props: { entity_id: 'calendar.palakurla4340_gmail_com', count: 4 },
       audio: false,
       resizable: true
     },
