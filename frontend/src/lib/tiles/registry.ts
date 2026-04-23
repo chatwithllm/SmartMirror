@@ -1,13 +1,15 @@
 import type { Component } from 'svelte';
 import ClockTile from './ClockTile.svelte';
+import WeatherTile from './WeatherTile.svelte';
 
 /**
- * Tile registry. Phase 01 ships only `clock`; new types added per phase
- * (FRONTEND_SPEC §5). Registry is a plain map now; lazy `import()` chunks
- * land in Phase 03+ once the diff engine picks them up dynamically.
+ * Tile registry. Each phase adds the next batch. Grid.svelte looks up
+ * tile types here; unknown types render an inline placeholder rather
+ * than crashing the grid.
  */
 export const TILES: Record<string, Component<any>> = {
-  clock: ClockTile
+  clock: ClockTile,
+  weather: WeatherTile
 };
 
 export type TileType = keyof typeof TILES;

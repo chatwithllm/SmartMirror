@@ -6,8 +6,8 @@
   "phases": {
     "00": { "status": "merged", "pr": 1, "branch": "phase-00-kiosk", "title": "kiosk shell + repo bootstrap", "merged_at": "2026-04-23T04:12:15Z", "merge_commit": "8051d390627dc61020cd6af934e86e1497947b84" },
     "01": { "status": "merged", "pr": 2, "branch": "phase-01-frontend-skeleton", "title": "frontend skeleton", "merged_at": "2026-04-23T04:22:10Z", "merge_commit": "c24e09fbdec2e2eb57ff239c0eb06d86e9664307" },
-    "02": { "status": "in_progress", "branch": "phase-02-ha-wiring", "title": "HA wiring (entities + python_script stub)" },
-    "03": { "status": "queued", "title": "control loop" },
+    "02": { "status": "merged", "pr": 3, "branch": "phase-02-ha-wiring", "title": "HA wiring (entities + python_script stub)", "merged_at": "2026-04-23T04:26:48Z" },
+    "03": { "status": "in_progress", "branch": "phase-03-control-loop", "title": "control loop" },
     "04": { "status": "queued", "title": "core tile pack" },
     "05": { "status": "queued", "title": "Plex tile" },
     "06": { "status": "queued", "title": "media tile pack" },
