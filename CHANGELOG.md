@@ -83,8 +83,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `ha/layouts/morning.portrait.json` — full morning bundle
 - `docs/frigate-go2rtc.md` — go2rtc config cheatsheet
 
-### Phase 07 — inventory + shopping bundle
+### Phase 07 — inventory + shopping bundle (PR #8, merged 2026-04-23)
 - Tiles: `InventoryGridTile`, `LowStockAlertTile`, `ShoppingListTile` (clickable toggle), `RecipeSuggestTile`, `ExpiryTile`, `BudgetTile`
 - `ha/layouts/shopping.portrait.json` wires the full shopping mode
 - `ha/automations/03_mirror_inventory_weekly.yaml` — Sunday 19:00 → shopping window for 15m
 - Registry now at 23 tile types
+
+### Phase 08 — work + focus bundle
+- Tiles: `PomodoroTile` (state persists across layout swaps via store), `MeetingCountdownTile`, `ProjectBoardTile`, `PrListTile`, `DeployPipelineTile`, `MessagesTile`
+- `lib/stores/pomodoro.ts` — idle/running/paused/done machine
+- `ha/layouts/work.landscape.json` — landscape work dashboard
+- Registry at 29 tile types
