@@ -78,6 +78,13 @@ body,
   overflow: hidden;
 }
 
+/* Zoom the entire stage so tile typography that's designed around
+ * 1080×1920 cells reads correctly on 2160×3840 portrait panels
+ * from across the room. 1.0 on laptop preview, 1.8 on 4K portrait. */
+.stage {
+  zoom: clamp(1, calc(100vh / 1920 * 0.95), 2);
+}
+
 .mono {
   font-family: var(--font-mono);
 }
