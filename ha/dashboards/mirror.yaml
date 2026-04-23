@@ -85,6 +85,8 @@ views:
                 name: RAM
               - entity: sensor.mirror_disk
                 name: DISK
+              - entity: sensor.mirror_uptime
+                name: UP
 
       - type: grid
         cards:
