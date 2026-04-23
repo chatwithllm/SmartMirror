@@ -64,7 +64,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - 10 smoke unit tests covering minimal-props render for each tile
 - `ha/layouts/ops.portrait.json` — reference layout exercising all 10 tile types
 
-### Phase 05 — Plex tile
+### Phase 05 — Plex tile (PR #6, merged 2026-04-23)
 - `lib/tiles/PlexPlayerTile.svelte` — hls.js integration, poster fallback, decode-error event emit
 - `lib/tiles/PlexNowPlayingTile.svelte` — active Plex sessions w/ progress bar
 - `lib/tiles/PlexRecentTile.svelte` — recently added carousel
@@ -73,3 +73,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `ha/automations/01_mirror_plex_focus.yaml` — Plex playing → relax-minimal
 - `ha/layouts/relax.portrait.json` — Plex hero layout
 - `docs/plex-hw-decode-verify.md` — VA-API verification runbook
+
+### Phase 06 — media tile pack
+- `FrigateCameraTile` — go2rtc WS stub + status chip
+- `ImmichSlideshowTile` — demo-image rotation with prev/next + resolution-aware thumb size
+- `YouTubeTile` — iframe embed with jsapi params, autoplay/mute defaults
+- `PodcastTile` — HTML5 audio control, scrub bar, ±15/30s skip
+- Registry expanded to 17 tile types
+- `ha/layouts/morning.portrait.json` — full morning bundle
+- `docs/frigate-go2rtc.md` — go2rtc config cheatsheet

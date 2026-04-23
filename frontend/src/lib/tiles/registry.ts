@@ -12,6 +12,10 @@ import IframeTile from './IframeTile.svelte';
 import PlexPlayerTile from './PlexPlayerTile.svelte';
 import PlexNowPlayingTile from './PlexNowPlayingTile.svelte';
 import PlexRecentTile from './PlexRecentTile.svelte';
+import FrigateCameraTile from './FrigateCameraTile.svelte';
+import ImmichSlideshowTile from './ImmichSlideshowTile.svelte';
+import YouTubeTile from './YouTubeTile.svelte';
+import PodcastTile from './PodcastTile.svelte';
 
 /**
  * Tile registry. Each build phase registers a new batch. Grid.svelte
@@ -31,7 +35,11 @@ export const TILES: Record<string, Component<any>> = {
   iframe: IframeTile,
   plex_player: PlexPlayerTile,
   plex_now_playing: PlexNowPlayingTile,
-  plex_recent: PlexRecentTile
+  plex_recent: PlexRecentTile,
+  frigate_camera: FrigateCameraTile,
+  immich_slideshow: ImmichSlideshowTile,
+  youtube: YouTubeTile,
+  podcast: PodcastTile
 };
 
 export type TileType = keyof typeof TILES;
