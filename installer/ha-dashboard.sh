@@ -39,9 +39,12 @@ if ! python3 -c 'import venv, ensurepip' 2>/dev/null; then
   exit 1
 fi
 
-# Ensure venv with PyYAML + websockets.
-if [[ ! -x "$VENV_DIR/bin/python" ]]; then
-  echo "[ha-dashboard] creating venv at $VENV_DIR"
+# Ensure venv with PyYAML + websockets. Rebuild if incomplete (e.g. a
+# previous run created the dir before python3-venv was installed, so
+# pip never landed).
+if [[ ! -x "$VENV_DIR/bin/python" || ! -x "$VENV_DIR/bin/pip" ]]; then
+  echo "[ha-dashboard] (re)creating venv at $VENV_DIR"
+  rm -rf "$VENV_DIR"
   python3 -m venv "$VENV_DIR"
 fi
 "$VENV_DIR/bin/pip" install --quiet --upgrade pip >/dev/null
