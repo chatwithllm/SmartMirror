@@ -1,12 +1,13 @@
 import type { Layout } from './schema.js';
 
 /**
- * Local demo layout used when `MIRROR_DEMO=1` (or no HA configured). Mirrors
- * `ha/layouts/work.portrait.json` so dev parity with Phase 02 is obvious.
+ * Dense offline demo layout. Used when HA is unreachable / not configured.
+ * Mirrors ha/layouts/ops.portrait.json so dev output matches what HA would
+ * eventually push.
  */
 export const DEMO_LAYOUT: Layout = {
   version: 1,
-  mode: 'work',
+  mode: 'ops',
   orientation: 'portrait',
   theme: 'minimal-dark',
   resolution: '1080p',
@@ -16,10 +17,10 @@ export const DEMO_LAYOUT: Layout = {
     {
       id: 'clock',
       type: 'clock',
-      x: 1,
-      y: 1,
-      w: 6,
-      h: 3,
+      x: 0,
+      y: 0,
+      w: 4,
+      h: 2,
       z: 0,
       props: { format: '24h', showSeconds: true, showDate: true },
       audio: false,
@@ -28,12 +29,108 @@ export const DEMO_LAYOUT: Layout = {
     {
       id: 'weather',
       type: 'weather',
-      x: 1,
-      y: 4,
-      w: 6,
-      h: 4,
+      x: 4,
+      y: 0,
+      w: 4,
+      h: 2,
       z: 0,
-      props: { units: 'metric', days: 5 },
+      props: { units: 'metric', days: 3 },
+      audio: false,
+      resizable: true
+    },
+    {
+      id: 'alerts',
+      type: 'alerts',
+      x: 0,
+      y: 2,
+      w: 8,
+      h: 2,
+      z: 0,
+      props: { severity_min: 'warn' },
+      audio: false,
+      resizable: true
+    },
+    {
+      id: 'svc',
+      type: 'service_status',
+      x: 0,
+      y: 4,
+      w: 4,
+      h: 3,
+      z: 0,
+      props: {},
+      audio: false,
+      resizable: true
+    },
+    {
+      id: 'hosts',
+      type: 'host_health',
+      x: 4,
+      y: 4,
+      w: 4,
+      h: 3,
+      z: 0,
+      props: {},
+      audio: false,
+      resizable: true
+    },
+    {
+      id: 'metrics',
+      type: 'metrics_chart',
+      x: 0,
+      y: 7,
+      w: 4,
+      h: 2,
+      z: 0,
+      props: { title: 'System' },
+      audio: false,
+      resizable: true
+    },
+    {
+      id: 'cal',
+      type: 'calendar',
+      x: 4,
+      y: 7,
+      w: 4,
+      h: 2,
+      z: 0,
+      props: { count: 4 },
+      audio: false,
+      resizable: true
+    },
+    {
+      id: 'news',
+      type: 'news_briefing',
+      x: 0,
+      y: 9,
+      w: 4,
+      h: 3,
+      z: 0,
+      props: { count: 5 },
+      audio: false,
+      resizable: true
+    },
+    {
+      id: 'logs',
+      type: 'log_tail',
+      x: 4,
+      y: 9,
+      w: 4,
+      h: 3,
+      z: 0,
+      props: { source: 'ha', lines: 10 },
+      audio: false,
+      resizable: true
+    },
+    {
+      id: 'board',
+      type: 'project_board',
+      x: 0,
+      y: 12,
+      w: 8,
+      h: 2,
+      z: 0,
+      props: {},
       audio: false,
       resizable: true
     }
