@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import Grid from '$lib/grid/Grid.svelte';
   import { layoutStore, currentLayout } from '$lib/layout/store.js';
   import { connection, toasts } from '$lib/stores/connection.js';
   import { DEMO_LAYOUT } from '$lib/layout/demo.js';
-  import { HAClient } from '$lib/ha/client.js';
-  import { wireLayoutUpdates } from '$lib/ha/subscribe.js';
   import { applyTheme } from '$lib/themes/loader.js';
   import { coerceTheme } from '$lib/themes/compat.js';
+  import { resolveLayout } from '$lib/layout/resolver.js';
+  import type { Orientation } from '$lib/layout/schema.js';
 
   // React to theme changes on the active layout.
   $effect(() => {
@@ -20,40 +20,78 @@
     }
   });
 
+  let pollTimer: ReturnType<typeof setInterval> | null = null;
+  let lastHash = '';
+
+  async function fetchState(base: string, token: string, id: string): Promise<string | null> {
+    try {
+      const r = await fetch(`${base}/api/states/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store'
+      });
+      if (!r.ok) return null;
+      const j = (await r.json()) as { state?: string };
+      return j.state ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  async function applyHa(base: string, token: string) {
+    const [preset, mode, theme, orientation] = await Promise.all([
+      fetchState(base, token, 'input_select.mirror_preset'),
+      fetchState(base, token, 'input_select.mirror_mode'),
+      fetchState(base, token, 'input_select.mirror_theme'),
+      fetchState(base, token, 'input_select.mirror_orientation')
+    ]);
+    const hash = `${preset}|${mode}|${theme}|${orientation}`;
+    if (hash === lastHash) return;
+    lastHash = hash;
+
+    const r = resolveLayout({
+      preset: preset ?? undefined,
+      mode: (mode as never) ?? undefined,
+      theme: (theme as never) ?? undefined,
+      orientation: (orientation as Orientation) ?? 'portrait'
+    });
+    if (!r) {
+      toasts.push('warn', `no bundled layout for ${mode}.${orientation}`);
+      return;
+    }
+    layoutStore.setLayout(r.layout, Date.now());
+    connection.set({ kind: 'connected', since: Date.now() });
+  }
+
   onMount(() => {
-    // Demo / offline boot: seed the store with the bundled layout so the
-    // screen is never empty while HA is unreachable.
     layoutStore.setLayout(DEMO_LAYOUT, 0);
 
     const hassUrl =
       (typeof window !== 'undefined' && (window as any).__HA_URL__) ||
-      (import.meta as any).env?.VITE_HA_URL;
+      (import.meta as any).env?.VITE_HA_URL ||
+      '';
     const hassToken =
       (typeof window !== 'undefined' && (window as any).__HA_TOKEN__) ||
-      (import.meta as any).env?.VITE_HA_TOKEN;
+      (import.meta as any).env?.VITE_HA_TOKEN ||
+      '';
 
     if (!hassUrl || !hassToken) {
       connection.set({ kind: 'down', reason: 'no-ha-config' });
-      toasts.push('info', 'No HA config in env — running in demo mode');
-      return () => {};
+      toasts.push('info', 'No HA config — running in demo mode');
+      return;
     }
 
-    const client = new HAClient({ hassUrl, accessToken: hassToken });
-    let unsub: (() => void) | null = null;
-    void (async () => {
-      try {
-        await client.start();
-        // wireLayoutUpdates does an initial pull itself + wires change watcher.
-        unsub = await wireLayoutUpdates(client, { baseUrl: hassUrl, token: hassToken });
-      } catch (err) {
-        toasts.push('error', `HA bootstrap failed: ${(err as Error).message}`);
-      }
-    })();
+    // Fire immediately + every 2s. No WS, no abstractions.
+    void applyHa(hassUrl, hassToken);
+    pollTimer = setInterval(() => {
+      void applyHa(hassUrl, hassToken);
+    }, 2000);
+  });
 
-    return () => {
-      unsub?.();
-      client.stop();
-    };
+  onDestroy(() => {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
   });
 
   let connLabel = $derived.by(() => {
