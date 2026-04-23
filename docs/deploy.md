@@ -1,4 +1,35 @@
-# Deploy Smart Mirror v1.0.0 from release
+# Deploy Smart Mirror
+
+## TL;DR — one-liner bootstrap
+
+On a fresh Ubuntu Desktop box, as an admin user with sudo:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chatwithllm/SmartMirror/main/installer/bootstrap.sh \
+  | sudo bash -s -- \
+      --orientation portrait-cw \
+      --ha-url http://ha.local:8123 \
+      --ha-token YOUR_LONG_LIVED_TOKEN
+sudo reboot
+```
+
+What it does automatically:
+
+1. `apt` installs: curl, git, whiptail, unclutter, xdotool, wmctrl, xrandr, va-api, Node 20, pnpm, Google Chrome
+2. Creates `mirror` user + `autologin` + `nopasswdlogin` groups
+3. Configures autologin for whichever display manager is active (GDM or lightdm)
+4. Installs rotation via `~mirror/.xprofile` + `monitors.xml`
+5. Writes `/etc/mirror/config.env` with HA URL + token
+6. Runs `pnpm install && pnpm build` as the mirror user
+7. Installs systemd units with `LogsDirectory=mirror` (no `/var/log/mirror` race)
+8. Kiosk script waits for `http://localhost:3000`, then launches Chrome with `--kiosk --password-store=basic` + native window size
+9. Verifies the frontend responds before exiting
+
+Idempotent — safe to re-run. Paste an HA token any time later by editing `/etc/mirror/config.env` + `sudo systemctl restart mirror-frontend`.
+
+---
+
+## Detailed walkthrough (advanced / custom)
 
 End-to-end deploy guide. Three machines: **dev laptop** (optional — for sanity),
 **Home Assistant box** (runs HA itself), **mirror box** (Celeron mini PC + 43"
