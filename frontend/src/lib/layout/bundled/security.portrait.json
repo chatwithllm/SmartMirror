@@ -9,7 +9,7 @@
   "tiles": [
     { "id": "clock", "type": "clock", "x": 0, "y": 0, "w": 4, "h": 2, "props": { "format": "24h" } },
     { "id": "alarm", "type": "alarm_panel", "x": 4, "y": 0, "w": 4, "h": 2 },
-    { "id": "cam-porch",     "type": "frigate_camera", "x": 0, "y": 2, "w": 8, "h": 3, "props": { "entity_id": "camera.porch" } },
+    { "id": "cam-porch",     "type": "frigate_camera", "x": 0, "y": 2, "w": 8, "h": 3, "props": { "entity_id": "camera.porch", "fit": "contain" } },
     { "id": "cam-backyard",  "type": "frigate_camera", "x": 0, "y": 5, "w": 4, "h": 3, "props": { "entity_id": "camera.backyard" } },
     { "id": "cam-garage-out","type": "frigate_camera", "x": 4, "y": 5, "w": 4, "h": 3, "props": { "entity_id": "camera.garage_outside_camera_main" } },
     { "id": "cam-garage-in", "type": "frigate_camera", "x": 0, "y": 8, "w": 4, "h": 2, "props": { "entity_id": "camera.garage_inside_camera_fluent" } },
