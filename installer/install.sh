@@ -376,6 +376,13 @@ if [ -f /etc/mirror/config.env ]; then . /etc/mirror/config.env; fi
 PORT="${FRONTEND_PORT:-3000}"
 URL="http://localhost:${PORT}"
 
+# Apply rotation BEFORE we measure the viewport — XDG autostart may not
+# have fired yet when the systemd user unit launches.
+if [ -x /usr/local/bin/mirror-rotate.sh ]; then
+  /usr/local/bin/mirror-rotate.sh >/dev/null 2>&1 || true
+  sleep 1
+fi
+
 # Wait for the frontend to respond (max 60s).
 for _ in $(seq 1 60); do
   curl -sf "$URL" >/dev/null 2>&1 && break
@@ -398,6 +405,19 @@ for cand in /usr/bin/google-chrome /usr/bin/chromium /usr/bin/chromium-browser /
   [ -x "$cand" ] && BROWSER="$cand" && break
 done
 [ -n "$BROWSER" ] || { echo "no chromium/chrome binary found" >&2; exit 127; }
+
+# GNOME under X11 ignores Chrome's --kiosk — background a helper that
+# force-fullscreens the window via wmctrl + xdotool F11 once it appears.
+(
+  for _ in $(seq 1 30); do
+    if command -v wmctrl >/dev/null 2>&1 && wmctrl -l 2>/dev/null | grep -q 'Smart Mirror'; then
+      wmctrl -r 'Smart Mirror' -b add,fullscreen 2>/dev/null || true
+      command -v xdotool >/dev/null 2>&1 && xdotool search --name 'Smart Mirror' key F11 2>/dev/null || true
+      break
+    fi
+    sleep 1
+  done
+) &
 
 exec "$BROWSER" \
   --kiosk \
