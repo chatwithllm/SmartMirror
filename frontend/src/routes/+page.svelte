@@ -6,7 +6,6 @@
   import { DEMO_LAYOUT } from '$lib/layout/demo.js';
   import { HAClient } from '$lib/ha/client.js';
   import { wireLayoutUpdates } from '$lib/ha/subscribe.js';
-  import { fetchLayout } from '$lib/layout/fetch.js';
   import { applyTheme } from '$lib/themes/loader.js';
   import { coerceTheme } from '$lib/themes/compat.js';
 
@@ -44,14 +43,8 @@
     void (async () => {
       try {
         await client.start();
+        // wireLayoutUpdates does an initial pull itself + wires change watcher.
         unsub = await wireLayoutUpdates(client, { baseUrl: hassUrl, token: hassToken });
-        // Initial pull via HA REST attribute (cache-busted).
-        const { layout } = await fetchLayout({
-          baseUrl: hassUrl,
-          token: hassToken,
-          revision: 0
-        });
-        layoutStore.setLayout(layout, 0);
       } catch (err) {
         toasts.push('error', `HA bootstrap failed: ${(err as Error).message}`);
       }

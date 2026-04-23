@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "mode": "security",
+  "orientation": "landscape",
+  "theme": "security",
+  "resolution": "1080p",
+  "transition": "flip",
+  "grid": { "cols": 12, "rows": 8, "gap": 14 },
+  "tiles": [
+    { "id": "alarm", "type": "alarm_panel", "x": 0, "y": 0, "w": 3, "h": 3 },
+    { "id": "cam1", "type": "frigate_camera", "x": 3, "y": 0, "w": 3, "h": 3, "props": { "camera": "driveway" } },
+    { "id": "cam2", "type": "frigate_camera", "x": 6, "y": 0, "w": 3, "h": 3, "props": { "camera": "backyard" } },
+    { "id": "cam3", "type": "frigate_camera", "x": 9, "y": 0, "w": 3, "h": 3, "props": { "camera": "porch" } },
+    { "id": "events", "type": "event_timeline", "x": 0, "y": 3, "w": 6, "h": 3 },
+    { "id": "sensors", "type": "sensor_grid", "x": 6, "y": 3, "w": 6, "h": 3 },
+    { "id": "quick", "type": "quick_actions", "x": 0, "y": 6, "w": 6, "h": 2 },
+    { "id": "alerts", "type": "alerts", "x": 6, "y": 6, "w": 6, "h": 2, "props": { "severity_min": "warn" } }
+  ]
+}
