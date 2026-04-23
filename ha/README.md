@@ -9,6 +9,8 @@ entities so the frontend has something to watch.
 ```
 ha/
 ├── README.md
+├── dashboards/
+│   └── mirror.yaml     # standalone Lovelace dashboard (helpers only)
 └── packages/
     ├── README.md
     └── mirror.yaml     # single-file package (helpers only)
@@ -35,6 +37,22 @@ ha/
    ```
 
 4. *Developer Tools → YAML → Check Configuration* → *Restart*.
+
+## Clean control dashboard
+
+Copy the Lovelace config at `ha/dashboards/mirror.yaml` into a new HA
+dashboard to get a minimal "Smart Mirror" sidebar entry exposing only
+the mirror_* helpers:
+
+1. *Settings → Dashboards → Add Dashboard → New dashboard from scratch*.
+   Title `Smart Mirror`, URL `mirror`, icon `mdi:monitor-dashboard`,
+   *Show in sidebar* on.
+2. Open the new dashboard → pencil (edit) → three-dot menu →
+   *Raw configuration editor*.
+3. Paste the contents of `ha/dashboards/mirror.yaml` → *Save*.
+
+Three cards: Preset (5 selects) · Behavior (toggles + focused tile +
+override timeout) · Overscan (4 bezel insets).
 
 ## Flipping the mirror
 
