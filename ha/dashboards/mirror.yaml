@@ -1,0 +1,83 @@
+# Smart Mirror · Lovelace dashboard
+#
+# A single-view HA dashboard that exposes ONLY the mirror_* helpers from
+# ha/packages/mirror.yaml. Use it as a standalone dashboard so the main
+# HA UI stays clean.
+#
+# Install:
+#   1. Settings → Dashboards → Add Dashboard → "New dashboard from scratch"
+#      Title: Smart Mirror
+#      URL:   mirror
+#      Icon:  mdi:monitor-dashboard
+#      Show in sidebar: on
+#   2. Open the dashboard → pencil (edit) → three-dot menu →
+#      Raw configuration editor → paste the contents below → Save.
+#
+# Everything here references entities created by the mirror package, so
+# no other HA state is touched.
+
+title: Smart Mirror
+views:
+  - title: Mirror
+    path: mirror
+    icon: mdi:monitor-dashboard
+    type: sections
+    max_columns: 2
+    sections:
+      - type: grid
+        cards:
+          - type: heading
+            heading: Preset
+            heading_style: title
+            icon: mdi:view-dashboard-variant
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: input_select.mirror_preset
+                name: Preset (bundle)
+              - entity: input_select.mirror_mode
+                name: Mode
+              - entity: input_select.mirror_theme
+                name: Theme
+              - entity: input_select.mirror_orientation
+                name: Orientation
+              - entity: input_select.mirror_resolution
+                name: Resolution
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Behavior
+            heading_style: title
+            icon: mdi:tune
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: input_boolean.mirror_edit_mode
+                name: Edit mode
+              - entity: input_boolean.mirror_gesture_enable
+                name: Gestures
+              - entity: input_boolean.mirror_dnd
+                name: Do not disturb
+              - entity: input_text.mirror_focused_tile
+                name: Focused tile
+              - entity: input_number.mirror_override_minutes
+                name: Override timeout
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Overscan (bezel inset)
+            heading_style: title
+            icon: mdi:border-all-variant
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: input_number.mirror_overscan_top
+                name: Top
+              - entity: input_number.mirror_overscan_right
+                name: Right
+              - entity: input_number.mirror_overscan_bottom
+                name: Bottom
+              - entity: input_number.mirror_overscan_left
+                name: Left
