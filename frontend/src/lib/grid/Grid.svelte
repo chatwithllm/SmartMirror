@@ -46,19 +46,26 @@
       container
     );
 
-    // Svelte's attribute spread produces attrs in the DOM but gridstack's
-    // attribute parser sometimes misses them when elements are already
-    // mounted. Call update() explicitly with each tile's geometry so
-    // positions are never off.
+    // Svelte's attribute spread lands gs-x/gs-y in the DOM but gridstack
+    // v11 doesn't always adopt pre-rendered items. Make it explicit:
+    // remove any auto-registered widgets, then call makeWidget() per
+    // tile so gridstack treats each element as a managed widget with
+    // the exact declared geometry.
     for (const tile of layout.tiles) {
-      const node = container?.querySelector(`.grid-stack-item[gs-id="${tile.id}"]`);
-      if (node) {
-        grid.update(node as HTMLElement, {
+      const node = container?.querySelector<HTMLElement>(
+        `.grid-stack-item[gs-id="${tile.id}"]`
+      );
+      if (!node) continue;
+      try {
+        grid.makeWidget(node, {
+          id: tile.id,
           x: tile.x,
           y: tile.y,
           w: tile.w,
           h: tile.h
         });
+      } catch {
+        /* already managed — ignore */
       }
     }
     // Keep cellHeight honest across rotation / window resize. Kiosk only
