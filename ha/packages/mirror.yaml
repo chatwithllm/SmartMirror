@@ -185,6 +185,13 @@ rest:
         unit_of_measurement: "%"
         state_class: measurement
         icon: mdi:harddisk
+      - name: Mirror Uptime
+        unique_id: mirror_uptime
+        value_template: "{{ value_json.uptime_seconds }}"
+        unit_of_measurement: "s"
+        device_class: duration
+        state_class: total_increasing
+        icon: mdi:timer-outline
 
 # The mirror toggle is handled entirely on the mirror PC (xset DPMS).
 # We tried KEY_ENERGY_SAVING → TU7000 didn't honour it, and we tried

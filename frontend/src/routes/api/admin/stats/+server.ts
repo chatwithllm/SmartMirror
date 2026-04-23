@@ -46,10 +46,30 @@ async function diskPercent(): Promise<number> {
   }
 }
 
+async function uptimeSeconds(): Promise<number> {
+  try {
+    const buf = await readFile('/proc/uptime', 'utf-8');
+    const first = buf.trim().split(/\s+/)[0];
+    return Math.round(parseFloat(first) || 0);
+  } catch {
+    return 0;
+  }
+}
+
 export const GET: RequestHandler = async () => {
-  const [cpu, ram, disk] = await Promise.all([cpuPercent(), ramPercent(), diskPercent()]);
+  const [cpu, ram, disk, uptime] = await Promise.all([
+    cpuPercent(),
+    ramPercent(),
+    diskPercent(),
+    uptimeSeconds(),
+  ]);
   return new Response(
-    JSON.stringify({ cpu: Math.round(cpu), ram: Math.round(ram), disk: Math.round(disk) }),
+    JSON.stringify({
+      cpu: Math.round(cpu),
+      ram: Math.round(ram),
+      disk: Math.round(disk),
+      uptime_seconds: uptime,
+    }),
     { headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } },
   );
 };
