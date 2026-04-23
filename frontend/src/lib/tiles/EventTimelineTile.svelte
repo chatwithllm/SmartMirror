@@ -82,7 +82,7 @@
   }
   li {
     display: grid;
-    grid-template-columns: 72px 1fr 32px auto;
+    grid-template-columns: 5.54rem 1fr 2.46rem auto;
     gap: 8px;
     align-items: center;
     padding: 4px 0;

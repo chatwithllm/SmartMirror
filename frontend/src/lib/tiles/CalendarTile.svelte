@@ -154,7 +154,7 @@
   .when {
     color: var(--accent);
     font-size: 0.8rem;
-    min-width: 44px;
+    min-width: 3.38rem;
   }
   .title {
     flex: 1;

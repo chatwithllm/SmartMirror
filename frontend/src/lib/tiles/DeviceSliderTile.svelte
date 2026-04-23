@@ -82,7 +82,7 @@
   }
   li {
     display: grid;
-    grid-template-columns: 96px 1fr 48px;
+    grid-template-columns: 7.38rem 1fr 3.69rem;
     gap: 8px;
     align-items: center;
     font-size: 0.85rem;

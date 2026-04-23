@@ -65,7 +65,7 @@
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(4.92rem, 1fr));
     gap: 8px;
   }
   .card {

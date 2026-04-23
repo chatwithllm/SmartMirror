@@ -69,7 +69,7 @@
 <style>
   .rc {
     display: grid;
-    grid-template-columns: 60px 1fr;
+    grid-template-columns: 4.62rem 1fr;
     grid-template-rows: auto 1fr;
     grid-template-areas:
       'h h'

@@ -159,7 +159,7 @@
   }
   .metric {
     display: grid;
-    grid-template-columns: 32px 1fr 34px;
+    grid-template-columns: 2.46rem 1fr 2.62rem;
     gap: 6px;
     align-items: center;
     font-size: 0.75rem;

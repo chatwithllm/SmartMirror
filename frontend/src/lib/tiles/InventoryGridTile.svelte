@@ -65,7 +65,7 @@
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(9.23rem, 1fr));
     gap: 6px;
   }
   .cell {

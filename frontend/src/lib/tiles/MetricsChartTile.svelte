@@ -91,7 +91,7 @@
   }
   .row {
     display: grid;
-    grid-template-columns: 72px 1fr 52px;
+    grid-template-columns: 5.54rem 1fr 4.0rem;
     gap: 8px;
     align-items: center;
     font-size: 0.8rem;

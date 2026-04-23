@@ -60,6 +60,9 @@
   .grid-cell {
     min-width: 0;
     min-height: 0;
+    /* Clip anything that overflows the declared cell so right-edge text
+     * doesn't bleed into neighbours or get chopped by the panel bezel. */
+    overflow: hidden;
   }
   .missing {
     display: flex;

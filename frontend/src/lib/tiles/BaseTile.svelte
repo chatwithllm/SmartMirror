@@ -33,7 +33,9 @@
     color: var(--fg);
     border: 1px solid var(--line);
     border-radius: var(--radius-md);
-    padding: var(--gap-md);
+    /* Generous horizontal padding so right-aligned text (host percentages,
+     * counts, timestamps) never sits flush against the tile border. */
+    padding: var(--gap-md) calc(var(--gap-md) + 0.5rem);
     overflow: hidden;
     transition:
       border-color var(--motion-fast) ease,
