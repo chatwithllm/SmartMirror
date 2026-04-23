@@ -1,13 +1,13 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import BaseTile from './BaseTile.svelte';
+  import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
 
   interface WeatherProps {
+    entity_id?: string;         // e.g. weather.home — pulls live HA data
     units?: 'metric' | 'imperial';
     days?: number;
     location?: string;
-    // Phase 03 stub: static demo data so the tile renders something when HA
-    // hasn't wired a real weather entity yet. Phase 04 replaces with a
-    // state_changed subscription.
     demo?: {
       tempC: number;
       condition: string;
@@ -26,6 +26,24 @@
 
   const units = $derived(props.units ?? 'metric');
   const days = $derived(Math.min(Math.max(props.days ?? 3, 1), 7));
+
+  // HA entity watch — only if entity_id provided.
+  let haEntity = $state<HaEntity | null>(null);
+  let stopWatch: (() => void) | null = null;
+
+  $effect(() => {
+    stopWatch?.();
+    haEntity = null;
+    if (!props.entity_id) return;
+    const w = watchEntity(props.entity_id, 30_000);
+    const unsub = w.store.subscribe((e) => (haEntity = e));
+    stopWatch = () => {
+      unsub();
+      w.stop();
+    };
+  });
+  onDestroy(() => stopWatch?.());
+
   const demo = $derived(
     props.demo ?? {
       tempC: 18,
@@ -42,6 +60,39 @@
     }
   );
 
+  // Resolve live data from HA or fall back to demo.
+  const current = $derived.by(() => {
+    if (haEntity) {
+      const a = haEntity.attributes as {
+        temperature?: number;
+        temperature_unit?: string;
+        templow?: number;
+        forecast?: { datetime: string; temperature: number; condition: string }[];
+      };
+      const tempC =
+        typeof a.temperature === 'number'
+          ? a.temperature_unit === '°F'
+            ? ((a.temperature - 32) * 5) / 9
+            : a.temperature
+          : demo.tempC;
+      const condition = haEntity.state || demo.condition;
+      const fc = a.forecast ?? [];
+      const forecast = fc.slice(0, 7).map((f) => ({
+        day: new Date(f.datetime).toLocaleDateString('en-GB', { weekday: 'short' }),
+        tempC: f.temperature,
+        condition: f.condition
+      }));
+      return {
+        tempC,
+        condition,
+        high: forecast[0]?.tempC ?? demo.high,
+        low: demo.low,
+        forecast: forecast.length ? forecast : demo.forecast
+      };
+    }
+    return demo;
+  });
+
   function fmt(tempC: number) {
     if (units === 'imperial') return `${Math.round((tempC * 9) / 5 + 32)}°`;
     return `${Math.round(tempC)}°`;
@@ -51,13 +102,13 @@
 <BaseTile {id} type="weather" label="Weather">
   <div class="wx" data-testid="weather">
     <div class="current">
-      <div class="temp" data-testid="weather-temp">{fmt(demo.tempC)}</div>
-      <div class="cond">{demo.condition}</div>
-      <div class="hilo mono">H {fmt(demo.high)} · L {fmt(demo.low)}</div>
+      <div class="temp" data-testid="weather-temp">{fmt(current.tempC)}</div>
+      <div class="cond">{current.condition}</div>
+      <div class="hilo mono">H {fmt(current.high)} · L {fmt(current.low)}</div>
     </div>
-    {#if demo.forecast?.length}
+    {#if current.forecast?.length}
       <div class="forecast">
-        {#each demo.forecast.slice(0, days) as f (f.day)}
+        {#each current.forecast.slice(0, days) as f (f.day)}
           <div class="f-cell">
             <div class="f-day mono">{f.day}</div>
             <div class="f-icon">{f.condition}</div>
@@ -93,6 +144,7 @@
     font-size: 14px;
     color: var(--dim);
     letter-spacing: 0.02em;
+    text-transform: capitalize;
   }
   .hilo {
     font-size: 12px;
