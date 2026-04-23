@@ -9,9 +9,8 @@ EnvironmentFile=-/etc/mirror/config.env
 Environment=NODE_ENV=production
 Environment=HOST=0.0.0.0
 Environment=PORT=3000
-# If HA uses a self-signed cert, config.env supplies HA_CA_CERT and we feed it
-# to Node via NODE_EXTRA_CA_CERTS (see Phase 03+ when WS client lands).
 Environment=NODE_EXTRA_CA_CERTS=/etc/mirror/ha.crt
+# WorkingDirectory rewritten by installer to match actual repo path
 WorkingDirectory=/opt/mirror/frontend
 ExecStart=/usr/bin/node build/index.js
 Restart=always
@@ -19,12 +18,16 @@ RestartSec=5
 User=mirror
 Group=mirror
 
-# Hardening
+# systemd-managed log dir — created automatically under /var/log/mirror
+LogsDirectory=mirror
+LogsDirectoryMode=0755
+
+# Hardening (kept lenient so it actually starts on a fresh box)
 NoNewPrivileges=true
-ProtectSystem=strict
-ProtectHome=read-only
 PrivateTmp=true
-ReadWritePaths=/var/log/mirror
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
 
 [Install]
 WantedBy=multi-user.target

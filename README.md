@@ -22,24 +22,22 @@ Dynamic, Home-Assistant-driven dashboard for a 43" TV mounted vertical. Live til
 
 10 interactive HTML mockups under [mockups/](mockups/). Open `mockups/index.html` in a browser for previews of all themes and modes.
 
-## Quickstart (v1.0.0)
+## Quickstart
 
-Full guide: **[docs/deploy.md](docs/deploy.md)**. TL;DR on the mirror box:
+**One-liner** on a fresh Ubuntu Desktop box (as admin user with sudo):
 
 ```bash
-sudo apt-get install -y git curl chromium-browser whiptail unclutter \
-  vainfo intel-media-va-driver-non-free wlr-randr
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs && sudo npm install -g pnpm@10
-
-sudo git clone --branch v1.0.0 https://github.com/chatwithllm/SmartMirror.git /opt/mirror
-cd /opt/mirror/frontend && pnpm install --frozen-lockfile && pnpm build
-cd /opt/mirror && sudo bash installer/install.sh --dry-run   # preview
-sudo bash installer/install.sh                                # apply
+curl -fsSL https://raw.githubusercontent.com/chatwithllm/SmartMirror/main/installer/bootstrap.sh \
+  | sudo bash -s -- \
+      --orientation portrait-cw \
+      --ha-url http://ha.local:8123 \
+      --ha-token YOUR_LONG_LIVED_TOKEN
 sudo reboot
 ```
 
-On the HA side, copy `ha/` into `/config/` and wire includes per [ha/README.md](ha/README.md).
+The bootstrap installs system deps (Node 20, pnpm, Chrome, va-api, xdotool, wmctrl), creates the `mirror` user, configures autologin (GDM *or* lightdm), builds the frontend, drops systemd units, applies rotation, and starts services. Idempotent — safe to re-run.
+
+On the HA side, copy `ha/` into `/config/` and wire includes per [ha/README.md](ha/README.md). Full walkthrough: [docs/deploy.md](docs/deploy.md).
 
 ## Hardware
 
