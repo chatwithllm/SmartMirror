@@ -1,0 +1,251 @@
+# Smart Mirror · HA package
+#
+# Drop this whole file under /config/packages/mirror.yaml. Your
+# configuration.yaml homeassistant: block needs one line:
+#
+#   homeassistant:
+#     ...
+#     packages: !include_dir_named packages
+#
+# HA merges every top-level key here with whatever is already in your
+# main configuration.yaml (dicts merge by key, lists append). So this
+# can coexist with pre-existing input_number, template, rest_command,
+# script, automation blocks.
+
+input_select:
+  mirror_preset:
+    name: Mirror Preset (bundle)
+    icon: mdi:monitor-dashboard
+    options:
+      - auto
+      - morning-minimal
+      - morning-editorial
+      - work-ops
+      - work-minimal
+      - relax-minimal
+      - relax-editorial
+      - shopping-minimal
+      - shopping-ops
+      - security-security
+      - security-ops
+      - night-minimal
+      - night-security
+      - ops-ops
+      - guest-editorial
+      - showcase-editorial
+    initial: auto
+
+  mirror_mode:
+    name: Mirror Mode
+    icon: mdi:view-dashboard-variant
+    options:
+      - auto
+      - morning
+      - work
+      - relax
+      - shopping
+      - security
+      - night
+      - ops
+      - guest
+      - showcase
+      - editorial
+    initial: auto
+
+  mirror_theme:
+    name: Mirror Theme
+    icon: mdi:palette
+    options:
+      - auto
+      - minimal-dark
+      - ops-cyberpunk
+      - editorial
+      - security
+    initial: auto
+
+  mirror_orientation:
+    name: Mirror Orientation
+    icon: mdi:screen-rotation
+    options:
+      - portrait
+      - landscape
+    initial: portrait
+
+  mirror_resolution:
+    name: Mirror Resolution
+    icon: mdi:resize
+    options:
+      - 4k
+      - 1440p
+      - 1080p
+    initial: 1080p
+
+input_boolean:
+  mirror_edit_mode:
+    name: Mirror Edit Mode
+    icon: mdi:resize
+  mirror_gesture_enable:
+    name: Mirror Gestures
+    icon: mdi:gesture-tap
+  mirror_dnd:
+    name: Mirror Do Not Disturb
+    icon: mdi:bell-off
+
+input_text:
+  mirror_focused_tile:
+    name: Mirror Focused Tile
+    max: 64
+    initial: ""
+
+input_number:
+  mirror_override_minutes:
+    name: Mirror Override Timeout
+    min: 5
+    max: 240
+    step: 5
+    initial: 60
+    unit_of_measurement: min
+
+template:
+  - sensor:
+      - name: Mirror Layout Revision
+        unique_id: mirror_layout_revision
+        state: "{{ state_attr('sensor.mirror_layout_file', 'revision') | int(0) }}"
+        attributes:
+          path: /local/mirror/layout.json
+          written_at: "{{ state_attr('sensor.mirror_layout_file', 'written_at') }}"
+          mode: "{{ state_attr('sensor.mirror_layout_file', 'mode') }}"
+          theme: "{{ state_attr('sensor.mirror_layout_file', 'theme') }}"
+  - binary_sensor:
+      - name: Any Service Down
+        unique_id: any_service_down
+        state: >
+          {% set svcs = [
+            'binary_sensor.up_home_assistant',
+            'binary_sensor.up_plex',
+            'binary_sensor.up_immich',
+            'binary_sensor.up_frigate',
+            'binary_sensor.up_backup'
+          ] %}
+          {{ (svcs | select('is_state', 'off') | list | count) > 0 }}
+
+python_script:
+
+rest_command:
+  mirror_set_resolution:
+    url: "ssh://mirror@mirror.local/usr/local/bin/set-mode-via-ssh.sh"
+    method: POST
+    payload: '{ "res": "{{ res }}", "rot": "{{ rot | default(''none'') }}" }'
+
+automation:
+  - alias: "Mirror · auto preset selector"
+    id: mirror_mode_selector
+    mode: single
+    trigger:
+      - platform: time_pattern
+        minutes: "/5"
+      - platform: state
+        entity_id:
+          - binary_sensor.any_service_down
+          - input_boolean.mirror_dnd
+          - input_select.mirror_mode
+          - input_select.mirror_theme
+          - input_select.mirror_preset
+          - input_select.mirror_orientation
+    condition:
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: input_select.mirror_preset
+            state: auto
+          - condition: template
+            value_template: "{{ trigger.from_state is not none }}"
+    action:
+      - service: python_script.build_mirror_layout
+
+  - alias: "Mirror · alert auto ops"
+    id: mirror_alert_auto_ops
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.any_service_down
+        to: "on"
+    action:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.mirror_preset
+        data:
+          option: ops-ops
+
+  - alias: "Mirror · weekly inventory window"
+    id: mirror_inventory_weekly
+    mode: single
+    trigger:
+      - platform: time
+        at: "19:00:00"
+    condition:
+      - condition: time
+        weekday:
+          - sun
+    action:
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.mirror_preset
+        data:
+          option: shopping-minimal
+      - delay: "00:15:00"
+      - service: input_select.select_option
+        target:
+          entity_id: input_select.mirror_preset
+        data:
+          option: auto
+
+  - alias: "Mirror · edit mode timeout"
+    id: mirror_edit_mode_timeout
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.mirror_edit_mode
+        to: "on"
+        for: "00:15:00"
+    action:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.mirror_edit_mode
+
+  - alias: "Mirror · perf downshift"
+    id: mirror_perf_downshift
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.mirror_frontend_fps
+        below: 30
+        for: "00:01:00"
+    action:
+      - service: input_select.select_previous
+        target:
+          entity_id: input_select.mirror_resolution
+      - service: rest_command.mirror_set_resolution
+        data:
+          res: "{{ states('input_select.mirror_resolution') }}"
+          rot: "cw"
+
+script:
+  mirror_plex_prep:
+    alias: "Mirror · Plex prep"
+    sequence:
+      - service: homeassistant.update_entity
+        target:
+          entity_id: sensor.plex_continue_watching
+
+  mirror_patch_tile:
+    alias: "Mirror · patch tile"
+    sequence:
+      - service: python_script.patch_mirror_layout
+        data:
+          tile_id: "{{ tile_id }}"
+          x: "{{ x | default(none) }}"
+          y: "{{ y | default(none) }}"
+          w: "{{ w | default(none) }}"
+          h: "{{ h | default(none) }}"
+      - service: python_script.build_mirror_layout
