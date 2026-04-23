@@ -100,7 +100,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `ha/layouts/security.portrait.json`, `ha/layouts/night.portrait.json`
 - Registry at 33 tile types
 
-### Phase 10 — morning + ambience bundle
+### Phase 10 — morning + ambience bundle (PR #11, merged 2026-04-23)
 - Tiles: `RoutineChecklistTile` (ring % done), `CoffeeTimerTile`, `CommuteTile`, `AmbientScenesTile`, `DeviceSliderTile`, `SleepTimerTile`
 - Landscape layout variants for every mode (morning/work/relax/shopping/security/night/ops/guest/showcase/editorial) + portrait variants for guest/showcase/editorial
 - Registry at 39 tile types (full spec surface)
+
+### Phase 11 — themes
+- 4 theme CSS files: `minimal-dark`, `ops-cyberpunk`, `editorial`, `security`
+- `lib/themes/loader.ts` — lazy-import `?inline` + 400ms cross-fade
+- `lib/themes/compat.ts` + `coerceTheme()` — enforces legal (mode × theme) combos
+- `lib/stores/theme.ts` — active theme store
+- `+page.svelte` wires an `$effect` that coerces + applies theme on every layout change
+- Unit tests: 5 compat cases

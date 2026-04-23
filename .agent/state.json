@@ -14,8 +14,8 @@
     "07": { "status": "merged", "pr": 8, "branch": "phase-07-inventory", "title": "inventory + shopping bundle" },
     "08": { "status": "merged", "pr": 9, "branch": "phase-08-work-focus", "title": "work + focus bundle" },
     "09": { "status": "merged", "pr": 10, "branch": "phase-09-security-night", "title": "security + night bundle" },
-    "10": { "status": "in_progress", "branch": "phase-10-morning-ambience", "title": "morning + ambience bundle" },
-    "11": { "status": "queued", "title": "themes" },
+    "10": { "status": "merged", "pr": 11, "branch": "phase-10-morning-ambience", "title": "morning + ambience bundle" },
+    "11": { "status": "in_progress", "branch": "phase-11-themes", "title": "themes" },
     "12": { "status": "queued", "title": "resize / FLIP / edit mode" },
     "13": { "status": "queued", "title": "gesture subsystem" },
     "14": { "status": "queued", "title": "telemetry + installer + docs polish" }

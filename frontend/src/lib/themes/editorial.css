@@ -1,0 +1,36 @@
+:root[data-theme='editorial'] {
+  --bg: #f5f1e8;
+  --panel: #ffffff;
+  --panel-2: #ede6d6;
+  --fg: #1a1a1a;
+  --dim: #55514a;
+  --dimmer: #8a857a;
+  --line: #d8d0c0;
+  --line-strong: #b8ae99;
+  --accent: #7a4b2d;
+  --accent-2: #b2511d;
+  --ok: #3d7a4a;
+  --warn: #a8731c;
+  --bad: #a8331c;
+  --info: #3d567a;
+  --violet: #6e478a;
+
+  --font-ui: 'Georgia', serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Menlo', monospace;
+  --font-display: 'Fraunces', 'Times New Roman', Georgia, serif;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --gap-sm: 8px;
+  --gap-md: 16px;
+  --gap-lg: 28px;
+
+  --shadow-1: 0 2px 4px rgba(26, 26, 26, 0.08);
+  --shadow-2: 0 16px 40px rgba(26, 26, 26, 0.08);
+  --backdrop-blur: 0px;
+  --motion-fast: 150ms;
+  --motion-med: 320ms;
+  --motion-slow: 500ms;
+  --overscan: 3vw;
+}

@@ -1,0 +1,36 @@
+:root[data-theme='ops-cyberpunk'] {
+  --bg: #05060a;
+  --panel: #0c0f15;
+  --panel-2: #121826;
+  --fg: #c2faff;
+  --dim: #5a7d8a;
+  --dimmer: #334455;
+  --line: #163042;
+  --line-strong: #23506f;
+  --accent: #00ffd5;
+  --accent-2: #ff00a8;
+  --ok: #00ff9f;
+  --warn: #ffd000;
+  --bad: #ff3b66;
+  --info: #00d1ff;
+  --violet: #b24bff;
+
+  --font-ui: 'JetBrains Mono', ui-monospace, 'Menlo', monospace;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Menlo', monospace;
+  --font-display: var(--font-mono);
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --gap-sm: 6px;
+  --gap-md: 10px;
+  --gap-lg: 16px;
+
+  --shadow-1: 0 0 0 1px rgba(0, 255, 213, 0.1);
+  --shadow-2: 0 0 24px rgba(0, 255, 213, 0.08);
+  --backdrop-blur: 0px;
+  --motion-fast: 80ms;
+  --motion-med: 180ms;
+  --motion-slow: 280ms;
+  --overscan: 2vw;
+}

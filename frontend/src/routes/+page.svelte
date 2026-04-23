@@ -7,6 +7,19 @@
   import { HAClient } from '$lib/ha/client.js';
   import { wireLayoutUpdates } from '$lib/ha/subscribe.js';
   import { fetchLayout } from '$lib/layout/fetch.js';
+  import { applyTheme } from '$lib/themes/loader.js';
+  import { coerceTheme } from '$lib/themes/compat.js';
+
+  // React to theme changes on the active layout.
+  $effect(() => {
+    const l = $currentLayout;
+    if (!l) return;
+    const { theme, coerced, from } = coerceTheme(l.mode, l.theme);
+    void applyTheme(theme);
+    if (coerced) {
+      toasts.push('warn', `theme ${from} not allowed for ${l.mode}, using ${theme}`);
+    }
+  });
 
   onMount(() => {
     // Demo / offline boot: seed the store with the bundled layout so the
