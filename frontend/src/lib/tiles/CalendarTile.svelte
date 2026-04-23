@@ -1,16 +1,19 @@
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte';
   import BaseTile from './BaseTile.svelte';
+  import { browser } from '$app/environment';
 
   interface Event {
     id: string;
     title: string;
-    start: string; // ISO
+    start: string;
     end?: string;
     location?: string;
   }
 
   interface CalProps {
-    calendar_id?: string;
+    entity_id?: string;   // e.g. calendar.personal — pulls live HA events
+    calendar_id?: string; // legacy
     count?: number;
     demo?: Event[];
   }
@@ -22,21 +25,69 @@
 
   let { id, props = {} }: Props = $props();
   const count = $derived(Math.min(Math.max(props.count ?? 6, 1), 12));
+
+  let liveEvents = $state<Event[] | null>(null);
+  let timer: ReturnType<typeof setInterval> | null = null;
+
+  async function pullCalendar() {
+    if (!browser || !props.entity_id) return;
+    const w = window as unknown as { __HA_URL__?: string; __HA_TOKEN__?: string };
+    if (!w.__HA_URL__ || !w.__HA_TOKEN__) return;
+    const now = new Date();
+    const start = now.toISOString();
+    const end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    try {
+      const r = await fetch(
+        `${w.__HA_URL__}/api/calendars/${props.entity_id}?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
+        { headers: { Authorization: `Bearer ${w.__HA_TOKEN__}` }, cache: 'no-store' }
+      );
+      if (!r.ok) return;
+      const data = (await r.json()) as Array<{
+        summary?: string;
+        start?: { dateTime?: string; date?: string };
+        end?: { dateTime?: string };
+        location?: string;
+        uid?: string;
+      }>;
+      liveEvents = data
+        .map((ev, i) => ({
+          id: ev.uid ?? String(i),
+          title: ev.summary ?? '(untitled)',
+          start: ev.start?.dateTime ?? ev.start?.date ?? '',
+          end: ev.end?.dateTime,
+          location: ev.location
+        }))
+        .filter((e) => e.start);
+    } catch {
+      /* swallow */
+    }
+  }
+
+  onMount(() => {
+    if (!props.entity_id) return;
+    void pullCalendar();
+    timer = setInterval(() => void pullCalendar(), 5 * 60 * 1000);
+  });
+  onDestroy(() => {
+    if (timer) clearInterval(timer);
+  });
+
   const events: Event[] = $derived(
-    props.demo ?? [
-      { id: '1', title: 'Standup', start: new Date(Date.now() + 30 * 60 * 1000).toISOString() },
-      {
-        id: '2',
-        title: 'Design review',
-        start: new Date(Date.now() + 90 * 60 * 1000).toISOString(),
-        location: 'Meet'
-      },
-      {
-        id: '3',
-        title: '1:1 w/ manager',
-        start: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString()
-      }
-    ]
+    liveEvents ??
+      props.demo ?? [
+        { id: '1', title: 'Standup', start: new Date(Date.now() + 30 * 60 * 1000).toISOString() },
+        {
+          id: '2',
+          title: 'Design review',
+          start: new Date(Date.now() + 90 * 60 * 1000).toISOString(),
+          location: 'Meet'
+        },
+        {
+          id: '3',
+          title: '1:1 w/ manager',
+          start: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString()
+        }
+      ]
   );
 
   function formatTime(iso: string): string {

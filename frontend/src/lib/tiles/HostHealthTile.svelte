@@ -1,16 +1,27 @@
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte';
   import BaseTile from './BaseTile.svelte';
+  import { getEntity } from '$lib/ha/entity.js';
 
   interface Host {
     name: string;
-    cpu: number; // 0..100
+    cpu: number;
     ramPct: number;
     diskPct: number;
     uptimeH: number;
   }
 
+  interface HostCfg {
+    name: string;
+    cpu?: string;       // entity_id
+    ram?: string;       // entity_id
+    disk?: string;      // entity_id
+    uptime?: string;    // entity_id
+  }
+
   interface HostProps {
-    hosts?: string[];
+    // New: list of HA-sensor-backed hosts
+    hosts?: HostCfg[];
     demo?: Host[];
   }
 
@@ -21,12 +32,47 @@
 
   let { id, props = {} }: Props = $props();
 
+  let liveHosts = $state<Host[] | null>(null);
+  let timer: ReturnType<typeof setInterval> | null = null;
+
+  async function pullAll() {
+    if (!props.hosts?.length) return;
+    const resolved: Host[] = [];
+    for (const h of props.hosts) {
+      const [cpu, ram, disk, uptime] = await Promise.all([
+        h.cpu ? getEntity(h.cpu) : Promise.resolve(null),
+        h.ram ? getEntity(h.ram) : Promise.resolve(null),
+        h.disk ? getEntity(h.disk) : Promise.resolve(null),
+        h.uptime ? getEntity(h.uptime) : Promise.resolve(null)
+      ]);
+      const toN = (s?: string | null) => (s == null ? 0 : Number(s) || 0);
+      resolved.push({
+        name: h.name,
+        cpu: Math.round(toN(cpu?.state)),
+        ramPct: Math.round(toN(ram?.state)),
+        diskPct: Math.round(toN(disk?.state)),
+        uptimeH: Math.round(toN(uptime?.state))
+      });
+    }
+    liveHosts = resolved;
+  }
+
+  onMount(() => {
+    if (!props.hosts?.length) return;
+    void pullAll();
+    timer = setInterval(() => void pullAll(), 15_000);
+  });
+  onDestroy(() => {
+    if (timer) clearInterval(timer);
+  });
+
   const hosts: Host[] = $derived(
-    props.demo ?? [
-      { name: 'ha', cpu: 18, ramPct: 42, diskPct: 61, uptimeH: 812 },
-      { name: 'plex', cpu: 54, ramPct: 73, diskPct: 88, uptimeH: 220 },
-      { name: 'mirror', cpu: 21, ramPct: 55, diskPct: 14, uptimeH: 6 }
-    ]
+    liveHosts ??
+      props.demo ?? [
+        { name: 'ha', cpu: 18, ramPct: 42, diskPct: 61, uptimeH: 812 },
+        { name: 'plex', cpu: 54, ramPct: 73, diskPct: 88, uptimeH: 220 },
+        { name: 'mirror', cpu: 21, ramPct: 55, diskPct: 14, uptimeH: 6 }
+      ]
   );
 
   function barColor(pct: number) {
