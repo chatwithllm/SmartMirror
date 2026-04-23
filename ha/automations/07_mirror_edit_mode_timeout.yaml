@@ -1,0 +1,16 @@
+# Smart Mirror — auto-off edit mode after 15 min of dwell.
+
+alias: "Mirror · edit mode timeout"
+id: mirror_edit_mode_timeout
+mode: single
+
+trigger:
+  - platform: state
+    entity_id: input_boolean.mirror_edit_mode
+    to: "on"
+    for: "00:15:00"
+
+action:
+  - service: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.mirror_edit_mode
