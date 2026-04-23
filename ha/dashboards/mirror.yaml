@@ -67,6 +67,47 @@ views:
       - type: grid
         cards:
           - type: heading
+            heading: Controls
+            heading_style: title
+            icon: mdi:remote
+          - type: horizontal-stack
+            cards:
+              - type: button
+                name: Reload Browser
+                icon: mdi:refresh
+                entity: input_button.mirror_reload_browser
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_reload_browser
+                show_state: false
+              - type: button
+                name: Restart Frontend
+                icon: mdi:restart
+                entity: input_button.mirror_restart_frontend
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_restart_frontend
+                show_state: false
+              - type: button
+                name: Reboot PC
+                icon: mdi:power
+                entity: input_button.mirror_reboot
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_reboot
+                confirmation:
+                  text: Reboot the mirror PC now?
+                show_state: false
+
+      - type: grid
+        cards:
+          - type: heading
             heading: Overscan (bezel inset)
             heading_style: title
             icon: mdi:border-all-variant

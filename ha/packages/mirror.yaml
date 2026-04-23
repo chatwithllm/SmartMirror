@@ -90,6 +90,20 @@ input_boolean:
     name: Mirror Do Not Disturb
     icon: mdi:bell-off
 
+# Press-to-act controls. Mirror frontend polls the state timestamp; a
+# change = a press = execute. Nothing runs on HA side — the mirror box
+# invokes the action locally, so no rest_command / ssh / token plumbing.
+input_button:
+  mirror_reload_browser:
+    name: Mirror · Reload Browser
+    icon: mdi:refresh
+  mirror_restart_frontend:
+    name: Mirror · Restart Frontend
+    icon: mdi:restart
+  mirror_reboot:
+    name: Mirror · Reboot PC
+    icon: mdi:power
+
 input_text:
   mirror_focused_tile:
     name: Mirror Focused Tile

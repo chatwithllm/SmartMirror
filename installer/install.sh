@@ -193,6 +193,24 @@ create_mirror_user() {
     run groupadd -r autologin
   fi
   run usermod -aG autologin mirror
+
+  # Grant mirror user NOPASSWD sudo for reboot only, so the HA "Reboot PC"
+  # control can shell out to /sbin/reboot without a password. Narrow scope
+  # keeps blast radius small.
+  local sudoers_file="/etc/sudoers.d/mirror-reboot"
+  local sudoers_content="mirror ALL=(root) NOPASSWD: /sbin/reboot, /usr/sbin/reboot, /usr/bin/systemctl reboot"
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "would write $sudoers_file"
+  else
+    printf '%s\n' "$sudoers_content" > "$sudoers_file"
+    chmod 0440 "$sudoers_file"
+    if ! visudo -cf "$sudoers_file" >/dev/null 2>&1; then
+      rm -f "$sudoers_file"
+      log "sudoers drop-in failed validation — removed"
+    else
+      log "wrote $sudoers_file"
+    fi
+  fi
 }
 
 # ---------- display manager autologin ----------
