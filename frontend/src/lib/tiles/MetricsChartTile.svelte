@@ -80,7 +80,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -94,7 +94,7 @@
     grid-template-columns: 72px 1fr 52px;
     gap: 8px;
     align-items: center;
-    font-size: 11px;
+    font-size: 0.8rem;
   }
   .name {
     color: var(--dim);

@@ -68,7 +68,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -87,21 +87,21 @@
     align-items: center;
     padding: 4px 0;
     border-bottom: 1px solid var(--line);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   li.acked {
     opacity: 0.55;
   }
   .cam {
     color: var(--accent-2);
-    font-size: 10px;
+    font-size: 0.75rem;
   }
   .kind {
     color: var(--fg);
   }
   .when {
     color: var(--dim);
-    font-size: 11px;
+    font-size: 0.8rem;
     text-align: right;
   }
   button {
@@ -111,7 +111,7 @@
     border-radius: var(--radius-sm);
     padding: 2px 8px;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 0.75rem;
     cursor: pointer;
   }
   .ok {

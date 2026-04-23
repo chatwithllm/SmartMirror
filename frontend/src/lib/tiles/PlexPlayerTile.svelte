@@ -130,6 +130,6 @@
     padding: 6px 8px;
     background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
     color: var(--fg);
-    font-size: 11px;
+    font-size: 0.8rem;
   }
 </style>

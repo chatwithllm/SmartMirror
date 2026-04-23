@@ -57,7 +57,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -74,13 +74,13 @@
     grid-template-columns: 56px 1fr 32px;
     gap: 8px;
     align-items: baseline;
-    font-size: 13px;
+    font-size: 0.95rem;
     padding: 3px 0;
     border-bottom: 1px solid var(--line);
   }
   .src {
     color: var(--accent-2);
-    font-size: 10px;
+    font-size: 0.75rem;
     text-transform: uppercase;
   }
   .hl {
@@ -88,7 +88,7 @@
   }
   .when {
     color: var(--dim);
-    font-size: 11px;
+    font-size: 0.8rem;
     text-align: right;
   }
 </style>

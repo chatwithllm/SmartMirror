@@ -58,7 +58,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -76,7 +76,7 @@
     gap: 8px;
     align-items: center;
     padding: 3px 0;
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   .dot {
     width: 8px;
@@ -96,11 +96,11 @@
   }
   .name {
     color: var(--fg);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   .latency {
     color: var(--dim);
-    font-size: 11px;
+    font-size: 0.8rem;
     text-align: right;
   }
 </style>

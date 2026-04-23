@@ -59,7 +59,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -90,18 +90,18 @@
   }
   .thumb-empty {
     color: var(--dim);
-    font-size: 18px;
+    font-size: 1.3rem;
     letter-spacing: 0.1em;
   }
   .title {
     color: var(--fg);
-    font-size: 11px;
+    font-size: 0.8rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .sub {
     color: var(--dim);
-    font-size: 9px;
+    font-size: 0.7rem;
   }
 </style>

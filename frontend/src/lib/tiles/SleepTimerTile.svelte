@@ -78,12 +78,12 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
   .remaining {
-    font-size: 32px;
+    font-size: 2.5rem;
     color: var(--accent-2);
     font-variant-numeric: tabular-nums;
   }
@@ -100,7 +100,7 @@
     border-radius: var(--radius-sm);
     padding: 4px 10px;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 0.8rem;
     cursor: pointer;
   }
   .cancel {

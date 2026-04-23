@@ -65,13 +65,13 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
   .none {
     color: var(--ok);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   ul {
     list-style: none;
@@ -89,7 +89,7 @@
     padding: 4px 6px;
     border-radius: var(--radius-sm);
     border-left: 3px solid var(--line);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   li.sev-critical {
     border-left-color: var(--bad);
@@ -101,7 +101,7 @@
     border-left-color: var(--accent);
   }
   .sev {
-    font-size: 9px;
+    font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.14em;
     color: var(--dim);
@@ -117,11 +117,11 @@
   }
   .src {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
   }
   .when {
     color: var(--dim);
-    font-size: 11px;
+    font-size: 0.8rem;
     text-align: right;
   }
 </style>

@@ -91,12 +91,12 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
   .time {
-    font-size: 28px;
+    font-size: 2.2rem;
     color: var(--fg);
     font-variant-numeric: tabular-nums;
   }
@@ -123,7 +123,7 @@
     color: var(--fg);
     padding: 4px 10px;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 0.8rem;
     cursor: pointer;
   }
 </style>

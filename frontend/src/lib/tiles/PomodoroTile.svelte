@@ -108,7 +108,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 22px;
+    font-size: 1.7rem;
     color: var(--fg);
     font-variant-numeric: tabular-nums;
   }
@@ -123,7 +123,7 @@
     color: var(--fg);
     padding: 4px 10px;
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 0.8rem;
     cursor: pointer;
   }
 </style>

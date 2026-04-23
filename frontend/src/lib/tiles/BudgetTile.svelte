@@ -57,7 +57,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -68,17 +68,17 @@
   }
   .spent {
     color: var(--fg);
-    font-size: 28px;
+    font-size: 2.2rem;
     font-weight: 300;
   }
   .of {
     color: var(--dim);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   .pct {
     margin-left: auto;
     color: var(--fg);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   .pct.over {
     color: var(--bad);
@@ -106,6 +106,6 @@
   }
   .note {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
   }
 </style>

@@ -63,6 +63,6 @@
     width: 100%;
     height: 100%;
     color: var(--dim);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
 </style>

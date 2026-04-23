@@ -70,7 +70,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -89,13 +89,13 @@
     align-items: center;
     padding: 3px 4px;
     border-radius: var(--radius-sm);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   .check {
     background: none;
     border: 0;
     color: var(--dim);
-    font-size: 14px;
+    font-size: 1.05rem;
     cursor: pointer;
   }
   .check.done {
@@ -110,11 +110,11 @@
   }
   .q {
     color: var(--dim);
-    font-size: 11px;
+    font-size: 0.8rem;
   }
   .c {
     color: var(--accent-2);
-    font-size: 10px;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
   }

@@ -66,13 +66,13 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
   .empty {
     color: var(--dim);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   ul {
     list-style: none;
@@ -89,16 +89,16 @@
   }
   .title {
     color: var(--fg);
-    font-size: 14px;
+    font-size: 1.05rem;
     font-weight: 500;
   }
   .sub {
     color: var(--dim);
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   .meta {
     color: var(--dimmer);
-    font-size: 10px;
+    font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
   }

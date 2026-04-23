@@ -64,7 +64,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -75,7 +75,7 @@
     overflow: hidden;
   }
   .col header {
-    font-size: 9px;
+    font-size: 0.7rem;
     color: var(--dim);
     text-transform: uppercase;
     letter-spacing: 0.14em;
@@ -103,12 +103,12 @@
     background: var(--panel-2);
     border-radius: var(--radius-sm);
     padding: 4px 6px;
-    font-size: 10px;
+    font-size: 0.75rem;
     color: var(--fg);
   }
   .a {
     color: var(--dim);
-    font-size: 9px;
+    font-size: 0.7rem;
     margin-left: 4px;
   }
 </style>

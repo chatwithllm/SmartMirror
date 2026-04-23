@@ -68,7 +68,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -85,7 +85,7 @@
     grid-template-columns: 96px 1fr 48px;
     gap: 8px;
     align-items: center;
-    font-size: 12px;
+    font-size: 0.85rem;
   }
   .n {
     color: var(--fg);
@@ -93,7 +93,7 @@
   .v {
     color: var(--dim);
     text-align: right;
-    font-size: 11px;
+    font-size: 0.8rem;
   }
   input[type='range'] {
     -webkit-appearance: none;

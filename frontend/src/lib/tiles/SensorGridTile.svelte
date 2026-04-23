@@ -59,7 +59,7 @@
   }
   h4 {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -79,16 +79,16 @@
   }
   .name {
     color: var(--fg);
-    font-size: 11px;
+    font-size: 0.8rem;
   }
   .room {
     color: var(--dim);
-    font-size: 9px;
+    font-size: 0.7rem;
     text-transform: uppercase;
     letter-spacing: 0.12em;
   }
   .state {
-    font-size: 10px;
+    font-size: 0.75rem;
     border-radius: var(--radius-sm);
     padding: 2px 6px;
     width: fit-content;
@@ -102,7 +102,7 @@
     color: var(--bad);
   }
   .bat {
-    font-size: 9px;
+    font-size: 0.7rem;
     color: var(--dim);
   }
   .bat.low {

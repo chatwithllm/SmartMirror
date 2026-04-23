@@ -131,7 +131,7 @@
   }
   .cal-title {
     color: var(--dim);
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
   }
@@ -147,13 +147,13 @@
     display: flex;
     gap: 8px;
     align-items: baseline;
-    font-size: 13px;
+    font-size: 0.95rem;
     padding: 4px 0;
     border-bottom: 1px solid var(--line);
   }
   .when {
     color: var(--accent);
-    font-size: 11px;
+    font-size: 0.8rem;
     min-width: 44px;
   }
   .title {
@@ -162,11 +162,11 @@
   }
   .loc {
     color: var(--dim);
-    font-size: 11px;
+    font-size: 0.8rem;
   }
   .soon {
     color: var(--dim);
-    font-size: 11px;
+    font-size: 0.8rem;
     font-family: var(--font-mono);
   }
   .soon.warn {
