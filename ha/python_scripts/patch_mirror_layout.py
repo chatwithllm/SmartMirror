@@ -26,5 +26,9 @@ else:
                 patched.append(t)
             layout['tiles'] = patched
             attrs['layout'] = layout
-            attrs['written_at'] = now().strftime('%Y-%m-%dT%H:%M:%S')
-            hass.states.set('sensor.mirror_layout_file', int(now().timestamp()), attrs)
+            try:
+                revision = int(sensor.state) + 1
+            except Exception:
+                revision = 1
+            attrs['revision'] = revision
+            hass.states.set('sensor.mirror_layout_file', revision, attrs)

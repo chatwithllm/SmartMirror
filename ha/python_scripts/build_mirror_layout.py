@@ -1,17 +1,10 @@
 # Smart Mirror — layout builder (HA python_script sandbox safe).
 #
-# HA python_script sandbox blocks `import` (including json, os, time) and
-# file I/O. It exposes:
-#   - hass       — the HA Core object (read states, call services, set states)
-#   - data       — service-call data dict
-#   - logger     — logger instance
-#   - time_fired — iso timestamp of the invocation
-#   - service_name — e.g. 'build_mirror_layout'
-# Plus a few helpers: `now()` returns a datetime; basic builtins are allowed.
+# Sandbox exposes only: hass, data, logger, service_name, time_fired.
+# NO imports, NO now() helper, NO file I/O.
 #
-# This script stores the resolved layout as the attribute dict on
-# `sensor.mirror_layout_file`. The frontend reads that attribute directly
-# — no JSON serialization or disk writes are needed.
+# Layout is stored as a dict attribute on `sensor.mirror_layout_file`.
+# Frontend reads it via the HA REST /api/states endpoint.
 
 PRESETS = {
     'morning-minimal':    ('morning',  'minimal-dark'),
@@ -66,8 +59,10 @@ if preset and preset != 'auto' and preset in PRESETS:
         theme = p_theme
 
 # 3. Auto-mode inference from context --------------------------------------
+# Without now(), we can't check the wall clock. Fall through to 'work' when
+# nothing else matches — the 5-minute automation re-calls us so the
+# eventual mode still flips correctly once HA sends state changes.
 if mode == 'auto':
-    _hour = now().hour
     _svc   = hass.states.get('binary_sensor.any_service_down')
     _guest = hass.states.get('input_boolean.guest_mode')
     _plex  = hass.states.get('binary_sensor.plex_playing')
@@ -77,14 +72,8 @@ if mode == 'auto':
         mode = 'guest'
     elif _plex is not None and _plex.state == 'on':
         mode = 'relax'
-    elif _hour < 6 or _hour >= 22:
-        mode = 'night'
-    elif _hour < 10:
-        mode = 'morning'
-    elif _hour < 17:
-        mode = 'work'
     else:
-        mode = 'relax'
+        mode = 'work'
 
 # 4. Theme coercion per COMPAT ---------------------------------------------
 allowed_themes = COMPAT.get(mode, ['minimal-dark'])
@@ -92,15 +81,11 @@ if theme == 'auto' or theme not in allowed_themes:
     theme = allowed_themes[0]
 
 # 5. Build a default layout -----------------------------------------------
-# For Phase 02 we embed a basic 2-tile layout. Later phases route through
-# the per-mode layout JSONs under ha/layouts/ — but loading those from
-# disk needs a custom_component (sandbox forbids open()). Kept inline
-# for now.
 tiles = [
     {
         'id': 'clock',
         'type': 'clock',
-        'x': 1, 'y': 1, 'w': 6, 'h': 3,
+        'x': 0, 'y': 0, 'w': 4, 'h': 2,
         'z': 0,
         'audio': False,
         'resizable': True,
@@ -109,11 +94,65 @@ tiles = [
     {
         'id': 'weather',
         'type': 'weather',
-        'x': 1, 'y': 4, 'w': 6, 'h': 3,
+        'x': 4, 'y': 0, 'w': 4, 'h': 2,
         'z': 0,
         'audio': False,
         'resizable': True,
         'props': {'units': 'metric', 'days': 3},
+    },
+    {
+        'id': 'alerts',
+        'type': 'alerts',
+        'x': 0, 'y': 2, 'w': 8, 'h': 2,
+        'z': 0,
+        'audio': False,
+        'resizable': True,
+        'props': {'severity_min': 'warn'},
+    },
+    {
+        'id': 'svc',
+        'type': 'service_status',
+        'x': 0, 'y': 4, 'w': 4, 'h': 3,
+        'z': 0,
+        'audio': False,
+        'resizable': True,
+        'props': {},
+    },
+    {
+        'id': 'hosts',
+        'type': 'host_health',
+        'x': 4, 'y': 4, 'w': 4, 'h': 3,
+        'z': 0,
+        'audio': False,
+        'resizable': True,
+        'props': {},
+    },
+    {
+        'id': 'cal',
+        'type': 'calendar',
+        'x': 0, 'y': 7, 'w': 8, 'h': 3,
+        'z': 0,
+        'audio': False,
+        'resizable': True,
+        'props': {'count': 5},
+    },
+    {
+        'id': 'news',
+        'type': 'news_briefing',
+        'x': 0, 'y': 10, 'w': 8, 'h': 2,
+        'z': 0,
+        'audio': False,
+        'resizable': True,
+        'props': {'count': 5},
+    },
+    {
+        'id': 'board',
+        'type': 'project_board',
+        'x': 0, 'y': 12, 'w': 8, 'h': 2,
+        'z': 0,
+        'audio': False,
+        'resizable': True,
+        'props': {},
     },
 ]
 
@@ -134,18 +173,19 @@ layout = {
 }
 
 # 6. Revision bump + sensor update -----------------------------------------
-# `layout` is stored as an attribute dict. The frontend reads it directly
-# via state_attr('sensor.mirror_layout_file', 'layout') — no JSON string
-# needed because HA serialises attributes itself.
-revision = int(now().timestamp())
-written_at = now().strftime('%Y-%m-%dT%H:%M:%S')
+# Use a monotonic counter seeded from the previous state — sandbox has no
+# clock helpers on this HA version.
+prev = hass.states.get('sensor.mirror_layout_file')
+try:
+    revision = int(prev.state) + 1
+except Exception:
+    revision = 1
 
 hass.states.set(
     'sensor.mirror_layout_file',
     revision,
     {
         'revision': revision,
-        'written_at': written_at,
         'mode': mode,
         'theme': theme,
         'orientation': orientation,
