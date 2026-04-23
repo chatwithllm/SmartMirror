@@ -13,8 +13,10 @@ if [[ ! -r "$ENV_FILE" ]]; then
   echo "cannot read $ENV_FILE — run as mirror user: sudo -u mirror bash $0" >&2
   exit 1
 fi
-# shellcheck disable=SC1090
-set -a; . "$ENV_FILE"; set +a
+# shellcheck source=/dev/null
+set -a
+. "$ENV_FILE"
+set +a
 
 : "${HA_URL:?HA_URL missing in $ENV_FILE}"
 : "${HA_TOKEN:?HA_TOKEN missing in $ENV_FILE}"
