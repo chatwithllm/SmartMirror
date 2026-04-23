@@ -12,6 +12,25 @@
 
   let container: HTMLDivElement | null = $state(null);
 
+  // Svelte action: set gs-* attributes imperatively so gridstack's
+  // attribute parser sees them (Svelte 5 attribute-spread is unreliable
+  // for non-standard HTML attrs).
+  function gsAttrs(node: HTMLElement, tile: Tile) {
+    const apply = (t: Tile) => {
+      node.setAttribute('gs-id', t.id);
+      node.setAttribute('gs-x', String(t.x));
+      node.setAttribute('gs-y', String(t.y));
+      node.setAttribute('gs-w', String(t.w));
+      node.setAttribute('gs-h', String(t.h));
+    };
+    apply(tile);
+    return {
+      update(next: Tile) {
+        apply(next);
+      }
+    };
+  }
+
   // gridstack is a browser-only DOM lib. Import lazily so SSR stays clean.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let grid: any = null;
@@ -96,16 +115,7 @@
 >
   {#each layout.tiles as tile (tile.id)}
     {@const Component = isKnownTile(tile.type) ? TILES[tile.type] : null}
-    <div
-      class="grid-stack-item"
-      {...{
-        'gs-id': tile.id,
-        'gs-x': tile.x,
-        'gs-y': tile.y,
-        'gs-w': tile.w,
-        'gs-h': tile.h
-      }}
-    >
+    <div class="grid-stack-item" use:gsAttrs={tile}>
       <div class="grid-stack-item-content">
         {#if Component}
           <Component id={tile.id} props={tile.props} />
