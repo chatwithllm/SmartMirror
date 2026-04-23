@@ -59,6 +59,11 @@ async function applyCurrent(opts: WireOptions, reason: string): Promise<void> {
  * Watch HA for changes to the mirror input_selects. Every change triggers
  * a local re-resolution against the bundled layout set — no reliance on
  * python_script writing a layout file or sensor attribute.
+ *
+ * Uses WS state_changed as the fast path + a 2s REST poll as a safety
+ * net. Under normal conditions the poll is a no-op (hash comparison
+ * short-circuits) — but if the HA-js WS subscription drops silently
+ * (seen on some HA versions), the poll still keeps the UI in sync.
  */
 export async function wireLayoutUpdates(
   client: HAClient,
@@ -74,11 +79,33 @@ export async function wireLayoutUpdates(
   // Initial pull so mirror matches HA state on boot.
   await applyCurrent(opts, 'boot');
 
+  // WS fast path.
   const onState = async (data: unknown) => {
     const ev = data as { entity_id?: string };
     if (!ev?.entity_id || !watched.has(ev.entity_id)) return;
     await applyCurrent(opts, 'change');
   };
-  const off = client.onEvent('state_changed', onState);
-  return off;
+  const offWs = client.onEvent('state_changed', onState);
+
+  // Polling safety net — only re-applies when the 4 watched states
+  // actually differ from what we last saw.
+  let lastHash = '';
+  const poll = setInterval(async () => {
+    if (!opts.token) return;
+    const [preset, mode, theme, orientation] = await Promise.all([
+      fetchState(opts.baseUrl, opts.token, 'input_select.mirror_preset'),
+      fetchState(opts.baseUrl, opts.token, 'input_select.mirror_mode'),
+      fetchState(opts.baseUrl, opts.token, 'input_select.mirror_theme'),
+      fetchState(opts.baseUrl, opts.token, 'input_select.mirror_orientation')
+    ]);
+    const hash = `${preset}|${mode}|${theme}|${orientation}`;
+    if (hash === lastHash) return;
+    lastHash = hash;
+    await applyCurrent(opts, 'change');
+  }, 2000);
+
+  return () => {
+    offWs();
+    clearInterval(poll);
+  };
 }
