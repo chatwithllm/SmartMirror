@@ -89,6 +89,12 @@ input_boolean:
   mirror_dnd:
     name: Mirror Do Not Disturb
     icon: mdi:bell-off
+  # Screen power. true = panel on, false = DPMS off. Mirror PC keeps
+  # running; only the display goes dark/wakes.
+  mirror_screen_on:
+    name: Mirror Screen
+    icon: mdi:monitor
+    initial: true
 
 # Press-to-act controls. Mirror frontend polls the state timestamp; a
 # change = a press = execute. Nothing runs on HA side — the mirror box
