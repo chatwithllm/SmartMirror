@@ -45,6 +45,22 @@
       },
       container
     );
+
+    // Svelte's attribute spread produces attrs in the DOM but gridstack's
+    // attribute parser sometimes misses them when elements are already
+    // mounted. Call update() explicitly with each tile's geometry so
+    // positions are never off.
+    for (const tile of layout.tiles) {
+      const node = container?.querySelector(`.grid-stack-item[gs-id="${tile.id}"]`);
+      if (node) {
+        grid.update(node as HTMLElement, {
+          x: tile.x,
+          y: tile.y,
+          w: tile.w,
+          h: tile.h
+        });
+      }
+    }
     // Keep cellHeight honest across rotation / window resize. Kiosk only
     // rotates at boot but browser zoom, unplug-replug, etc. can resize.
     resizeHandler = () => {
