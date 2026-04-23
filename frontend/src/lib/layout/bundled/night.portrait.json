@@ -8,9 +8,9 @@
   "grid": { "cols": 8, "rows": 14, "gap": 14 },
   "tiles": [
     { "id": "clock", "type": "clock", "x": 0, "y": 0, "w": 8, "h": 6, "props": { "format": "24h", "showSeconds": false, "showDate": true } },
-    { "id": "weather", "type": "weather", "x": 0, "y": 6, "w": 8, "h": 3, "props": { "units": "metric", "days": 3 } },
-    { "id": "cam-drive", "type": "frigate_camera", "x": 0, "y": 9, "w": 4, "h": 3, "props": { "camera": "driveway" } },
-    { "id": "cam-back", "type": "frigate_camera", "x": 4, "y": 9, "w": 4, "h": 3, "props": { "camera": "backyard" } },
+    { "id": "weather", "type": "weather", "x": 0, "y": 6, "w": 8, "h": 3, "props": { "entity_id": "weather.4340", "units": "imperial", "days": 3 } },
+    { "id": "cam-porch", "type": "frigate_camera", "x": 0, "y": 9, "w": 4, "h": 3, "props": { "entity_id": "camera.porch" } },
+    { "id": "cam-back", "type": "frigate_camera", "x": 4, "y": 9, "w": 4, "h": 3, "props": { "entity_id": "camera.backyard" } },
     { "id": "alerts", "type": "alerts", "x": 0, "y": 12, "w": 8, "h": 2, "props": { "severity_min": "critical" } }
   ]
 }
