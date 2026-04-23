@@ -1,0 +1,20 @@
+# Smart Mirror — drop resolution when the frontend reports sustained low FPS.
+
+alias: "Mirror · perf downshift"
+id: mirror_perf_downshift
+mode: single
+
+trigger:
+  - platform: numeric_state
+    entity_id: sensor.mirror_frontend_fps
+    below: 30
+    for: "00:01:00"
+
+action:
+  - service: input_select.select_previous
+    target:
+      entity_id: input_select.mirror_resolution
+  - service: rest_command.mirror_set_resolution
+    data:
+      res: "{{ states('input_select.mirror_resolution') }}"
+      rot: "cw"
