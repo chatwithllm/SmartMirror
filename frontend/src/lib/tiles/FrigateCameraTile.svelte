@@ -10,6 +10,7 @@
     go2rtc_base?: string;          // optional go2rtc stream path
     muted?: boolean;
     refreshMs?: number;            // snapshot refresh cadence (default 1500)
+    fit?: 'cover' | 'contain';     // cover crops to fill; contain shows full frame
   }
 
   interface Props {
@@ -75,12 +76,13 @@
     if (haEntity.state === 'unavailable') return 'offline';
     return 'live';
   });
+  const fit = $derived(props.fit ?? 'cover');
 </script>
 
 <BaseTile {id} type="frigate_camera" label={label}>
   <div class="cam" data-testid="frigate-cam">
     {#if url}
-      <img class="feed" alt={label} src={url} referrerpolicy="no-referrer" />
+      <img class="feed" alt={label} src={url} referrerpolicy="no-referrer" style:object-fit={fit} />
     {:else}
       <div class="placeholder mono">no camera</div>
     {/if}
