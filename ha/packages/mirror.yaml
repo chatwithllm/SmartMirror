@@ -156,3 +156,34 @@ input_number:
     step: 0.5
     initial: 2
     unit_of_measurement: "%"
+
+# Mirror the Screen toggle onto the TV itself so the panel doesn't
+# sit on a "no signal" banner after DPMS kills HDMI sync. The PC side
+# still runs its own DPMS in the mirror-frontend admin endpoint; this
+# is the belt-and-suspenders partner that drives the TV via HA's
+# Samsung Tizen integration.
+#
+# Swap the entity_id if the mirror moves to a different TV.
+automation:
+  - alias: "Mirror · screen off → TV standby"
+    id: mirror_screen_off_tv_standby
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.mirror_screen_on
+        to: "off"
+    action:
+      - service: media_player.turn_off
+        target:
+          entity_id: media_player.study_room_tv_2
+  - alias: "Mirror · screen on → TV on"
+    id: mirror_screen_on_tv_on
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.mirror_screen_on
+        to: "on"
+    action:
+      - service: media_player.turn_on
+        target:
+          entity_id: media_player.study_room_tv_2
