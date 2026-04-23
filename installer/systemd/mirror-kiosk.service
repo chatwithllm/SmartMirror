@@ -1,0 +1,15 @@
+[Unit]
+Description=Smart Mirror Kiosk (Chromium)
+After=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/mirror/config.env
+ExecStartPre=/usr/bin/sleep 3
+ExecStart=/usr/local/bin/mirror-kiosk.sh
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=graphical-session.target
