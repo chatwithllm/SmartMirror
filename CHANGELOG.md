@@ -74,7 +74,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `ha/layouts/relax.portrait.json` — Plex hero layout
 - `docs/plex-hw-decode-verify.md` — VA-API verification runbook
 
-### Phase 06 — media tile pack
+### Phase 06 — media tile pack (PR #7, merged 2026-04-23)
 - `FrigateCameraTile` — go2rtc WS stub + status chip
 - `ImmichSlideshowTile` — demo-image rotation with prev/next + resolution-aware thumb size
 - `YouTubeTile` — iframe embed with jsapi params, autoplay/mute defaults
@@ -82,3 +82,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - Registry expanded to 17 tile types
 - `ha/layouts/morning.portrait.json` — full morning bundle
 - `docs/frigate-go2rtc.md` — go2rtc config cheatsheet
+
+### Phase 07 — inventory + shopping bundle
+- Tiles: `InventoryGridTile`, `LowStockAlertTile`, `ShoppingListTile` (clickable toggle), `RecipeSuggestTile`, `ExpiryTile`, `BudgetTile`
+- `ha/layouts/shopping.portrait.json` wires the full shopping mode
+- `ha/automations/03_mirror_inventory_weekly.yaml` — Sunday 19:00 → shopping window for 15m
+- Registry now at 23 tile types

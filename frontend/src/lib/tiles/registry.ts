@@ -16,6 +16,12 @@ import FrigateCameraTile from './FrigateCameraTile.svelte';
 import ImmichSlideshowTile from './ImmichSlideshowTile.svelte';
 import YouTubeTile from './YouTubeTile.svelte';
 import PodcastTile from './PodcastTile.svelte';
+import InventoryGridTile from './InventoryGridTile.svelte';
+import LowStockAlertTile from './LowStockAlertTile.svelte';
+import ShoppingListTile from './ShoppingListTile.svelte';
+import RecipeSuggestTile from './RecipeSuggestTile.svelte';
+import ExpiryTile from './ExpiryTile.svelte';
+import BudgetTile from './BudgetTile.svelte';
 
 /**
  * Tile registry. Each build phase registers a new batch. Grid.svelte
@@ -39,7 +45,13 @@ export const TILES: Record<string, Component<any>> = {
   frigate_camera: FrigateCameraTile,
   immich_slideshow: ImmichSlideshowTile,
   youtube: YouTubeTile,
-  podcast: PodcastTile
+  podcast: PodcastTile,
+  inventory_grid: InventoryGridTile,
+  low_stock_alert: LowStockAlertTile,
+  shopping_list: ShoppingListTile,
+  recipe_suggest: RecipeSuggestTile,
+  expiry: ExpiryTile,
+  budget: BudgetTile
 };
 
 export type TileType = keyof typeof TILES;
