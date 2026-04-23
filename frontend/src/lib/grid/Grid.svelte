@@ -34,6 +34,8 @@
       {
         column: layout.grid.cols,
         cellHeight: computeCellHeight(),
+        minRow: layout.grid.rows,
+        row: layout.grid.rows,
         margin: layout.grid.gap,
         float: false,
         disableDrag: true,
@@ -95,8 +97,9 @@
 <style>
   .grid-stack {
     width: 100%;
-    height: 100vh;
+    min-height: 100vh;
     padding: var(--overscan);
+    box-sizing: border-box;
   }
 
   .grid-stack-item-content {
