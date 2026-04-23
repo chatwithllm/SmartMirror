@@ -104,3 +104,35 @@ input_number:
     step: 5
     initial: 60
     unit_of_measurement: min
+
+  # Per-side overscan inset (% of viewport). Lets you hide content behind
+  # TV bezels without touching CSS. Default 2 = 2vw each side; bump the
+  # side that clips.
+  mirror_overscan_top:
+    name: Mirror Overscan Top
+    min: 0
+    max: 15
+    step: 0.5
+    initial: 2
+    unit_of_measurement: "%"
+  mirror_overscan_right:
+    name: Mirror Overscan Right
+    min: 0
+    max: 15
+    step: 0.5
+    initial: 2
+    unit_of_measurement: "%"
+  mirror_overscan_bottom:
+    name: Mirror Overscan Bottom
+    min: 0
+    max: 15
+    step: 0.5
+    initial: 2
+    unit_of_measurement: "%"
+  mirror_overscan_left:
+    name: Mirror Overscan Left
+    min: 0
+    max: 15
+    step: 0.5
+    initial: 2
+    unit_of_measurement: "%"

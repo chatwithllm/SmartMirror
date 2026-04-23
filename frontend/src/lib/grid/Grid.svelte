@@ -52,8 +52,9 @@
   .grid-stack {
     display: grid;
     width: 100%;
-    height: 100vh;
-    padding: var(--overscan);
+    /* Stage (parent) applies per-side overscan padding; grid fills
+     * whatever space it's given. */
+    height: 100%;
     box-sizing: border-box;
   }
   .grid-cell {
