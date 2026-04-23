@@ -1,0 +1,7 @@
+# Smart Mirror — input_text helpers
+# `input_text: !include ha/input_text.yaml`. See BACKEND_SPEC.md §3.5.
+
+mirror_focused_tile:
+  name: Mirror Focused Tile
+  max: 64
+  initial: ""

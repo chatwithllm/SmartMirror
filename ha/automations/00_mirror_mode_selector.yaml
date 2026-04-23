@@ -1,0 +1,35 @@
+# Smart Mirror — automation: auto preset selector
+# Runs every 5 minutes and on relevant state changes. When the preset is
+# "auto" or the trigger was a state flip, call the python_script that
+# rebuilds the layout JSON + bumps the revision sensor. See BACKEND_SPEC.md
+# §5 for the full automation suite; this file is the Phase 02 entry point.
+
+alias: "Mirror · auto preset selector"
+id: mirror_mode_selector
+mode: single
+
+trigger:
+  - platform: time_pattern
+    minutes: "/5"
+  - platform: state
+    entity_id:
+      - binary_sensor.any_service_down
+      - binary_sensor.plex_playing
+      - input_boolean.guest_mode
+      - input_boolean.party_mode
+      - input_select.mirror_mode
+      - input_select.mirror_theme
+      - input_select.mirror_preset
+      - input_select.mirror_orientation
+
+condition:
+  - condition: or
+    conditions:
+      - condition: state
+        entity_id: input_select.mirror_preset
+        state: auto
+      - condition: template
+        value_template: "{{ trigger.from_state is not none }}"
+
+action:
+  - service: python_script.build_mirror_layout

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "mode": "work",
+  "orientation": "portrait",
+  "theme": "ops-cyberpunk",
+  "resolution": "1080p",
+  "transition": "flip",
+  "grid": { "cols": 8, "rows": 14, "gap": 14 },
+  "tiles": [
+    {
+      "id": "clock",
+      "type": "clock",
+      "x": 1, "y": 1, "w": 6, "h": 3,
+      "props": { "format": "24h", "showSeconds": true, "showDate": true }
+    },
+    {
+      "id": "weather",
+      "type": "weather",
+      "x": 1, "y": 4, "w": 6, "h": 3,
+      "props": { "units": "metric", "days": 3 }
+    }
+  ]
+}
