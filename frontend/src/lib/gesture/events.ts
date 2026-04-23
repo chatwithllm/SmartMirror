@@ -1,12 +1,12 @@
-import type { HAClient } from '$lib/ha/client.js';
 import { gestureRouter, type Gesture } from './router.js';
 
-/** Listen for `mirror_gesture` events from HA and dispatch via router. */
-export function wireGestures(client: HAClient): () => void {
-  const off = client.onEvent('mirror_gesture', (data) => {
-    const ev = data as { gesture?: Gesture; payload?: unknown };
-    if (!ev.gesture) return;
-    gestureRouter.dispatch(ev.gesture, ev.payload);
-  });
-  return off;
+/**
+ * Phase 13 placeholder. The HAClient WS wrapper was removed when we
+ * pivoted to REST polling — the real wiring will live in a small SSE
+ * or fetch-poll shim here once the gesture MQTT addon is deployed.
+ */
+export function wireGestures(): () => void {
+  return () => {};
 }
+
+export type { Gesture };
