@@ -150,7 +150,7 @@ install_system_deps() {
   log "install system deps"
   run apt-get update -qq
   ensure_apt_pkg curl ca-certificates gnupg whiptail unclutter \
-    x11-xserver-utils xdotool wmctrl \
+    x11-xserver-utils x11-utils xdotool wmctrl \
     vainfo intel-media-va-driver-non-free \
     build-essential
   # Node 20
@@ -247,12 +247,12 @@ EOF
   esac
 }
 
-# ---------- monitors.xml + .xprofile (rotation) ----------
+# ---------- monitors.xml + .xprofile + autostart (rotation) ----------
 install_rotation() {
   local orient="$1"
   local tmpl="$SCRIPT_DIR/monitors/${orient}.xml.tmpl"
   if [[ -f "$tmpl" ]]; then
-    log "install monitors.xml for $orient"
+    log "install monitors.xml for $orient (Wayland GNOME reads this)"
     run install -d -m 0755 /home/mirror/.config
     if [[ "$DRY_RUN" -eq 0 ]]; then
       install -m 0644 "$tmpl" /home/mirror/.config/monitors.xml
@@ -261,24 +261,68 @@ install_rotation() {
       printf '\033[90m  would install:\033[0m /home/mirror/.config/monitors.xml\n'
     fi
   fi
-  # X11 fallback via .xprofile — idempotent rotation for X sessions
+
   local xrotate
   case "$orient" in
-    portrait-cw)  xrotate="left"   ;;   # we learned: lightdm X session wants 'left' for CW mount
+    portrait-cw)  xrotate="left"   ;;   # field-tested: CW-mounted panels want 'left'
     portrait-ccw) xrotate="right"  ;;
     landscape)    xrotate="normal" ;;
   esac
-  write_file /home/mirror/.xprofile "$(cat <<EOF
+
+  # Standalone rotation helper — idempotent, session-type aware.
+  if [[ "$DRY_RUN" -eq 0 ]]; then
+    install -d -m 0755 /usr/local/bin
+    cat > /usr/local/bin/mirror-rotate.sh <<ROTATE_EOF
 #!/bin/sh
-# Managed by mirror installer — applies rotation on session start (X).
-OUT=\$(xrandr 2>/dev/null | awk '/ connected/ {print \$1; exit}')
-if [ -n "\$OUT" ]; then
-  xrandr --output "\$OUT" --rotate $xrotate || true
+# Applies display rotation on session start. Honours X11 and Wayland.
+set -e
+ROTATE="$xrotate"
+case "\$ROTATE" in
+  left)     TRANSFORM=270 ;;
+  right)    TRANSFORM=90  ;;
+  inverted) TRANSFORM=180 ;;
+  *)        TRANSFORM=0   ;;
+esac
+
+if [ "\${XDG_SESSION_TYPE:-}" = "wayland" ] || [ -n "\${WAYLAND_DISPLAY:-}" ]; then
+  if command -v wlr-randr >/dev/null 2>&1; then
+    OUT=\$(wlr-randr 2>/dev/null | awk '/^[A-Z].*-[0-9]+/ {print \$1; exit}')
+    [ -n "\$OUT" ] && wlr-randr --output "\$OUT" --transform "\$TRANSFORM" || true
+  fi
+else
+  if command -v xrandr >/dev/null 2>&1; then
+    OUT=\$(xrandr 2>/dev/null | awk '/ connected/ {print \$1; exit}')
+    [ -n "\$OUT" ] && xrandr --output "\$OUT" --rotate "\$ROTATE" || true
+  fi
 fi
+ROTATE_EOF
+    chmod +x /usr/local/bin/mirror-rotate.sh
+    log "wrote /usr/local/bin/mirror-rotate.sh"
+  else
+    printf '\033[90m  would write:\033[0m /usr/local/bin/mirror-rotate.sh\n'
+  fi
+
+  # Legacy .xprofile path (some sessions still source it).
+  write_file /home/mirror/.xprofile "$(cat <<'EOF'
+#!/bin/sh
+/usr/local/bin/mirror-rotate.sh || true
 EOF
 )"
   run chmod +x /home/mirror/.xprofile
   run chown mirror:mirror /home/mirror/.xprofile
+
+  # XDG autostart — fires on every graphical session start (X or Wayland).
+  run install -d -m 0755 -o mirror -g mirror /home/mirror/.config/autostart
+  write_file /home/mirror/.config/autostart/mirror-rotate.desktop "$(cat <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Mirror Rotation
+Exec=/usr/local/bin/mirror-rotate.sh
+X-GNOME-Autostart-enabled=true
+NoDisplay=true
+EOF
+)"
+  run chown mirror:mirror /home/mirror/.config/autostart/mirror-rotate.desktop
 }
 
 # ---------- /etc/mirror/config.env ----------
@@ -319,11 +363,15 @@ build_frontend() {
 # ---------- kiosk script ----------
 install_kiosk_script() {
   log "install /usr/local/bin/mirror-kiosk.sh"
-  write_file /usr/local/bin/mirror-kiosk.sh "$(cat <<'EOF'
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    printf '\033[90m  would write:\033[0m /usr/local/bin/mirror-kiosk.sh\n'
+    return
+  fi
+  install -d -m 0755 /usr/local/bin
+  cat > /usr/local/bin/mirror-kiosk.sh <<'KIOSK_EOF'
 #!/bin/sh
 set -e
 
-# Load runtime config (supplies FRONTEND_PORT).
 if [ -f /etc/mirror/config.env ]; then . /etc/mirror/config.env; fi
 PORT="${FRONTEND_PORT:-3000}"
 URL="http://localhost:${PORT}"
@@ -334,13 +382,17 @@ for _ in $(seq 1 60); do
   sleep 1
 done
 
-# Detect current panel size so --window-size matches natively.
-RES=$(xrandr --current 2>/dev/null | awk '/\*/ {print $1; exit}')
+# Real viewport — xdpyinfo honours rotation, xrandr connected line holds
+# the rotated rect, mode-line asterisk is raw panel mode (last resort).
+RES=$(xdpyinfo 2>/dev/null | awk '/dimensions:/ {print $2; exit}')
+if [ -z "$RES" ]; then
+  RES=$(xrandr 2>/dev/null | awk '/ connected/ {for(i=1;i<=NF;i++) if ($i ~ /^[0-9]+x[0-9]+\+/) {split($i,a,"+"); print a[1]; exit}}')
+fi
+[ -z "$RES" ] && RES=$(xrandr --current 2>/dev/null | awk '/\*/ {print $1; exit}')
 [ -z "$RES" ] && RES="1920x1080"
 W=${RES%x*}
 H=${RES#*x}
 
-# Pick Chrome or Chromium, whichever is available.
 BROWSER=""
 for cand in /usr/bin/google-chrome /usr/bin/chromium /usr/bin/chromium-browser /snap/bin/chromium; do
   [ -x "$cand" ] && BROWSER="$cand" && break
@@ -364,10 +416,11 @@ exec "$BROWSER" \
   --autoplay-policy=no-user-gesture-required \
   --enable-features=VaapiVideoDecoder,VaapiVideoEncoder \
   --ignore-gpu-blocklist \
+  --remote-debugging-port=9222 \
+  --remote-allow-origins=* \
   --user-data-dir=/home/mirror/.config/mirror-chrome
-EOF
-)"
-  run chmod +x /usr/local/bin/mirror-kiosk.sh
+KIOSK_EOF
+  chmod +x /usr/local/bin/mirror-kiosk.sh
 }
 
 # ---------- systemd units ----------
