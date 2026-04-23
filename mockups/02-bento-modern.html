@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Mockup 02 — Bento Modern · Portrait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0c0d10; --panel: #15171c; --panel-2: #1c1f26;
+    --fg: #f2f3f5; --dim: #8b8f99; --dimmer: #555862; --line: #22252d;
+    --accent-blue: #5eadff; --accent-violet: #b887ff; --accent-pink: #ff87c3;
+    --accent-green: #6ee7a7; --accent-orange: #ffb454; --accent-red: #ff6b6b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: #050608; min-height: 100vh; }
+  body { background: var(--bg); color: var(--fg); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+    width: 1080px; min-height: 1920px; margin: 0 auto; padding: 20px;
+    display: grid; grid-template-columns: repeat(8, 1fr); grid-auto-rows: 100px; gap: 14px;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .card { background: var(--panel); border-radius: 24px; padding: 20px 22px; border: 1px solid var(--line); position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .card .label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); font-weight: 600; display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+  .grad-blue { background: radial-gradient(120% 80% at 0% 0%, rgba(94,173,255,0.25), transparent 60%), var(--panel); }
+  .grad-violet { background: radial-gradient(120% 80% at 100% 0%, rgba(184,135,255,0.22), transparent 60%), var(--panel); }
+  .grad-pink { background: radial-gradient(120% 100% at 0% 100%, rgba(255,135,195,0.22), transparent 60%), var(--panel); }
+  .grad-green { background: radial-gradient(120% 100% at 100% 100%, rgba(110,231,167,0.2), transparent 60%), var(--panel); }
+  .grad-orange { background: radial-gradient(120% 100% at 50% 0%, rgba(255,180,84,0.22), transparent 60%), var(--panel); }
+
+  .clock { grid-column: span 5; grid-row: span 3; justify-content: space-between; }
+  .clock .big { font-size: 108px; font-weight: 700; letter-spacing: -0.05em; line-height: 1; }
+  .clock .sub { display: flex; justify-content: space-between; color: var(--dim); font-size: 14px; }
+  .clock .chip { background: var(--panel-2); border-radius: 999px; padding: 4px 12px; font-size: 11px; color: var(--dim); }
+
+  .weather { grid-column: span 3; grid-row: span 3; }
+  .weather .top { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 8px; }
+  .weather .temp { font-size: 60px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+  .weather .cond { color: var(--dim); font-size: 13px; margin-top: 4px; }
+  .weather .forecast { display: flex; justify-content: space-between; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); font-size: 11px; color: var(--dim); }
+  .weather .forecast > div { text-align: center; }
+  .weather .forecast .t { color: var(--fg); font-weight: 600; font-size: 12px; }
+
+  .plex { grid-column: span 8; grid-row: span 5; padding: 0; background: #0b0b0b url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1400&auto=format&q=70') center/cover; }
+  .plex::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.85)); }
+  .plex .body { position: relative; z-index: 2; margin-top: auto; padding: 26px 28px; }
+  .plex .title { font-size: 32px; font-weight: 700; margin-top: 6px; line-height: 1.1; }
+  .plex .meta { color: #ffffff99; font-size: 14px; margin-top: 4px; }
+  .plex .progress { height: 3px; background: #ffffff26; border-radius: 2px; margin-top: 14px; overflow: hidden; }
+  .plex .progress > span { display: block; height: 100%; background: #fff; width: 38%; }
+
+  .svc { grid-column: span 8; grid-row: span 3; }
+  .svc .grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-top: 12px; flex: 1; }
+  .svc .item { background: var(--panel-2); border-radius: 14px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
+  .svc .item .n { display: flex; align-items: center; gap: 8px; }
+  .svc .item .u { color: var(--dim); font-size: 11px; }
+  .ok { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+  .warn { background: var(--accent-orange); box-shadow: 0 0 8px var(--accent-orange); }
+  .bad { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
+
+  .inv { grid-column: span 4; grid-row: span 4; }
+  .inv .list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .inv .row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .inv .row:last-child { border: 0; }
+  .inv .badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; font-weight: 600; letter-spacing: 0.04em; }
+  .badge.low { background: rgba(255,180,84,0.15); color: var(--accent-orange); }
+  .badge.crit { background: rgba(255,107,107,0.15); color: var(--accent-red); }
+  .badge.ok { background: rgba(110,231,167,0.15); color: var(--accent-green); }
+
+  .photos { grid-column: span 4; grid-row: span 4; padding: 0; background: #000; overflow: hidden; }
+  .photos img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photos .tag { position: absolute; top: 14px; left: 14px; background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); border-radius: 999px; padding: 6px 12px; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #fff; z-index: 2; }
+
+  .pod { grid-column: span 8; grid-row: span 2; flex-direction: row; align-items: center; gap: 16px; }
+  .pod .art { width: 64px; height: 64px; border-radius: 14px; background: linear-gradient(135deg, var(--accent-violet), var(--accent-blue)); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+  .pod .info { flex: 1; min-width: 0; }
+  .pod .title { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pod .meta { font-size: 12px; color: var(--dim); }
+  .pod .bar { height: 3px; background: var(--panel-2); border-radius: 2px; margin-top: 10px; overflow: hidden; }
+  .pod .bar > span { display: block; height: 100%; background: var(--accent-violet); width: 42%; }
+
+  .yt { grid-column: span 8; grid-row: span 4; padding: 0; background: #000 url('https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=1400&auto=format&q=70') center/cover; }
+  .yt::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.85)); }
+  .yt .body { position: relative; z-index: 2; margin-top: auto; padding: 20px 24px; }
+  .yt .ch { color: #ff3b30; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 700; }
+  .yt .tt { font-size: 26px; font-weight: 700; margin-top: 6px; }
+  .yt .mt { color: #ffffff99; font-size: 13px; margin-top: 2px; }
+
+  .hosts { grid-column: span 8; grid-row: span 3; }
+  .hosts .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+  .hosts .h { background: var(--panel-2); border-radius: 14px; padding: 12px 14px; }
+  .hosts .n { font-size: 14px; font-weight: 600; }
+  .hosts .ip { font-size: 10px; color: var(--dimmer); }
+  .hosts .bars { display: flex; gap: 4px; margin-top: 10px; }
+  .hosts .bb { flex: 1; height: 4px; background: var(--panel); border-radius: 2px; overflow: hidden; }
+  .hosts .bb > span { display: block; height: 100%; background: var(--accent-blue); }
+
+  .cam { grid-column: span 4; grid-row: span 3; padding: 0; background: #0a0a0a; overflow: hidden; }
+  .cam img { width: 100%; height: 100%; object-fit: cover; display: block; filter: contrast(1.05) saturate(0.9); }
+  .cam .chip { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.55); border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 600; z-index: 2; display: flex; align-items: center; gap: 6px; }
+  .rec { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-red); animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+</style>
+</head>
+<body>
+  <div class="card clock grad-blue">
+    <div class="label"><span><span class="dot ok"></span>Evening · Wed Apr 22</span><span class="chip">Mode · evening</span></div>
+    <div class="big">19:42</div>
+    <div class="sub"><span>Living Room</span><span>sunset 19:58</span></div>
+  </div>
+
+  <div class="card weather grad-violet">
+    <div class="label">Austin, TX</div>
+    <div class="top">
+      <div>
+        <div class="temp">18°</div>
+        <div class="cond">Partly cloudy · feels 17°</div>
+      </div>
+      <div style="font-size:36px">⛅</div>
+    </div>
+    <div class="forecast">
+      <div><div>Thu</div><div class="t">21°</div></div>
+      <div><div>Fri</div><div class="t">24°</div></div>
+      <div><div>Sat</div><div class="t">19°</div></div>
+      <div><div>Sun</div><div class="t">16°</div></div>
+    </div>
+  </div>
+
+  <div class="card plex">
+    <div class="body">
+      <div class="label">Plex · continue watching</div>
+      <div class="title">Andor — S2E07</div>
+      <div class="meta">42 min remaining · 4K HDR · Direct Play</div>
+      <div class="progress"><span></span></div>
+    </div>
+  </div>
+
+  <div class="card svc grad-green">
+    <div class="label"><span>Services · 18 up · 1 degraded · 1 down</span></div>
+    <div class="grid">
+      <div class="item"><span class="n"><span class="dot ok"></span>home-assistant</span><span class="u">42d</span></div>
+      <div class="item"><span class="n"><span class="dot ok"></span>plex</span><span class="u">12d</span></div>
+      <div class="item"><span class="n"><span class="dot ok"></span>immich</span><span class="u">12d</span></div>
+      <div class="item"><span class="n"><span class="dot warn"></span>frigate</span><span class="u">degraded</span></div>
+      <div class="item"><span class="n"><span class="dot ok"></span>grafana</span><span class="u">4d</span></div>
+      <div class="item"><span class="n"><span class="dot bad"></span>backup</span><span class="u">down 2h</span></div>
+      <div class="item"><span class="n"><span class="dot ok"></span>traefik</span><span class="u">38d</span></div>
+      <div class="item"><span class="n"><span class="dot ok"></span>vaultwarden</span><span class="u">24d</span></div>
+    </div>
+  </div>
+
+  <div class="card inv grad-orange">
+    <div class="label"><span>Pantry · 3 low</span></div>
+    <div class="list">
+      <div class="row"><span>Coffee beans</span><span class="badge low">180 g</span></div>
+      <div class="row"><span>Milk</span><span class="badge crit">0.2 L</span></div>
+      <div class="row"><span>Eggs</span><span class="badge low">4</span></div>
+      <div class="row"><span>Dishwasher tabs</span><span class="badge ok">18</span></div>
+      <div class="row"><span>Bin liners</span><span class="badge ok">22</span></div>
+      <div class="row"><span>Olive oil</span><span class="badge low">150 ml</span></div>
+      <div class="row"><span>Bread</span><span class="badge ok">half</span></div>
+    </div>
+  </div>
+
+  <div class="card photos">
+    <div class="tag">Immich · Family 2024</div>
+    <img src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=900&auto=format&q=70" alt=""/>
+  </div>
+
+  <div class="card pod grad-pink">
+    <div class="art">🎙</div>
+    <div class="info">
+      <div class="label">Podcast · now playing</div>
+      <div class="title">The Changelog #587 — Local-first apps</div>
+      <div class="meta">Adam & Jerod · 24:11 / 1:10:14</div>
+      <div class="bar"><span></span></div>
+    </div>
+  </div>
+
+  <div class="card yt">
+    <div class="body">
+      <div class="ch">YouTube · Veritasium</div>
+      <div class="tt">The Longest Running Evolution Experiment</div>
+      <div class="mt">2.3M views · 3 days ago</div>
+    </div>
+  </div>
+
+  <div class="card hosts">
+    <div class="label"><span>Hosts · 6 online</span></div>
+    <div class="grid">
+      <div class="h"><div class="n">nas-01</div><div class="ip mono">10.0.0.21</div><div class="bars"><div class="bb"><span style="width:12%"></span></div><div class="bb"><span style="width:34%"></span></div><div class="bb"><span style="width:71%"></span></div></div></div>
+      <div class="h"><div class="n">pve-a</div><div class="ip mono">10.0.0.11</div><div class="bars"><div class="bb"><span style="width:22%"></span></div><div class="bb"><span style="width:48%"></span></div><div class="bb"><span style="width:55%"></span></div></div></div>
+      <div class="h"><div class="n">pve-b</div><div class="ip mono">10.0.0.12</div><div class="bars"><div class="bb"><span style="width:34%"></span></div><div class="bb"><span style="width:62%"></span></div><div class="bb"><span style="width:44%"></span></div></div></div>
+      <div class="h"><div class="n">nvr-box</div><div class="ip mono">10.0.0.22</div><div class="bars"><div class="bb"><span style="width:46%;background:var(--accent-orange)"></span></div><div class="bb"><span style="width:71%;background:var(--accent-orange)"></span></div><div class="bb"><span style="width:82%;background:var(--accent-red)"></span></div></div></div>
+    </div>
+  </div>
+
+  <div class="card cam">
+    <div class="chip"><span class="rec"></span>driveway · live</div>
+    <img src="https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&auto=format&q=70" alt=""/>
+  </div>
+</body>
+</html>

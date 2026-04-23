@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Mockup 10 — Security / Night · Portrait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:#030509; --panel:#0a0e14; --panel-2:#111722;
+    --fg:#e0e8f2; --dim:#6b7788; --dimmer:#3e4758; --line:#13192a; --line-strong:#1e2738;
+    --accent:#47e0ff; --green:#4cff9e; --amber:#ffcc3e; --red:#ff4a6b; --violet:#b388ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: #000; min-height: 100vh; }
+  body { background: var(--bg); color: var(--fg); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+    width: 1080px; min-height: 1920px; margin: 0 auto;
+    background:
+      radial-gradient(900px 600px at 90% 0%, rgba(71,224,255,0.05), transparent 55%),
+      radial-gradient(700px 500px at 0% 100%, rgba(76,255,158,0.04), transparent 55%),
+      var(--bg);
+    padding: 18px;
+    display: grid; grid-template-columns: repeat(8, 1fr); grid-auto-rows: 90px; gap: 12px;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .modebar { grid-column: 1 / -1; grid-row: span 1; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; flex-wrap: wrap; gap: 8px; }
+  .modebar .left { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill { padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--line-strong); color: var(--dim); background: transparent; cursor: pointer; text-decoration: none; font-family: inherit; font-weight: 500; }
+  .pill.on { background: var(--accent); color: #001822; border-color: var(--accent); font-weight: 700; }
+  .modebar .right { font-size: 11px; color: var(--dim); display: flex; gap: 12px; align-items: center; font-family: 'JetBrains Mono', monospace; }
+  .modebar .armed { padding: 4px 10px; background: rgba(76,255,158,0.1); color: var(--green); border-radius: 999px; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(76,255,158,0.25); }
+  .modebar .armed::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 14px 18px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); font-weight: 600; display: flex; justify-content: space-between; align-items: center; font-family: 'JetBrains Mono', monospace; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+  .clk { grid-column: span 3; grid-row: span 2; padding: 14px 16px; }
+  .clk .t { font-family: 'JetBrains Mono', monospace; font-size: 44px; font-weight: 700; color: var(--accent); letter-spacing: -0.02em; line-height: 1; margin-top: 4px; }
+  .clk .d { font-size: 11px; color: var(--dim); margin-top: 2px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; }
+  .clk .since { font-size: 9px; color: var(--dimmer); margin-top: auto; padding-top: 6px; border-top: 1px solid var(--line); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; }
+
+  .stats { grid-column: span 5; grid-row: span 2; }
+  .stats .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 6px; flex: 1; }
+  .stats .x .k { font-size: 9px; letter-spacing: 0.18em; color: var(--dim); text-transform: uppercase; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .stats .x .v { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+  .stats .x .v.warn { color: var(--amber); }
+  .stats .x .m { font-size: 10px; color: var(--dim); margin-top: 2px; }
+
+  .cams { grid-column: span 8; grid-row: span 7; padding: 0; }
+  .cams .top { padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 8px; }
+  .cams .top .l { display: flex; gap: 10px; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; }
+  .cams .top .l .count { color: var(--accent); font-weight: 700; }
+  .cams .top .r { display: flex; gap: 6px; }
+  .cams .top .r button { padding: 4px 10px; background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: 6px; color: var(--dim); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; font-weight: 600; }
+  .cams .top .r button.on { background: var(--accent); color: #001822; border-color: var(--accent); }
+  .cams .grid { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 2fr 1fr 1fr; gap: 4px; padding: 4px; background: #000; }
+  .cams .c { position: relative; overflow: hidden; cursor: pointer; border: 1px solid transparent; }
+  .cams .c.big { grid-column: span 2; }
+  .cams .c img { width: 100%; height: 100%; object-fit: cover; display: block; filter: brightness(0.7) contrast(1.1) saturate(0.7) hue-rotate(-5deg); }
+  .cams .c::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.5) 100%); pointer-events: none; }
+  .cams .lab { position: absolute; top: 8px; left: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); padding: 3px 8px; border: 1px solid rgba(71,224,255,0.25); z-index: 2; }
+  .cams .rec { position: absolute; top: 8px; right: 8px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--red); display: flex; align-items: center; gap: 4px; z-index: 2; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); padding: 3px 8px; border-radius: 4px; }
+  .cams .rec::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--red); animation: blink 1s infinite; }
+  @keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: 0.3 } }
+  .cams .detect { position: absolute; bottom: 8px; left: 8px; background: rgba(255,204,62,0.9); color: #2a1e00; font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; padding: 3px 8px; border-radius: 4px; z-index: 2; }
+  .cams .bbox { position: absolute; border: 2px solid var(--amber); z-index: 3; pointer-events: none; }
+  .cams .bbox .l { position: absolute; top: -18px; left: -1px; background: var(--amber); color: #2a1e00; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 1px 6px; font-weight: 700; white-space: nowrap; }
+
+  .alarm { grid-column: span 8; grid-row: span 4; background: linear-gradient(135deg, rgba(76,255,158,0.06), transparent), var(--panel); }
+  .alarm .state { font-family: 'JetBrains Mono', monospace; font-size: 32px; font-weight: 700; color: var(--green); margin-top: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .alarm .sub { font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .alarm .zones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 14px; }
+  .alarm .z { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+  .alarm .z .n { font-weight: 500; }
+  .alarm .z .s { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; color: var(--green); }
+  .alarm .z.open .s { color: var(--red); }
+  .alarm .modes { display: flex; gap: 6px; margin-top: 14px; }
+  .alarm .m { flex: 1; padding: 10px; background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: 8px; color: var(--dim); font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; font-weight: 700; }
+  .alarm .m.on { background: var(--green); color: #001a0e; border-color: var(--green); }
+  .alarm .m.disarm.on { background: var(--red); color: #fff; border-color: var(--red); }
+
+  .events { grid-column: span 8; grid-row: span 6; }
+  .events .ctrls { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .events .f { padding: 4px 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; font-size: 10px; color: var(--dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-weight: 600; }
+  .events .f.on { background: var(--accent); color: #001822; border-color: var(--accent); }
+  .events ul { list-style: none; margin-top: 10px; flex: 1; overflow: hidden; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; align-content: start; }
+  .events li { display: flex; gap: 10px; padding: 8px 10px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; align-items: flex-start; cursor: pointer; }
+  .events li.unack { border-left: 3px solid var(--amber); }
+  .events li.alert { border-left: 3px solid var(--red); }
+  .events li .thumb { width: 40px; height: 30px; background: #222 center/cover; border-radius: 4px; flex-shrink: 0; }
+  .events li .b { flex: 1; min-width: 0; }
+  .events li .t { font-size: 11px; font-weight: 500; }
+  .events li .m { font-size: 9px; color: var(--dim); margin-top: 1px; font-family: 'JetBrains Mono', monospace; }
+  .events li .ts { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--dimmer); flex-shrink: 0; }
+  .events li.ack { opacity: 0.5; }
+  .events li button.ack { padding: 2px 6px; background: transparent; border: 1px solid var(--line-strong); border-radius: 4px; color: var(--dim); font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; font-weight: 700; }
+
+  .sensors { grid-column: span 8; grid-row: span 4; }
+  .sensors .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-top: 8px; flex: 1; }
+  .sensors .s { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 3px; position: relative; font-size: 11px; }
+  .sensors .s::before { content: ''; position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .sensors .s.open::before { background: var(--amber); box-shadow: 0 0 6px var(--amber); animation: blink 1.2s infinite; }
+  .sensors .s.bat::before { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .sensors .s .n { font-size: 10px; font-weight: 600; color: var(--fg); }
+  .sensors .s .m { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--dim); letter-spacing: 0.05em; }
+  .sensors .s .st { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px; }
+  .sensors .s.open .st { color: var(--amber); }
+  .sensors .s.bat .st { color: var(--red); }
+
+  .actions { grid-column: span 8; grid-row: span 1; flex-direction: row; align-items: center; padding: 12px 16px; gap: 6px; flex-wrap: wrap; }
+  .actions .ico { color: var(--dim); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.15em; text-transform: uppercase; font-size: 10px; font-weight: 700; margin-right: 10px; }
+  .actions .a { padding: 8px 12px; background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: 8px; color: var(--fg); font-family: inherit; font-size: 11px; cursor: pointer; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="modebar">
+    <div class="left">
+      <a class="pill" href="06-morning.html">☀ Morning</a>
+      <a class="pill" href="07-noon-work.html">⌘ Work</a>
+      <a class="pill" href="08-evening-relax.html">⏵ Relax</a>
+      <a class="pill" href="09-shopping-inventory.html">⚑ Shopping</a>
+      <a class="pill on" href="10-security-night.html">◉ Security</a>
+    </div>
+    <div class="right">
+      <span class="armed" id="armed">ARMED · AWAY</span>
+      <span id="uptime">up 42d 14h</span>
+      <span id="now">—</span>
+    </div>
+  </div>
+
+  <div class="card clk">
+    <div class="label"><span>Local time</span><span>CDT</span></div>
+    <div class="t" id="clock">22:47</div>
+    <div class="d" id="dline">WED · APR 22 · 2026</div>
+    <div class="since">Night mode · sunrise 06:39</div>
+  </div>
+
+  <div class="card stats">
+    <div class="label"><span>24h stats</span><span>all zones</span></div>
+    <div class="grid">
+      <div class="x"><div class="k">Events</div><div class="v">142</div><div class="m">↓ 12 vs avg</div></div>
+      <div class="x"><div class="k">Persons</div><div class="v warn">8</div><div class="m">3 unknown</div></div>
+      <div class="x"><div class="k">Unack</div><div class="v" style="color:var(--amber)">3</div><div class="m">oldest 18m</div></div>
+    </div>
+  </div>
+
+  <div class="card cams">
+    <div class="top">
+      <div class="l">
+        <span>▣ FRIGATE · NVR</span>
+        <span class="count">6 cams · 6 live</span>
+      </div>
+      <div class="r">
+        <button class="on">Live</button>
+        <button>Events</button>
+        <button>Quad</button>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="c big">
+        <img src="https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=1200&auto=format&q=60" alt=""/>
+        <div class="lab">CAM-01 · DRIVEWAY</div>
+        <div class="rec">REC · 2160p</div>
+        <div class="detect">⚑ PERSON · 94%</div>
+        <div class="bbox" style="left:42%;top:38%;width:22%;height:38%"><span class="l">person 94%</span></div>
+      </div>
+      <div class="c"><img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600&auto=format&q=60" alt=""/><div class="lab">CAM-02 · FRONT</div><div class="rec">REC</div></div>
+      <div class="c"><img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&auto=format&q=60" alt=""/><div class="lab">CAM-03 · BACK</div><div class="rec">REC</div></div>
+      <div class="c"><img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&auto=format&q=60" alt=""/><div class="lab">CAM-04 · GARAGE</div><div class="rec">REC</div></div>
+      <div class="c"><img src="https://images.unsplash.com/photo-1604328698692-f76ea9498e76?w=600&auto=format&q=60" alt=""/><div class="lab">CAM-05 · SIDE</div><div class="rec">REC</div></div>
+    </div>
+  </div>
+
+  <div class="card alarm">
+    <div class="label"><span>Alarm system</span><span>last arm 22:30 · mirror</span></div>
+    <div class="state" id="alarm-state">ARMED · AWAY</div>
+    <div class="sub">No faults · all zones normal</div>
+    <div class="zones">
+      <div class="z"><span class="n">Front door</span><span class="s">CLOSED</span></div>
+      <div class="z"><span class="n">Back door</span><span class="s">CLOSED</span></div>
+      <div class="z open"><span class="n">Garage side</span><span class="s">OPEN</span></div>
+      <div class="z"><span class="n">Windows · 12/12</span><span class="s">SEALED</span></div>
+      <div class="z"><span class="n">Motion · interior</span><span class="s">ACTIVE</span></div>
+      <div class="z"><span class="n">Glass break</span><span class="s">ARMED</span></div>
+    </div>
+    <div class="modes">
+      <button class="m" onclick="setArm(this,'home')">Home</button>
+      <button class="m on" onclick="setArm(this,'away')">Away</button>
+      <button class="m" onclick="setArm(this,'night')">Night</button>
+      <button class="m disarm" onclick="setArm(this,'disarm')">Disarm</button>
+    </div>
+  </div>
+
+  <div class="card events">
+    <div class="label"><span>Event timeline</span><span id="unack-count">3 unack</span></div>
+    <div class="ctrls">
+      <button class="f on" onclick="eFilter(this,'all')">All</button>
+      <button class="f" onclick="eFilter(this,'person')">Person</button>
+      <button class="f" onclick="eFilter(this,'car')">Car</button>
+      <button class="f" onclick="eFilter(this,'pkg')">Package</button>
+      <button class="f" onclick="eFilter(this,'motion')">Motion</button>
+    </div>
+    <ul id="evs">
+      <li class="alert" data-c="person"><div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=200&q=60')"></div><div class="b"><div class="t">Person · driveway</div><div class="m">cam-01 · 94% · unknown</div></div><button class="ack" onclick="ackEv(this)">ack</button><span class="ts">now</span></li>
+      <li class="unack" data-c="car"><div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=200&q=60')"></div><div class="b"><div class="t">Car stopped · driveway</div><div class="m">cam-01 · silver sedan · 32s</div></div><button class="ack" onclick="ackEv(this)">ack</button><span class="ts">3m</span></li>
+      <li class="unack" data-c="pkg"><div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=200&q=60')"></div><div class="b"><div class="t">Package delivered</div><div class="m">cam-02 · FedEx</div></div><button class="ack" onclick="ackEv(this)">ack</button><span class="ts">18m</span></li>
+      <li data-c="motion"><div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=200&q=60')"></div><div class="b"><div class="t">Motion · backyard</div><div class="m">cam-03 · cat · 88%</div></div><span class="ts">42m</span></li>
+      <li data-c="person"><div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=200&q=60')"></div><div class="b"><div class="t">Face · known · @user</div><div class="m">cam-02 · 98% · arrived</div></div><span class="ts">2h</span></li>
+      <li data-c="motion"><div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=200&q=60')"></div><div class="b"><div class="t">Garage door opened</div><div class="m">automation · scheduled</div></div><span class="ts">2h</span></li>
+      <li data-c="person"><div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1604328698692-f76ea9498e76?w=200&q=60')"></div><div class="b"><div class="t">Person · side yard</div><div class="m">cam-05 · known · neighbor</div></div><span class="ts">4h</span></li>
+      <li data-c="motion"><div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=200&q=60')"></div><div class="b"><div class="t">Motion · driveway</div><div class="m">cam-01 · unknown</div></div><span class="ts">5h</span></li>
+    </ul>
+  </div>
+
+  <div class="card sensors">
+    <div class="label"><span>Zigbee · Z-wave</span><span>28 devices</span></div>
+    <div class="grid">
+      <div class="s"><div class="n">Front door</div><div class="m">contact</div><div class="st">CLOSED</div></div>
+      <div class="s"><div class="n">Back door</div><div class="m">contact</div><div class="st">CLOSED</div></div>
+      <div class="s open"><div class="n">Garage side</div><div class="m">contact</div><div class="st">OPEN 2m</div></div>
+      <div class="s"><div class="n">Kitchen</div><div class="m">motion</div><div class="st">CLEAR</div></div>
+      <div class="s"><div class="n">Hallway</div><div class="m">motion</div><div class="st">CLEAR</div></div>
+      <div class="s"><div class="n">Living</div><div class="m">motion</div><div class="st">CLEAR</div></div>
+      <div class="s"><div class="n">Smoke · 1</div><div class="m">ok</div><div class="st">OK</div></div>
+      <div class="s"><div class="n">Smoke · 2</div><div class="m">ok</div><div class="st">OK</div></div>
+      <div class="s"><div class="n">Leak · kitchen</div><div class="m">dry</div><div class="st">DRY</div></div>
+      <div class="s"><div class="n">Leak · bath</div><div class="m">dry</div><div class="st">DRY</div></div>
+      <div class="s bat"><div class="n">Window · office</div><div class="m">battery 12%</div><div class="st">LOW BAT</div></div>
+      <div class="s"><div class="n">Garage door</div><div class="m">closed</div><div class="st">CLOSED</div></div>
+    </div>
+  </div>
+
+  <div class="card actions">
+    <span class="ico">QUICK</span>
+    <button class="a" onclick="flash(this,'Lights on')">🔆 All lights on</button>
+    <button class="a" onclick="flash(this,'Locked')">🔒 Lock all</button>
+    <button class="a" onclick="flash(this,'Recording')">⚫ Start recording</button>
+    <button class="a" onclick="flash(this,'Panic!')">⚠ Panic</button>
+  </div>
+
+<script>
+  function tickClock() {
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = `${hh}:${mm}`;
+    document.getElementById('now').textContent = `${hh}:${mm}:${ss}`;
+  }
+  tickClock(); setInterval(tickClock, 1000);
+
+  function setArm(el, mode) {
+    document.querySelectorAll('.alarm .m').forEach(m => m.classList.remove('on'));
+    el.classList.add('on');
+    const labels = { home:'ARMED · HOME', away:'ARMED · AWAY', night:'ARMED · NIGHT', disarm:'DISARMED' };
+    const colors = { home:'var(--green)', away:'var(--green)', night:'var(--violet)', disarm:'var(--red)' };
+    document.getElementById('alarm-state').textContent = labels[mode];
+    document.getElementById('alarm-state').style.color = colors[mode];
+    const armed = document.getElementById('armed');
+    armed.textContent = labels[mode];
+    armed.style.color = colors[mode];
+    armed.style.background = mode === 'disarm' ? 'rgba(255,74,107,0.1)' : (mode === 'night' ? 'rgba(179,136,255,0.1)' : 'rgba(76,255,158,0.1)');
+  }
+
+  function eFilter(el, c) {
+    document.querySelectorAll('.events .f').forEach(f => f.classList.remove('on'));
+    el.classList.add('on');
+    document.querySelectorAll('#evs li').forEach(li => { li.style.display = (c === 'all' || li.dataset.c === c) ? '' : 'none'; });
+  }
+  function ackEv(btn) {
+    const li = btn.closest('li');
+    li.classList.add('ack');
+    li.classList.remove('alert','unack');
+    btn.remove();
+    const n = document.querySelectorAll('#evs li.alert, #evs li.unack').length;
+    document.getElementById('unack-count').textContent = `${n} unack`;
+  }
+  function flash(btn, txt) {
+    const orig = btn.textContent;
+    btn.style.background = 'var(--accent)'; btn.style.color = '#001822'; btn.style.borderColor = 'var(--accent)';
+    btn.textContent = '✓ ' + txt;
+    setTimeout(() => { btn.style.background=''; btn.style.color=''; btn.style.borderColor=''; btn.textContent = orig; }, 1400);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Mockup 04 — Editorial · Portrait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #12100e; --paper: #1a1714; --ink: #f4ece0; --ink-dim: #b5a99a; --ink-dimmer: #6e6458; --line: #2c2720;
+    --gold: #d8b36b; --red: #c95a4a; --green: #87a876;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: #08070a; min-height: 100vh; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased;
+    width: 1080px; min-height: 1920px; margin: 0 auto; padding: 48px 54px 40px;
+  }
+  .serif { font-family: 'Fraunces', Georgia, serif; }
+
+  .mast { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 18px; border-bottom: 2px solid var(--ink); margin-bottom: 32px; }
+  .mast .brand { font-family: 'Fraunces', serif; font-weight: 700; font-size: 52px; letter-spacing: -0.01em; font-style: italic; line-height: 1; }
+  .mast .brand span { color: var(--gold); }
+  .mast .meta { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-dim); text-align: right; line-height: 1.7; }
+  .mast .meta b { color: var(--ink); font-weight: 500; margin-left: 6px; }
+
+  .section-h { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); font-weight: 600; margin-bottom: 10px; }
+  .rule { border-top: 1px solid var(--line); margin: 24px 0; }
+
+  /* Hero */
+  .hero { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 28px; }
+  .hero .left .kicker { font-size: 11px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+  .hero .left h1 { font-family: 'Fraunces', serif; font-weight: 400; font-size: 56px; line-height: 1.02; letter-spacing: -0.02em; margin-top: 6px; }
+  .hero .left h1 em { font-style: italic; color: var(--gold); }
+  .hero .left .deck { font-family: 'Fraunces', serif; font-size: 17px; line-height: 1.45; color: var(--ink-dim); font-weight: 300; margin-top: 14px; }
+  .hero .right .photo { aspect-ratio: 4/5; background: #000 url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1000&auto=format&q=75') center/cover; }
+  .hero .right .cap { font-size: 10px; color: var(--ink-dimmer); letter-spacing: 0.18em; text-transform: uppercase; margin-top: 10px; }
+
+  /* Today grid */
+  .today { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 28px; margin-bottom: 28px; }
+  .time-big .time { font-family: 'Fraunces', serif; font-size: 84px; line-height: 1; font-weight: 300; font-style: italic; letter-spacing: -0.03em; }
+  .time-big .sub { font-family: 'Fraunces', serif; font-size: 18px; color: var(--ink-dim); margin-top: 6px; }
+  .wx-card .t { font-family: 'Fraunces', serif; font-size: 48px; font-weight: 300; line-height: 1; }
+  .wx-card .c { font-size: 14px; color: var(--ink-dim); margin-top: 6px; }
+  .wx-card .r { font-size: 11px; color: var(--ink-dimmer); margin-top: 4px; }
+  .mode-card .v { font-family: 'Fraunces', serif; font-style: italic; font-size: 28px; color: var(--ink); }
+  .mode-card .n { font-size: 11px; color: var(--ink-dim); margin-top: 6px; letter-spacing: 0.05em; }
+
+  /* Lede 2-column */
+  .lede { column-count: 2; column-gap: 32px; font-size: 14px; line-height: 1.65; color: var(--ink-dim); margin-bottom: 28px; }
+  .lede p:first-child::first-letter { font-family: 'Fraunces', serif; font-size: 56px; line-height: 0.9; float: left; padding: 6px 8px 0 0; color: var(--gold); }
+  .pull { font-family: 'Fraunces', serif; font-weight: 300; font-style: italic; font-size: 24px; line-height: 1.35; color: var(--ink); border-left: 3px solid var(--gold); padding: 8px 18px; margin: 20px 0 28px; break-inside: avoid; }
+  .pull cite { display: block; margin-top: 10px; font-style: normal; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dimmer); font-family: 'Inter', sans-serif; }
+
+  /* Three column detail */
+  .three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; margin-bottom: 28px; }
+  .three .agenda ul { list-style: none; }
+  .three .agenda li { padding: 9px 0; border-top: 1px solid var(--line); display: flex; gap: 12px; font-size: 14px; }
+  .three .agenda li:first-child { border-top: 0; }
+  .three .agenda li .t { color: var(--gold); width: 62px; font-family: 'Fraunces', serif; font-style: italic; font-size: 13px; flex-shrink: 0; }
+
+  .svc-list .r { display: flex; justify-content: space-between; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .svc-list .r:first-child { border-top: 0; }
+  .svc-list .n { font-family: 'Fraunces', serif; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+  .ok { background: var(--green); } .warn { background: var(--gold); } .bad { background: var(--red); }
+
+  .inv-side ul { list-style: none; }
+  .inv-side li { display: flex; justify-content: space-between; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .inv-side li:first-child { border-top: 0; }
+  .inv-side li .q { font-family: 'Fraunces', serif; font-style: italic; color: var(--ink-dim); }
+  .inv-side li.low .q { color: var(--gold); }
+  .inv-side li.crit .q { color: var(--red); }
+
+  /* Now playing strip */
+  .now { background: var(--paper); padding: 20px 24px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: center; margin-bottom: 28px; }
+  .now .art { width: 64px; height: 64px; background: linear-gradient(135deg, var(--red), var(--gold)); }
+  .now .title { font-family: 'Fraunces', serif; font-size: 20px; }
+  .now .meta { font-size: 11px; color: var(--ink-dimmer); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; }
+  .now .stat { font-family: 'Fraunces', serif; font-style: italic; color: var(--ink-dim); font-size: 14px; text-align: right; }
+
+  /* Footer */
+  .footer { padding-top: 18px; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .foot .label { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink-dimmer); margin-bottom: 6px; }
+  .foot .val { font-family: 'Fraunces', serif; font-size: 20px; }
+  .foot .val small { color: var(--ink-dim); font-size: 11px; font-family: 'Inter', sans-serif; margin-left: 4px; }
+  .edition { font-family: 'Fraunces', serif; font-style: italic; font-size: 12px; color: var(--ink-dimmer); text-align: center; margin-top: 22px; }
+</style>
+</head>
+<body>
+  <header class="mast">
+    <div class="brand">The Mirror <span>Daily</span></div>
+    <div class="meta">
+      <div>Edition <b>№ 0412</b></div>
+      <div>Mode <b>Evening</b></div>
+      <div>Wed Apr 22 2026 · <b>19:42</b></div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="left">
+      <div class="kicker">Tonight · Plex feature</div>
+      <h1>Andor returns for a <em>final</em> season of quiet radicalism</h1>
+      <div class="deck">S2E07 is ready on the living-room shelf — 42 minutes, 4K HDR, playing on request. Immich drifts through last weekend's trip; the backup service has fallen silent.</div>
+    </div>
+    <div class="right">
+      <div class="photo"></div>
+      <div class="cap">Plex · S2E07 · 4K HDR · Direct Play</div>
+    </div>
+  </section>
+
+  <section class="today">
+    <div class="time-big">
+      <div class="section-h">At a glance</div>
+      <div class="time serif">19:42</div>
+      <div class="sub">Wednesday, April twenty-second</div>
+    </div>
+    <div class="wx-card">
+      <div class="section-h">Weather</div>
+      <div class="t">18°</div>
+      <div class="c">Partly cloudy</div>
+      <div class="r">feels 17° · sunset 19:58</div>
+    </div>
+    <div class="mode-card">
+      <div class="section-h">Status</div>
+      <div class="v">Evening</div>
+      <div class="n">18 up · 1 warn · 1 down<br/>next → night at 22:00</div>
+    </div>
+  </section>
+
+  <section class="lede">
+    <p>The evening room settles: ambient light drops, the thermostat eases back three degrees, and the mirror shifts into evening mode on its own. Eleven services hum along; one stutters; one is silent. The pantry quietly announces that it is running out of milk.</p>
+    <p>Meanwhile the driveway camera watches a neighbour's cat. The backup process has been down since 17:28 and should be looked at before sleep — restic is refusing connections, again. The dishwasher is happy. Everything else is, for the moment, calm.</p>
+  </section>
+
+  <blockquote class="pull">
+    "The quieter the room, the more precise the signal."
+    <cite>— Mirror log, 19:40</cite>
+  </blockquote>
+
+  <section class="three">
+    <div>
+      <div class="section-h">Agenda</div>
+      <div class="agenda"><ul>
+        <li><span class="t">20:00</span><span>Deploy v2.4 → staging</span></li>
+        <li><span class="t">21:15</span><span>Family call</span></li>
+        <li><span class="t">Thu</span><span>Standup · 09:30</span></li>
+        <li><span class="t">Thu</span><span>HA release review</span></li>
+        <li><span class="t">Fri</span><span>Gym · 07:00</span></li>
+      </ul></div>
+    </div>
+    <div>
+      <div class="section-h">Services</div>
+      <div class="svc-list">
+        <div class="r"><span class="n"><span class="dot ok"></span>home-assistant</span><span>up · 42d</span></div>
+        <div class="r"><span class="n"><span class="dot ok"></span>plex</span><span>up · 12d</span></div>
+        <div class="r"><span class="n"><span class="dot ok"></span>immich</span><span>up · 12d</span></div>
+        <div class="r"><span class="n"><span class="dot warn"></span>frigate</span><span>degraded</span></div>
+        <div class="r"><span class="n"><span class="dot bad"></span>backup-svc</span><span>down 2h</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-h">Pantry</div>
+      <div class="inv-side"><ul>
+        <li class="low"><span>Coffee beans</span><span class="q">180g</span></li>
+        <li class="crit"><span>Milk</span><span class="q">0.2L</span></li>
+        <li class="low"><span>Eggs</span><span class="q">4</span></li>
+        <li><span>Dishwasher tabs</span><span class="q">18</span></li>
+        <li><span>Bin liners</span><span class="q">22</span></li>
+      </ul></div>
+    </div>
+  </section>
+
+  <div class="now">
+    <div class="art"></div>
+    <div>
+      <div class="title serif">The Changelog № 587 — Local-first apps</div>
+      <div class="meta">Podcast · paused · 24:11 of 1:10:14</div>
+    </div>
+    <div class="stat">
+      now playing elsewhere<br/>
+      <span style="font-style:normal;color:var(--ink-dim);font-family:'Inter'">(Plex has audio)</span>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="foot"><div class="label">Hosts</div><div class="val serif">6 <small>of 6</small></div></div>
+    <div class="foot"><div class="label">Services</div><div class="val serif">18 up <small>· 1 down</small></div></div>
+    <div class="foot"><div class="label">Frigate · 24h</div><div class="val serif">142 <small>events</small></div></div>
+    <div class="foot"><div class="label">Plex</div><div class="val serif">4 214 <small>items</small></div></div>
+  </footer>
+  <div class="edition">Compiled at 19:42 by Home Assistant · automation.mirror_mode_selector</div>
+</body>
+</html>

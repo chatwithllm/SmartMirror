@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Mockup 01 — Minimal Dark · Portrait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #000; --fg: #fff; --dim: #9a9a9a; --dimmer: #555;
+    --warn: #ffb454; --bad: #ff6b6b; --ok: #8ee77b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: #0a0a0a; min-height: 100vh; }
+  body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; font-weight: 300; -webkit-font-smoothing: antialiased;
+    width: 1080px; min-height: 1920px; margin: 0 auto; padding: 54px 60px 60px;
+    display: grid; grid-template-columns: repeat(8, 1fr); grid-auto-rows: min-content; gap: 44px 36px;
+  }
+  .tile h4 { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--dimmer); font-weight: 500; margin-bottom: 14px; }
+
+  .clock { grid-column: 1 / span 8; text-align: center; padding-bottom: 10px; }
+  .clock .time { font-size: 180px; font-weight: 100; letter-spacing: -0.055em; line-height: 0.95; }
+  .clock .date { font-size: 22px; color: var(--dim); font-weight: 300; margin-top: 10px; }
+  .clock .loc { font-size: 12px; color: var(--dimmer); letter-spacing: 0.3em; text-transform: uppercase; margin-top: 4px; }
+
+  .weather { grid-column: 1 / span 4; }
+  .weather .temp { font-size: 96px; font-weight: 200; letter-spacing: -0.03em; line-height: 1; }
+  .weather .cond { color: var(--dim); font-size: 16px; margin-top: 4px; }
+  .weather .range { color: var(--dimmer); font-size: 13px; margin-top: 6px; }
+
+  .mode { grid-column: 5 / span 4; text-align: right; }
+  .mode .m { font-size: 44px; font-weight: 200; letter-spacing: -0.02em; margin-top: 4px; }
+  .mode .n { color: var(--dim); font-size: 14px; margin-top: 4px; }
+  .mode .next { color: var(--dimmer); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 6px; }
+
+  .cal { grid-column: 1 / span 4; }
+  .cal ul { list-style: none; }
+  .cal li { display: flex; gap: 14px; padding: 11px 0; border-top: 1px solid #151515; font-size: 15px; }
+  .cal li:first-child { border-top: 0; }
+  .cal .t { color: var(--dim); width: 78px; flex-shrink: 0; }
+
+  .pod { grid-column: 5 / span 4; }
+  .pod .title { font-size: 16px; margin-bottom: 2px; }
+  .pod .meta { color: var(--dim); font-size: 13px; margin-bottom: 14px; }
+  .bar { height: 2px; background: #222; border-radius: 2px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; background: var(--fg); width: 34%; }
+  .pod .ts { display: flex; justify-content: space-between; color: var(--dimmer); font-size: 11px; margin-top: 6px; }
+  .pod .controls { display: flex; gap: 22px; margin-top: 18px; color: var(--dim); font-size: 22px; }
+
+  .media { grid-column: 1 / span 8; aspect-ratio: 16 / 9; background: #0a0a0a url('https://images.unsplash.com/photo-1534447677768-be436bb09401?w=1600&auto=format&q=60') center/cover; position: relative; overflow: hidden; }
+  .media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(0,0,0,0.7)); }
+  .media .info { position: absolute; left: 28px; bottom: 24px; z-index: 2; }
+  .media .info .tag { font-size: 11px; letter-spacing: 0.3em; color: #bbb; text-transform: uppercase; }
+  .media .info .t { font-size: 32px; font-weight: 300; margin-top: 6px; }
+
+  .svc { grid-column: 1 / span 4; }
+  .svc ul { list-style: none; }
+  .svc li { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; border-top: 1px solid #151515; }
+  .svc li:first-child { border-top: 0; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 10px; }
+  .ok { background: var(--ok); } .warn { background: var(--warn); } .bad { background: var(--bad); }
+
+  .inv { grid-column: 5 / span 4; }
+  .inv table { width: 100%; font-size: 13px; border-collapse: collapse; }
+  .inv th, .inv td { text-align: left; padding: 7px 0; border-top: 1px solid #151515; color: var(--dim); font-weight: 400; }
+  .inv th { color: var(--dimmer); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; border-top: 0; }
+  .inv td:first-child { color: var(--fg); }
+  .inv .low { color: var(--warn); } .inv .crit { color: var(--bad); }
+
+  .hosts { grid-column: 1 / span 8; display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 32px; padding-top: 22px; border-top: 1px solid #111; }
+  .host .n { font-size: 14px; }
+  .host .meta { color: var(--dimmer); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; margin-top: 3px; }
+  .host .metrics { display: flex; gap: 12px; margin-top: 6px; font-size: 11px; color: var(--dim); }
+
+  .frigate-strip { grid-column: 1 / span 8; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .frigate-strip .c { aspect-ratio: 4/3; background: #000 center/cover; position: relative; }
+  .frigate-strip .c .lab { position: absolute; top: 6px; left: 6px; font-size: 9px; color: var(--dim); letter-spacing: 0.15em; text-transform: uppercase; background: rgba(0,0,0,0.6); padding: 2px 6px; }
+
+  .mode-tag { position: absolute; top: 28px; right: 32px; font-size: 10px; letter-spacing: 0.32em; color: var(--dimmer); text-transform: uppercase; }
+</style>
+</head>
+<body>
+  <div class="mode-tag">Mode · Evening</div>
+
+  <div class="tile clock">
+    <div class="time">19:42</div>
+    <div class="date">Wed, Apr 22 2026</div>
+    <div class="loc">Home · Living Room</div>
+  </div>
+
+  <div class="tile weather">
+    <h4>Weather · Austin</h4>
+    <div class="temp">18°</div>
+    <div class="cond">Partly cloudy</div>
+    <div class="range">H 22° · L 11° · rain 0.2"</div>
+  </div>
+
+  <div class="tile mode">
+    <h4>Today · status</h4>
+    <div class="m">Evening</div>
+    <div class="n">18 up · 1 warn · 1 down</div>
+    <div class="next">Next · 22:00 → Night</div>
+  </div>
+
+  <div class="tile cal">
+    <h4>Up next</h4>
+    <ul>
+      <li><span class="t">20:00</span><span>Deploy v2.4 → staging</span></li>
+      <li><span class="t">21:15</span><span>Family call</span></li>
+      <li><span class="t">Tomorrow</span><span>Standup · 09:30</span></li>
+      <li><span class="t">Thu</span><span>HA release review</span></li>
+      <li><span class="t">Fri</span><span>Gym · 07:00</span></li>
+    </ul>
+  </div>
+
+  <div class="tile pod">
+    <h4>Now playing</h4>
+    <div class="title">The Changelog #587</div>
+    <div class="meta">Adam & Jerod · Local-first apps</div>
+    <div class="bar"><span></span></div>
+    <div class="ts"><span>24:11</span><span>-46:03</span></div>
+    <div class="controls"><span>⏮</span><span>⏸</span><span>⏭</span></div>
+  </div>
+
+  <div class="tile media">
+    <div class="info">
+      <div class="tag">Plex · Now playing</div>
+      <div class="t">Andor — Episode 07</div>
+    </div>
+  </div>
+
+  <div class="tile svc">
+    <h4>Services</h4>
+    <ul>
+      <li><span><span class="dot ok"></span>home-assistant</span><span>up · 42d</span></li>
+      <li><span><span class="dot ok"></span>plex</span><span>up · 12d</span></li>
+      <li><span><span class="dot ok"></span>immich</span><span>up · 12d</span></li>
+      <li><span><span class="dot warn"></span>frigate</span><span>degraded</span></li>
+      <li><span><span class="dot ok"></span>grafana</span><span>up · 4d</span></li>
+      <li><span><span class="dot bad"></span>backup-svc</span><span>down · 2h</span></li>
+    </ul>
+  </div>
+
+  <div class="tile inv">
+    <h4>Inventory · low</h4>
+    <table>
+      <thead><tr><th>Item</th><th>Qty</th><th>Min</th></tr></thead>
+      <tbody>
+        <tr><td>Coffee beans</td><td class="low">180g</td><td>500g</td></tr>
+        <tr><td>Milk</td><td class="crit">0.2L</td><td>1L</td></tr>
+        <tr><td>Eggs</td><td class="low">4</td><td>12</td></tr>
+        <tr><td>Dishwasher tabs</td><td>18</td><td>10</td></tr>
+        <tr><td>Bin liners</td><td>22</td><td>20</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="tile frigate-strip">
+    <div class="c" style="background-image:url('https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400&q=60')"><div class="lab">driveway</div></div>
+    <div class="c" style="background-image:url('https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400&q=60')"><div class="lab">front</div></div>
+    <div class="c" style="background-image:url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=400&q=60')"><div class="lab">backyard</div></div>
+    <div class="c" style="background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&q=60')"><div class="lab">garage</div></div>
+  </div>
+
+  <div class="hosts">
+    <div class="host"><div class="n">nas-01</div><div class="meta">10.0.0.21</div><div class="metrics"><span>cpu 12%</span><span>ram 34%</span><span>disk 71%</span></div></div>
+    <div class="host"><div class="n">pve-node-a</div><div class="meta">10.0.0.11</div><div class="metrics"><span>cpu 22%</span><span>ram 48%</span><span>disk 55%</span></div></div>
+    <div class="host"><div class="n">pve-node-b</div><div class="meta">10.0.0.12</div><div class="metrics"><span>cpu 34%</span><span>ram 62%</span><span>disk 44%</span></div></div>
+    <div class="host"><div class="n">hass-vm</div><div class="meta">10.0.0.31</div><div class="metrics"><span>cpu 8%</span><span>ram 41%</span><span>disk 28%</span></div></div>
+    <div class="host"><div class="n">nvr-box</div><div class="meta">10.0.0.22</div><div class="metrics"><span>cpu 46%</span><span>ram 71%</span><span>disk 82%</span></div></div>
+    <div class="host"><div class="n">dev-laptop</div><div class="meta">10.0.0.44</div><div class="metrics"><span>cpu 4%</span><span>ram 22%</span><span>disk 61%</span></div></div>
+  </div>
+</body>
+</html>

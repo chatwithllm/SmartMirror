@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Mockup 05 — Glass / Frosted · Portrait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --fg: #f6f8fb; --dim: rgba(255,255,255,0.72); --dimmer: rgba(255,255,255,0.48);
+    --line: rgba(255,255,255,0.12); --line-strong: rgba(255,255,255,0.22);
+    --glass: rgba(255,255,255,0.06); --glass-2: rgba(255,255,255,0.10); --glass-hi: rgba(255,255,255,0.18);
+    --accent: #a4c8ff; --green: #96f2b8; --amber: #ffd37a; --red: #ff9098; --violet: #c8b4ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: #000; min-height: 100vh; }
+  body { background: #050608; color: var(--fg); font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+    width: 1080px; min-height: 1920px; margin: 0 auto; position: relative;
+    background:
+      radial-gradient(1200px 800px at 10% 10%, rgba(80,120,255,0.22), transparent 55%),
+      radial-gradient(900px 700px at 90% 20%, rgba(255,120,200,0.16), transparent 55%),
+      radial-gradient(1000px 800px at 60% 100%, rgba(120,220,255,0.14), transparent 55%),
+      url('https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1400&auto=format&q=75') center/cover no-repeat,
+      #050608;
+    padding: 22px;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-auto-rows: 100px;
+    gap: 14px;
+  }
+  body::before { content:''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(5,6,8,0.35), rgba(5,6,8,0.75)); pointer-events: none; z-index: 0; }
+  body > * { position: relative; z-index: 1; }
+
+  .glass {
+    background: var(--glass); backdrop-filter: blur(26px) saturate(140%); -webkit-backdrop-filter: blur(26px) saturate(140%);
+    border: 1px solid var(--line-strong); border-radius: 22px; padding: 18px 22px;
+    position: relative; overflow: hidden;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.15), 0 12px 40px rgba(0,0,0,0.35);
+    display: flex; flex-direction: column;
+  }
+  .glass::before { content:''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.08), transparent 60%); pointer-events: none; border-radius: inherit; }
+  .label { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--dimmer); font-weight: 500; display: flex; align-items: center; justify-content: space-between; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px currentColor; }
+  .dot.ok { color: var(--green); background: var(--green); }
+  .dot.warn { color: var(--amber); background: var(--amber); }
+  .dot.bad { color: var(--red); background: var(--red); }
+
+  .clock { grid-column: span 8; grid-row: span 3; justify-content: space-between; padding: 26px 28px; }
+  .clock .time { font-size: 140px; font-weight: 200; letter-spacing: -0.05em; line-height: 1; margin-top: 8px; }
+  .clock .sub { display: flex; justify-content: space-between; color: var(--dim); font-size: 15px; font-weight: 300; }
+  .clock .mode { background: var(--glass-hi); border: 1px solid var(--line-strong); border-radius: 999px; padding: 4px 12px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
+
+  .weather { grid-column: span 5; grid-row: span 3; }
+  .weather .row { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px; }
+  .weather .temp { font-size: 80px; font-weight: 200; letter-spacing: -0.04em; line-height: 1; }
+  .weather .cond { color: var(--dim); font-size: 13px; margin-top: 2px; font-weight: 300; }
+  .weather .forecast { display: flex; justify-content: space-between; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); font-size: 12px; color: var(--dim); }
+  .weather .forecast > div { text-align: center; }
+  .weather .forecast .t { color: var(--fg); font-weight: 500; font-size: 13px; margin-top: 2px; }
+
+  .mode-agenda { grid-column: span 3; grid-row: span 3; display: flex; flex-direction: column; gap: 10px; }
+  .mode-agenda ul { list-style: none; margin-top: 4px; font-size: 12px; }
+  .mode-agenda li { display: flex; gap: 10px; padding: 5px 0; border-top: 1px solid var(--line); color: var(--dim); font-weight: 300; }
+  .mode-agenda li:first-child { border-top: 0; }
+  .mode-agenda li .t { color: var(--dimmer); width: 52px; font-weight: 400; flex-shrink: 0; }
+
+  .plex { grid-column: span 8; grid-row: span 5; padding: 0; overflow: hidden; background: rgba(0,0,0,0.2); }
+  .plex .img { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1400&auto=format&q=75') center/cover; filter: saturate(1.1); }
+  .plex::after { content:''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.85)); }
+  .plex .body { position: absolute; inset: auto 0 0 0; padding: 26px 28px; z-index: 2; }
+  .plex .chip { display: inline-block; background: rgba(255,255,255,0.14); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 4px 10px; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; }
+  .plex .title { font-size: 32px; font-weight: 500; margin-top: 10px; line-height: 1.1; letter-spacing: -0.01em; }
+  .plex .meta { color: rgba(255,255,255,0.75); font-size: 14px; margin-top: 4px; font-weight: 300; }
+  .plex .bar { height: 3px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-top: 16px; overflow: hidden; }
+  .plex .bar > span { display: block; height: 100%; background: #fff; width: 42%; }
+
+  .photos { grid-column: span 8; grid-row: span 4; padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.3); }
+  .photos img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photos .tag { position: absolute; top: 14px; left: 14px; background: rgba(0,0,0,0.3); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 6px 12px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: #fff; z-index: 2; }
+  .photos .dots { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 2; }
+  .photos .dots > span { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.4); }
+  .photos .dots > span.on { background: #fff; width: 14px; border-radius: 4px; }
+
+  .svc { grid-column: span 8; grid-row: span 3; }
+  .svc .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; flex: 1; }
+  .svc .item { background: var(--glass-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 400; }
+  .svc .item .n { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .svc .item .u { color: var(--dimmer); font-size: 10px; }
+
+  .inv { grid-column: span 5; grid-row: span 4; }
+  .inv ul { list-style: none; margin-top: 8px; }
+  .inv li { padding: 8px 0; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 13px; font-weight: 300; }
+  .inv li:first-child { border-top: 0; }
+  .inv .badge { font-size: 10px; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--dim); }
+  .inv .badge.low { background: rgba(255,211,122,0.15); color: var(--amber); border-color: rgba(255,211,122,0.35); }
+  .inv .badge.crit { background: rgba(255,144,152,0.15); color: var(--red); border-color: rgba(255,144,152,0.4); }
+
+  .pod { grid-column: span 3; grid-row: span 4; }
+  .pod .row { display: flex; gap: 12px; align-items: center; margin-top: 10px; }
+  .pod .art { width: 54px; height: 54px; border-radius: 12px; background: linear-gradient(135deg, var(--violet), var(--accent)); flex-shrink: 0; border: 1px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .pod .title { font-size: 13px; font-weight: 500; }
+  .pod .meta { font-size: 11px; color: var(--dim); font-weight: 300; margin-top: 2px; }
+  .pod .bar { height: 2px; background: rgba(255,255,255,0.18); margin-top: 12px; border-radius: 2px; overflow: hidden; }
+  .pod .bar > span { display: block; height: 100%; background: var(--violet); width: 34%; }
+
+  .hosts { grid-column: span 5; grid-row: span 3; }
+  .hosts .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
+  .hosts .h { background: var(--glass-2); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+  .hosts .n { font-size: 13px; font-weight: 500; }
+  .hosts .ip { font-size: 10px; color: var(--dimmer); }
+  .hosts .metrics { display: flex; gap: 8px; margin-top: 8px; }
+  .hosts .m { flex: 1; }
+  .hosts .m .lab { font-size: 9px; color: var(--dimmer); letter-spacing: 0.12em; text-transform: uppercase; }
+  .hosts .m .v { font-size: 13px; font-weight: 500; }
+  .hosts .bar { height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .hosts .bar > span { display: block; height: 100%; background: var(--accent); }
+
+  .cam { grid-column: span 3; grid-row: span 3; padding: 0; overflow: hidden; }
+  .cam img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cam .chip { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.45); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 4px 10px; font-size: 10px; z-index: 2; display: flex; align-items: center; gap: 6px; }
+  .rec { width: 6px; height: 6px; border-radius: 50%; background: var(--red); animation: pulse 1.4s infinite; box-shadow: 0 0 8px var(--red); }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+  .top-status { position: absolute; top: 36px; right: 36px; display: flex; gap: 12px; z-index: 2; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); background: rgba(5,6,8,0.5); backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; }
+</style>
+</head>
+<body>
+  <div class="top-status">
+    <span><span class="dot ok"></span> 18</span>
+    <span><span class="dot warn"></span> 1</span>
+    <span><span class="dot bad"></span> 1</span>
+    <span>evening</span>
+  </div>
+
+  <div class="glass clock">
+    <div class="label"><span>Now</span><span class="mode">evening mode</span></div>
+    <div class="time">19:42</div>
+    <div class="sub"><span>Wed · Apr 22 · 2026</span><span>Living Room</span></div>
+  </div>
+
+  <div class="glass weather">
+    <div class="label"><span>Weather · Austin</span><span>⛅</span></div>
+    <div class="row">
+      <div>
+        <div class="temp">18°</div>
+        <div class="cond">Partly cloudy · feels 17°</div>
+      </div>
+    </div>
+    <div class="forecast">
+      <div><div>Thu</div><div class="t">21°</div></div>
+      <div><div>Fri</div><div class="t">24°</div></div>
+      <div><div>Sat</div><div class="t">19°</div></div>
+      <div><div>Sun</div><div class="t">16°</div></div>
+      <div><div>Mon</div><div class="t">22°</div></div>
+    </div>
+  </div>
+
+  <div class="glass mode-agenda">
+    <div class="label">Up next</div>
+    <ul>
+      <li><span class="t">20:00</span><span>Deploy → staging</span></li>
+      <li><span class="t">21:15</span><span>Family call</span></li>
+      <li><span class="t">Thu</span><span>Standup 09:30</span></li>
+      <li><span class="t">Thu</span><span>HA review</span></li>
+    </ul>
+  </div>
+
+  <div class="glass plex">
+    <div class="img"></div>
+    <div class="body">
+      <span class="chip">Plex · Continue</span>
+      <div class="title">Andor — S2E07</div>
+      <div class="meta">42 min remaining · 4K HDR · Direct Play</div>
+      <div class="bar"><span></span></div>
+    </div>
+  </div>
+
+  <div class="glass photos">
+    <div class="tag">Immich · Family 2024</div>
+    <img src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1200&auto=format&q=75" alt=""/>
+    <div class="dots"><span></span><span class="on"></span><span></span><span></span><span></span></div>
+  </div>
+
+  <div class="glass svc">
+    <div class="label"><span>Services</span><span>20 monitored</span></div>
+    <div class="grid">
+      <div class="item"><span class="dot ok"></span><span class="n">home-assistant</span><span class="u">42d</span></div>
+      <div class="item"><span class="dot ok"></span><span class="n">plex</span><span class="u">12d</span></div>
+      <div class="item"><span class="dot ok"></span><span class="n">immich</span><span class="u">12d</span></div>
+      <div class="item"><span class="dot warn"></span><span class="n">frigate</span><span class="u">4h</span></div>
+      <div class="item"><span class="dot ok"></span><span class="n">grafana</span><span class="u">4d</span></div>
+      <div class="item"><span class="dot bad"></span><span class="n">backup</span><span class="u">2h</span></div>
+      <div class="item"><span class="dot ok"></span><span class="n">traefik</span><span class="u">38d</span></div>
+      <div class="item"><span class="dot ok"></span><span class="n">kuma</span><span class="u">38d</span></div>
+    </div>
+  </div>
+
+  <div class="glass inv">
+    <div class="label"><span>Pantry</span><span>3 low</span></div>
+    <ul>
+      <li><span>Coffee beans</span><span class="badge low">180 g</span></li>
+      <li><span>Milk</span><span class="badge crit">0.2 L</span></li>
+      <li><span>Eggs</span><span class="badge low">4</span></li>
+      <li><span>Dishwasher tabs</span><span class="badge">18</span></li>
+      <li><span>Bin liners</span><span class="badge">22</span></li>
+      <li><span>Olive oil</span><span class="badge low">150 ml</span></li>
+    </ul>
+  </div>
+
+  <div class="glass pod">
+    <div class="label">Podcast</div>
+    <div class="row">
+      <div class="art">🎙</div>
+      <div style="flex:1; min-width:0">
+        <div class="title">Changelog #587</div>
+        <div class="meta">paused · Plex has audio</div>
+      </div>
+    </div>
+    <div class="bar"><span></span></div>
+  </div>
+
+  <div class="glass hosts">
+    <div class="label"><span>Hosts</span><span>6 online</span></div>
+    <div class="grid">
+      <div class="h">
+        <div class="n">nas-01</div><div class="ip">10.0.0.21</div>
+        <div class="metrics">
+          <div class="m"><div class="lab">cpu</div><div class="v">12</div><div class="bar"><span style="width:12%"></span></div></div>
+          <div class="m"><div class="lab">ram</div><div class="v">34</div><div class="bar"><span style="width:34%"></span></div></div>
+          <div class="m"><div class="lab">disk</div><div class="v">71</div><div class="bar"><span style="width:71%"></span></div></div>
+        </div>
+      </div>
+      <div class="h">
+        <div class="n">nvr-box</div><div class="ip">10.0.0.22</div>
+        <div class="metrics">
+          <div class="m"><div class="lab">cpu</div><div class="v">46</div><div class="bar"><span style="width:46%;background:var(--amber)"></span></div></div>
+          <div class="m"><div class="lab">ram</div><div class="v">71</div><div class="bar"><span style="width:71%;background:var(--amber)"></span></div></div>
+          <div class="m"><div class="lab">disk</div><div class="v">82</div><div class="bar"><span style="width:82%;background:var(--red)"></span></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass cam">
+    <div class="chip"><span class="rec"></span> driveway</div>
+    <img src="https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=600&auto=format&q=75" alt=""/>
+  </div>
+</body>
+</html>

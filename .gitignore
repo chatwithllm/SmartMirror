@@ -1,0 +1,44 @@
+# Secrets + local config
+.env
+.env.*
+!.env.example
+.env.agent
+/etc/mirror/*
+
+# Node / SvelteKit
+node_modules/
+.svelte-kit/
+build/
+dist/
+.vite/
+.pnpm-store/
+
+# Logs + caches
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.agent/cache/
+.playwright/
+.vitest/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+.claude/
+*.swp
+*.swo
+
+# Test artifacts
+coverage/
+playwright-report/
+test-results/
+
+# Python addon builds
+addons/*/.venv/
+addons/*/__pycache__/
+addons/*/*.pyc

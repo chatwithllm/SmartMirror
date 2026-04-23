@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Mockup 07 — Work / Focus · Portrait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:#0a0d13; --panel:#121722; --panel-2:#1a2030;
+    --fg:#eaecf2; --dim:#848c9e; --dimmer:#4e5566; --line:#1f2738; --line-strong:#2a3347;
+    --accent:#5eadff; --violet:#b887ff; --green:#6ee7a7; --amber:#ffb454; --red:#ff6b6b; --pink:#ff87c3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: #050810; min-height: 100vh; }
+  body { background: var(--bg); color: var(--fg); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+    width: 1080px; min-height: 1920px; margin: 0 auto;
+    background:
+      radial-gradient(1000px 700px at 10% 0%, rgba(94,173,255,0.08), transparent 60%),
+      radial-gradient(900px 600px at 90% 100%, rgba(184,135,255,0.06), transparent 60%),
+      var(--bg);
+    padding: 18px;
+    display: grid; grid-template-columns: repeat(8, 1fr); grid-auto-rows: 90px; gap: 12px;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .modebar { grid-column: 1 / -1; grid-row: span 1; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; flex-wrap: wrap; gap: 8px; }
+  .modebar .left { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill { padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--line-strong); color: var(--dim); background: transparent; cursor: pointer; text-decoration: none; font-family: inherit; font-weight: 500; }
+  .pill.on { background: var(--accent); color: #031022; border-color: var(--accent); font-weight: 700; }
+  .modebar .right { font-size: 11px; color: var(--dim); display: flex; gap: 10px; align-items: center; }
+  .modebar .dnd { padding: 4px 10px; background: rgba(255,107,107,0.12); color: var(--red); border-radius: 999px; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 16px 20px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
+  .label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+
+  .focus { grid-column: span 5; grid-row: span 6; align-items: center; justify-content: space-between; padding: 26px; text-align: center; background: radial-gradient(600px 400px at 50% 0%, rgba(94,173,255,0.14), transparent 65%), var(--panel); }
+  .focus .phase { font-size: 12px; letter-spacing: 0.3em; color: var(--accent); text-transform: uppercase; font-weight: 700; }
+  .focus .ring-wrap { position: relative; width: 320px; height: 320px; margin-top: 10px; }
+  .focus .ring-wrap svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .focus .ring-wrap .inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .focus .ring-wrap .t { font-size: 80px; font-weight: 700; font-family: 'JetBrains Mono', monospace; letter-spacing: -0.04em; line-height: 1; }
+  .focus .ring-wrap .p { font-size: 12px; letter-spacing: 0.18em; color: var(--dim); text-transform: uppercase; margin-top: 8px; }
+  .focus .bar-stages { display: flex; gap: 4px; margin-top: 8px; width: 100%; max-width: 340px; }
+  .focus .bar-stages .s { flex: 1; height: 6px; background: var(--panel-2); border-radius: 3px; }
+  .focus .bar-stages .s.done { background: var(--accent); }
+  .focus .bar-stages .s.now { background: var(--accent); animation: breathe 2s ease-in-out infinite; }
+  @keyframes breathe { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .focus .ctrls { display: flex; gap: 10px; margin-top: 4px; width: 100%; max-width: 340px; }
+  .focus .btn { flex: 1; padding: 12px; border: 1px solid var(--line-strong); background: var(--panel-2); color: var(--fg); border-radius: 12px; font-family: inherit; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; }
+  .focus .btn.primary { background: var(--accent); color: #031022; border-color: var(--accent); }
+
+  .cclock { grid-column: span 3; grid-row: span 3; }
+  .cclock .t { font-size: 56px; font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  .cclock .d { font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .cclock .today { margin-top: auto; display: flex; justify-content: space-between; font-size: 11px; color: var(--dim); padding-top: 8px; border-top: 1px solid var(--line); }
+  .cclock .today b { color: var(--fg); }
+
+  .meet { grid-column: span 3; grid-row: span 3; background: linear-gradient(135deg, rgba(255,107,107,0.1), rgba(255,180,84,0.06)), var(--panel); }
+  .meet .in { font-size: 11px; letter-spacing: 0.22em; color: var(--red); text-transform: uppercase; font-weight: 700; margin-top: 4px; }
+  .meet .t { font-size: 22px; font-weight: 700; margin-top: 6px; line-height: 1.15; letter-spacing: -0.02em; }
+  .meet .m { font-size: 12px; color: var(--dim); margin-top: 6px; }
+  .meet .avs { display: flex; margin-top: 10px; }
+  .meet .av { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--violet)); border: 2px solid var(--panel); margin-left: -8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+  .meet .av:first-child { margin-left: 0; }
+  .meet .join { margin-top: auto; padding: 10px 14px; background: var(--red); color: #fff; border: 0; border-radius: 10px; font-family: inherit; font-weight: 700; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; align-self: flex-start; }
+
+  .kan { grid-column: span 8; grid-row: span 5; }
+  .kan .tabs { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+  .kan .tab { padding: 6px 12px; border-radius: 8px; font-size: 11px; color: var(--dim); cursor: pointer; border: 1px solid transparent; font-weight: 600; }
+  .kan .tab.on { background: var(--panel-2); color: var(--fg); border-color: var(--line-strong); }
+  .kan .board { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-top: 12px; flex: 1; min-height: 0; }
+  .kan .col { background: var(--panel-2); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
+  .kan .col h5 { font-size: 10px; letter-spacing: 0.2em; color: var(--dim); text-transform: uppercase; font-weight: 700; display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .kan .col h5 .n { color: var(--fg); }
+  .kan .t { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 11px; }
+  .kan .t .id { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--dimmer); }
+  .kan .t .tt { font-size: 12px; margin-top: 2px; line-height: 1.3; }
+  .kan .t .labels { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+  .kan .t .lab { font-size: 9px; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+  .kan .t .lab.bug { background: rgba(255,107,107,0.16); color: var(--red); }
+  .kan .t .lab.feat { background: rgba(110,231,167,0.14); color: var(--green); }
+  .kan .t .lab.chore { background: rgba(255,180,84,0.14); color: var(--amber); }
+  .kan .t .lab.urg { background: var(--red); color: #fff; }
+
+  .prs { grid-column: span 5; grid-row: span 4; }
+  .prs ul { list-style: none; margin-top: 8px; flex: 1; }
+  .prs li { display: flex; gap: 10px; padding: 8px 0; border-top: 1px solid var(--line); font-size: 12px; align-items: center; }
+  .prs li:first-child { border-top: 0; }
+  .prs li .state { font-size: 14px; width: 18px; flex-shrink: 0; }
+  .prs li .tt { flex: 1; }
+  .prs li .tt .ttl { font-weight: 500; }
+  .prs li .tt .m { font-size: 10px; color: var(--dim); margin-top: 2px; }
+  .prs li .chk { display: flex; gap: 2px; }
+  .prs li .chk span { width: 6px; height: 6px; border-radius: 50%; }
+  .ok { background: var(--green); } .warn { background: var(--amber); } .bad { background: var(--red); } .info { background: var(--accent); }
+  .prs li .n { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--dimmer); }
+
+  .dep { grid-column: span 3; grid-row: span 4; }
+  .dep .rev { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); margin-top: 8px; }
+  .dep .pipe { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+  .dep .step { display: flex; gap: 10px; align-items: center; font-size: 12px; }
+  .dep .step .mark { width: 18px; height: 18px; border-radius: 50%; background: var(--panel-2); border: 1.5px solid var(--line-strong); display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+  .dep .step.done .mark { background: var(--green); border-color: var(--green); color: #031022; font-weight: 700; }
+  .dep .step.now .mark { background: var(--accent); border-color: var(--accent); color: #031022; font-weight: 700; animation: pulse 1.4s infinite; }
+  .dep .step.todo { color: var(--dim); }
+  @keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(94,173,255,0.5) } 50% { box-shadow: 0 0 0 8px rgba(94,173,255,0) } }
+  .dep .step .t { flex: 1; }
+  .dep .step .d { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--dimmer); }
+
+  .hosts { grid-column: span 8; grid-row: span 3; }
+  .hosts .list { margin-top: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; }
+  .hosts .h { background: var(--panel-2); border-radius: 10px; padding: 8px 10px; display: grid; grid-template-columns: 1fr repeat(3, 1fr); gap: 10px; align-items: center; font-size: 11px; }
+  .hosts .n { font-weight: 600; font-size: 12px; }
+  .hosts .ip { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--dimmer); }
+  .hosts .m { display: flex; flex-direction: column; gap: 2px; }
+  .hosts .m .lab { font-size: 9px; color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase; }
+  .hosts .m .v { font-weight: 700; font-size: 12px; }
+  .hosts .m .bar { height: 3px; background: var(--panel); border-radius: 2px; overflow: hidden; margin-top: 2px; }
+  .hosts .m .bar > span { display: block; height: 100%; background: var(--accent); }
+  .hosts .m.high .bar > span { background: var(--amber); }
+  .hosts .m.crit .bar > span { background: var(--red); }
+  .hosts .m.crit .v { color: var(--red); }
+
+  .msg { grid-column: span 5; grid-row: span 2; }
+  .msg .list { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+  .msg .r { display: flex; gap: 10px; font-size: 12px; }
+  .msg .av { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; background: linear-gradient(135deg, var(--accent), var(--violet)); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+  .msg .av.sam { background: linear-gradient(135deg, var(--green), var(--accent)); }
+  .msg .av.kai { background: linear-gradient(135deg, var(--pink), var(--violet)); }
+  .msg .b { flex: 1; min-width: 0; }
+  .msg .n { display: flex; justify-content: space-between; align-items: baseline; }
+  .msg .n .nn { font-weight: 700; font-size: 12px; }
+  .msg .n .tt { font-size: 10px; color: var(--dimmer); font-family: 'JetBrains Mono', monospace; }
+  .msg .p { font-size: 11px; color: var(--dim); }
+
+  .goals { grid-column: span 3; grid-row: span 2; }
+  .goals .list { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+  .goals .g .n { display: flex; justify-content: space-between; font-size: 11px; }
+  .goals .g .n .p { font-family: 'JetBrains Mono', monospace; color: var(--dim); }
+  .goals .g .bar { height: 5px; background: var(--panel-2); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+  .goals .g .bar > span { display: block; height: 100%; background: var(--accent); }
+  .goals .g:nth-child(2) .bar > span { background: var(--green); }
+  .goals .g:nth-child(3) .bar > span { background: var(--amber); }
+</style>
+</head>
+<body>
+  <div class="modebar">
+    <div class="left">
+      <a class="pill" href="06-morning.html">☀ Morning</a>
+      <a class="pill on" href="07-noon-work.html">⌘ Work</a>
+      <a class="pill" href="08-evening-relax.html">⏵ Relax</a>
+      <a class="pill" href="09-shopping-inventory.html">⚑ Shopping</a>
+      <a class="pill" href="10-security-night.html">◉ Security</a>
+    </div>
+    <div class="right">
+      <span class="dnd">DND · focus</span>
+      <span id="now">—</span>
+    </div>
+  </div>
+
+  <div class="card focus">
+    <div class="phase">Focus · Deep Work</div>
+    <div class="ring-wrap">
+      <svg viewBox="0 0 280 280">
+        <circle cx="140" cy="140" r="120" fill="none" stroke="rgba(94,173,255,0.1)" stroke-width="10"/>
+        <circle id="focus-ring" cx="140" cy="140" r="120" fill="none" stroke="url(#grad)" stroke-width="10" stroke-dasharray="753.98" stroke-dashoffset="282" stroke-linecap="round"/>
+        <defs><linearGradient id="grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5eadff"/><stop offset="100%" stop-color="#b887ff"/></linearGradient></defs>
+      </svg>
+      <div class="inner">
+        <div class="t" id="ftime">18:24</div>
+        <div class="p">Session 3 of 4 · Mirror engine</div>
+      </div>
+    </div>
+    <div class="bar-stages">
+      <div class="s done"></div><div class="s done"></div><div class="s now"></div><div class="s"></div>
+    </div>
+    <div class="ctrls">
+      <button class="btn" onclick="fReset()">↺ Reset</button>
+      <button class="btn primary" id="fbtn" onclick="fToggle()">❚❚ Pause</button>
+      <button class="btn" onclick="fSkip()">⏭ Break</button>
+    </div>
+  </div>
+
+  <div class="card cclock">
+    <div class="label"><span>Now</span><span>Austin</span></div>
+    <div class="t" id="clock">12:52</div>
+    <div class="d" id="dline">Wed · Apr 22 · W17</div>
+    <div class="today"><span>Today <b>4h 22m</b></span><span>Goal <b>6h</b></span></div>
+  </div>
+
+  <div class="card meet">
+    <div class="label"><span>Next meeting</span><span>in <b id="meet-in" style="color:var(--red)">7:42</b></span></div>
+    <div class="in">Starting soon</div>
+    <div class="t">Design review · mockups</div>
+    <div class="m">13:00 · Google Meet · 6 invited</div>
+    <div class="avs">
+      <div class="av">SM</div><div class="av">KJ</div><div class="av">RR</div><div class="av">MN</div><div class="av">+2</div>
+    </div>
+    <button class="join">Join call</button>
+  </div>
+
+  <div class="card kan">
+    <div class="label"><span>Projects · active</span><span>3 of 7 repos</span></div>
+    <div class="tabs">
+      <div class="tab on" onclick="kanTab(this)">smart-mirror</div>
+      <div class="tab" onclick="kanTab(this)">ha-config</div>
+      <div class="tab" onclick="kanTab(this)">homelab</div>
+      <div class="tab" onclick="kanTab(this)">infra</div>
+    </div>
+    <div class="board">
+      <div class="col">
+        <h5>Backlog <span class="n">12</span></h5>
+        <div class="t"><div class="id">#131</div><div class="tt">Port rotation config writer</div><div class="labels"><span class="lab chore">chore</span></div></div>
+        <div class="t"><div class="id">#128</div><div class="tt">Guest mode layout preset</div><div class="labels"><span class="lab feat">feat</span></div></div>
+        <div class="t"><div class="id">#125</div><div class="tt">Frigate MJPEG fallback</div></div>
+      </div>
+      <div class="col">
+        <h5>In progress <span class="n">3</span></h5>
+        <div class="t" style="border-color:var(--accent)"><div class="id">#142</div><div class="tt">Layout diff + FLIP</div><div class="labels"><span class="lab feat">feat</span><span class="lab urg">URG</span></div></div>
+        <div class="t"><div class="id">#140</div><div class="tt">HA JSON writer</div><div class="labels"><span class="lab feat">feat</span></div></div>
+        <div class="t"><div class="id">#138</div><div class="tt">Kiosk autostart</div><div class="labels"><span class="lab chore">chore</span></div></div>
+      </div>
+      <div class="col">
+        <h5>Review <span class="n">4</span></h5>
+        <div class="t"><div class="id">#137</div><div class="tt">SvelteKit skeleton</div><div class="labels"><span class="lab feat">feat</span></div></div>
+        <div class="t"><div class="id">#134</div><div class="tt">Plex HLS tile</div><div class="labels"><span class="lab feat">feat</span></div></div>
+        <div class="t"><div class="id">#133</div><div class="tt">Audio guard</div><div class="labels"><span class="lab bug">bug</span></div></div>
+      </div>
+      <div class="col">
+        <h5>Done · today <span class="n">5</span></h5>
+        <div class="t" style="opacity:0.55"><div class="id">#141</div><div class="tt">10 portrait mockups</div><div class="labels"><span class="lab feat">feat</span></div></div>
+        <div class="t" style="opacity:0.55"><div class="id">#139</div><div class="tt">Design spec v1</div></div>
+        <div class="t" style="opacity:0.55"><div class="id">#136</div><div class="tt">Tile registry</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card prs">
+    <div class="label"><span>Pull requests</span><span>4 open</span></div>
+    <ul>
+      <li><span class="state" style="color:var(--amber)">◕</span><div class="tt"><div class="ttl">Layout diff + FLIP</div><div class="m">#142 · waiting sam · 3h</div></div><span class="chk"><span class="ok"></span><span class="ok"></span><span class="warn"></span></span><span class="n">3h</span></li>
+      <li><span class="state" style="color:var(--green)">✓</span><div class="tt"><div class="ttl">Plex HLS tile</div><div class="m">#134 · approved · merge ready</div></div><span class="chk"><span class="ok"></span><span class="ok"></span><span class="ok"></span></span><span class="n">23m</span></li>
+      <li><span class="state" style="color:var(--red)">◐</span><div class="tt"><div class="ttl">Audio guard</div><div class="m">#133 · changes requested</div></div><span class="chk"><span class="ok"></span><span class="bad"></span><span class="ok"></span></span><span class="n">1h</span></li>
+      <li><span class="state" style="color:var(--accent)">◉</span><div class="tt"><div class="ttl">SvelteKit skeleton</div><div class="m">#137 · CI running</div></div><span class="chk"><span class="ok"></span><span class="info"></span><span class="info"></span></span><span class="n">8m</span></li>
+    </ul>
+  </div>
+
+  <div class="card dep">
+    <div class="label"><span>Deploy · staging</span><span style="color:var(--accent)">● live</span></div>
+    <div class="rev">v2.4.1 · 0x7a4c · 14m</div>
+    <div class="pipe">
+      <div class="step done"><div class="mark">✓</div><div class="t">Build</div><div class="d">42s</div></div>
+      <div class="step done"><div class="mark">✓</div><div class="t">Test</div><div class="d">1m 14s</div></div>
+      <div class="step done"><div class="mark">✓</div><div class="t">Scan</div><div class="d">22s</div></div>
+      <div class="step now"><div class="mark">●</div><div class="t">Deploy</div><div class="d">58s</div></div>
+      <div class="step todo"><div class="mark">○</div><div class="t">Smoke</div><div class="d">—</div></div>
+      <div class="step todo"><div class="mark">○</div><div class="t">Promote</div><div class="d">—</div></div>
+    </div>
+  </div>
+
+  <div class="card hosts">
+    <div class="label"><span>Hosts · health</span><span>all up</span></div>
+    <div class="list">
+      <div class="h">
+        <div><div class="n">pve-node-a</div><div class="ip">10.0.0.11</div></div>
+        <div class="m"><span class="lab">cpu</span><span class="v">22</span><div class="bar"><span style="width:22%"></span></div></div>
+        <div class="m"><span class="lab">ram</span><span class="v">48</span><div class="bar"><span style="width:48%"></span></div></div>
+        <div class="m"><span class="lab">disk</span><span class="v">55</span><div class="bar"><span style="width:55%"></span></div></div>
+      </div>
+      <div class="h">
+        <div><div class="n">nvr-box</div><div class="ip">10.0.0.22</div></div>
+        <div class="m high"><span class="lab">cpu</span><span class="v">46</span><div class="bar"><span style="width:46%"></span></div></div>
+        <div class="m high"><span class="lab">ram</span><span class="v">71</span><div class="bar"><span style="width:71%"></span></div></div>
+        <div class="m crit"><span class="lab">disk</span><span class="v">82</span><div class="bar"><span style="width:82%"></span></div></div>
+      </div>
+      <div class="h">
+        <div><div class="n">nas-01</div><div class="ip">10.0.0.21</div></div>
+        <div class="m"><span class="lab">cpu</span><span class="v">12</span><div class="bar"><span style="width:12%"></span></div></div>
+        <div class="m"><span class="lab">ram</span><span class="v">34</span><div class="bar"><span style="width:34%"></span></div></div>
+        <div class="m high"><span class="lab">disk</span><span class="v">71</span><div class="bar"><span style="width:71%"></span></div></div>
+      </div>
+      <div class="h">
+        <div><div class="n">hass-vm</div><div class="ip">10.0.0.31</div></div>
+        <div class="m"><span class="lab">cpu</span><span class="v">8</span><div class="bar"><span style="width:8%"></span></div></div>
+        <div class="m"><span class="lab">ram</span><span class="v">41</span><div class="bar"><span style="width:41%"></span></div></div>
+        <div class="m"><span class="lab">disk</span><span class="v">28</span><div class="bar"><span style="width:28%"></span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card msg">
+    <div class="label"><span>Messages · triaged</span><span>2 unread</span></div>
+    <div class="list">
+      <div class="r"><div class="av sam">SM</div><div class="b"><div class="n"><span class="nn">Sam · slack</span><span class="tt">2m</span></div><div class="p">Can you rebase #142 on main?</div></div></div>
+      <div class="r"><div class="av kai">KJ</div><div class="b"><div class="n"><span class="nn">Kai · review</span><span class="tt">1h</span></div><div class="p">Comments on #133 — one blocker, rest nits.</div></div></div>
+    </div>
+  </div>
+
+  <div class="card goals">
+    <div class="label"><span>Goals · today</span><span>3</span></div>
+    <div class="list">
+      <div class="g"><div class="n"><span>Focus · 6h</span><span class="p">4h 22m</span></div><div class="bar"><span style="width:73%"></span></div></div>
+      <div class="g"><div class="n"><span>PRs · 3</span><span class="p">2</span></div><div class="bar"><span style="width:66%"></span></div></div>
+      <div class="g"><div class="n"><span>Steps · 8k</span><span class="p">2.1k</span></div><div class="bar"><span style="width:26%"></span></div></div>
+    </div>
+  </div>
+
+<script>
+  function tickClock() {
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = `${hh}:${mm}`;
+    document.getElementById('now').textContent = `${hh}:${mm}:${ss} · Wed`;
+  }
+  tickClock(); setInterval(tickClock, 1000);
+
+  let fLeft = 18*60 + 24, fRunning = true, fInt = null;
+  const FTOTAL = 25*60;
+  function renderF() {
+    const m = String(Math.floor(fLeft/60)).padStart(2,'0');
+    const s = String(fLeft%60).padStart(2,'0');
+    document.getElementById('ftime').textContent = `${m}:${s}`;
+    const pct = fLeft / FTOTAL;
+    const circ = 753.98;
+    document.getElementById('focus-ring').setAttribute('stroke-dashoffset', String(circ * (1-pct)));
+  }
+  function fToggle() {
+    fRunning = !fRunning;
+    document.getElementById('fbtn').textContent = fRunning ? '❚❚ Pause' : '▶ Resume';
+    if (fRunning) fInt = setInterval(() => { fLeft = Math.max(0, fLeft-1); renderF(); if (fLeft===0) { fRunning=false; document.getElementById('fbtn').textContent='☕ Break'; clearInterval(fInt); } }, 1000);
+    else clearInterval(fInt);
+  }
+  function fReset() { fLeft = FTOTAL; renderF(); }
+  function fSkip() { fLeft = 5*60; renderF(); }
+  fInt = setInterval(() => { fLeft = Math.max(0, fLeft-1); renderF(); if (fLeft===0) { fRunning=false; document.getElementById('fbtn').textContent='☕ Break'; clearInterval(fInt); } }, 1000);
+
+  let meetLeft = 7*60 + 42;
+  setInterval(() => {
+    meetLeft = Math.max(0, meetLeft-1);
+    const m = String(Math.floor(meetLeft/60)).padStart(2,'0');
+    const s = String(meetLeft%60).padStart(2,'0');
+    document.getElementById('meet-in').textContent = `${m}:${s}`;
+  }, 1000);
+
+  function kanTab(el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+    el.classList.add('on');
+  }
+</script>
+</body>
+</html>

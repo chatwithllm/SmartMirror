@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Mockup 08 — Evening / Relax · Portrait</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:#0a0710; --panel: rgba(28,22,42,0.55); --panel-2: rgba(255,255,255,0.08);
+    --fg:#f2eef5; --dim: rgba(242,238,245,0.7); --dimmer: rgba(242,238,245,0.45);
+    --line: rgba(255,255,255,0.1); --line-strong: rgba(255,255,255,0.2);
+    --plex:#e5a00d; --violet:#b887ff; --pink:#ff87c3; --teal:#5eead4;
+    --warm:#ffb454; --red:#ff6b6b; --green:#6ee7a7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: #000; min-height: 100vh; }
+  body { color: var(--fg); font-family: 'Plus Jakarta Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+    width: 1080px; min-height: 1920px; margin: 0 auto;
+    background:
+      radial-gradient(900px 700px at 90% 10%, rgba(184,135,255,0.18), transparent 60%),
+      radial-gradient(800px 700px at 10% 100%, rgba(255,135,195,0.14), transparent 60%),
+      radial-gradient(1200px 800px at 50% 50%, rgba(94,234,212,0.06), transparent 65%),
+      linear-gradient(180deg, #0a0710 0%, #1a0f2b 100%);
+    padding: 18px;
+    display: grid; grid-template-columns: repeat(8, 1fr); grid-auto-rows: 94px; gap: 12px;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .modebar { grid-column: 1 / -1; grid-row: span 1; display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--panel); backdrop-filter: blur(14px); border: 1px solid var(--line-strong); border-radius: 14px; flex-wrap: wrap; gap: 8px; }
+  .modebar .left { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill { padding: 6px 12px; border-radius: 999px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--line-strong); color: var(--dim); background: transparent; cursor: pointer; text-decoration: none; font-family: inherit; font-weight: 500; }
+  .pill.on { background: var(--violet); color: #1a0a2a; border-color: var(--violet); font-weight: 700; }
+  .modebar .right { font-size: 11px; color: var(--dim); display: flex; gap: 12px; }
+
+  .card { background: var(--panel); backdrop-filter: blur(22px) saturate(140%); border: 1px solid var(--line-strong); border-radius: 22px; padding: 16px 20px; position: relative; overflow: hidden; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 10px 30px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
+  .label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dimmer); font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+
+  .plex { grid-column: span 8; grid-row: span 7; padding: 0; overflow: hidden; border-color: rgba(255,255,255,0.2); }
+  .plex .bg { position: absolute; inset: 0; background: url('https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1600&auto=format&q=75') center/cover; transition: filter 0.4s; }
+  .plex.playing .bg { filter: brightness(0.6); }
+  .plex::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1) 30%, rgba(0,0,0,0.85)); z-index: 1; }
+  .plex .body { position: absolute; inset: auto 0 0 0; padding: 28px 32px; z-index: 2; }
+  .plex .chip { display: inline-flex; align-items: center; gap: 8px; background: rgba(229,160,13,0.22); backdrop-filter: blur(10px); border: 1px solid rgba(229,160,13,0.4); border-radius: 999px; padding: 6px 12px; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--plex); font-weight: 700; }
+  .plex .t { font-size: 44px; font-weight: 700; margin-top: 12px; letter-spacing: -0.02em; line-height: 1.05; }
+  .plex .m { color: rgba(255,255,255,0.8); font-size: 15px; margin-top: 4px; font-weight: 400; }
+  .plex .meta-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; font-size: 11px; color: rgba(255,255,255,0.55); }
+  .plex .meta-row .t { font-size: 11px; font-weight: 500; padding: 2px 8px; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; margin: 0; }
+  .plex .progress { margin-top: 18px; height: 4px; background: rgba(255,255,255,0.16); border-radius: 4px; overflow: hidden; position: relative; cursor: pointer; }
+  .plex .progress .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--plex); border-radius: 4px; }
+  .plex .progress .fill::after { content: ''; position: absolute; right: -6px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; background: #fff; border-radius: 50%; box-shadow: 0 0 12px rgba(229,160,13,0.6); }
+  .plex .times { display: flex; justify-content: space-between; margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.55); }
+  .plex .ctrls { display: flex; gap: 10px; margin-top: 18px; align-items: center; }
+  .plex .btn { width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+  .plex .btn.play { width: 72px; height: 72px; font-size: 24px; background: var(--plex); color: #1a0a00; border: 0; }
+  .plex .vol { margin-left: auto; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.7); font-size: 13px; }
+  .plex .vol-slider { width: 110px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; cursor: pointer; position: relative; }
+  .plex .vol-slider > span { position: absolute; left: 0; top: 0; bottom: 0; background: #fff; border-radius: 2px; width: 55%; }
+
+  .info-top { grid-column: span 4; grid-row: span 3; padding: 18px 22px; justify-content: space-between; }
+  .info-top .t { font-size: 58px; font-weight: 300; letter-spacing: -0.04em; line-height: 1; margin-top: 4px; }
+  .info-top .d { font-size: 13px; color: var(--dim); margin-top: 2px; }
+  .info-top .wx { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--dim); }
+  .info-top .wx .l { font-size: 22px; font-weight: 600; color: var(--fg); }
+
+  .scenes { grid-column: span 4; grid-row: span 3; padding: 14px 18px; }
+  .scenes .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 8px; flex: 1; }
+  .scenes .s { border-radius: 12px; display: flex; align-items: flex-end; padding: 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+  .scenes .s:hover { transform: translateY(-2px); }
+  .scenes .s.on { border-color: #fff; box-shadow: 0 0 0 2px rgba(255,255,255,0.2); }
+  .scenes .s1 { background: linear-gradient(135deg, #ff6b6b, #ffb454); color: #fff; }
+  .scenes .s2 { background: linear-gradient(135deg, #b887ff, #5eadff); color: #fff; }
+  .scenes .s3 { background: linear-gradient(135deg, #1a1a2e, #4a2a6a); color: #fff; }
+  .scenes .s4 { background: linear-gradient(135deg, #6ee7a7, #5eead4); color: #0a2020; }
+
+  .photos { grid-column: span 8; grid-row: span 4; padding: 0; overflow: hidden; }
+  .photos .view { position: absolute; inset: 0; }
+  .photos .view img { width: 100%; height: 100%; object-fit: cover; display: block; position: absolute; inset: 0; opacity: 0; transition: opacity 1.2s; }
+  .photos .view img.on { opacity: 1; }
+  .photos::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.7)); pointer-events: none; z-index: 1; }
+  .photos .tag { position: absolute; top: 14px; left: 14px; z-index: 2; background: rgba(0,0,0,0.45); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.18); border-radius: 999px; padding: 5px 12px; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; }
+  .photos .nav { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 2; align-items: center; }
+  .photos .prev, .photos .next { width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.45); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.18); color: #fff; cursor: pointer; font-size: 14px; }
+  .photos .dots { display: flex; gap: 5px; margin: 0 10px; }
+  .photos .dots > span { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.35); transition: all 0.3s; }
+  .photos .dots > span.on { background: #fff; width: 16px; border-radius: 3px; }
+  .photos .cap { position: absolute; bottom: 14px; left: 14px; z-index: 2; font-size: 12px; color: #fff; font-weight: 500; }
+
+  .ambient { grid-column: span 5; grid-row: span 3; }
+  .ambient .rows { margin-top: 10px; display: flex; flex-direction: column; gap: 12px; }
+  .ambient .row { display: flex; align-items: center; gap: 12px; font-size: 12px; }
+  .ambient .row .n { width: 82px; color: var(--dim); font-size: 11px; }
+  .ambient .row .v { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 13px; min-width: 44px; text-align: right; }
+  .ambient .slider { flex: 1; height: 5px; background: rgba(255,255,255,0.1); border-radius: 3px; position: relative; cursor: pointer; }
+  .ambient .slider > span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: linear-gradient(90deg, var(--violet), var(--pink)); }
+  .ambient .slider.brightness > span { background: linear-gradient(90deg, #4a3a2e, var(--warm)); }
+  .ambient .slider.climate > span { background: linear-gradient(90deg, var(--teal), var(--warm)); }
+
+  .sleep { grid-column: span 3; grid-row: span 3; text-align: center; align-items: center; justify-content: space-between; }
+  .sleep .big { font-size: 44px; font-weight: 700; font-family: 'JetBrains Mono', monospace; margin-top: 6px; letter-spacing: -0.03em; color: var(--violet); line-height: 1; }
+  .sleep .sub { font-size: 10px; color: var(--dim); }
+  .sleep .presets { display: flex; gap: 6px; width: 100%; }
+  .sleep .p { flex: 1; padding: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; color: var(--fg); font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; letter-spacing: 0.05em; text-transform: uppercase; }
+  .sleep .p.on { background: var(--violet); color: #1a0a2a; border-color: var(--violet); }
+
+  .pod { grid-column: span 8; grid-row: span 2; padding: 14px 18px; opacity: 0.78; flex-direction: row; align-items: center; gap: 18px; }
+  .pod .art { width: 50px; height: 50px; border-radius: 12px; background: linear-gradient(135deg, var(--pink), var(--violet)); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+  .pod .info { flex: 1; min-width: 0; }
+  .pod .label { justify-content: flex-start; gap: 12px; }
+  .pod .title { font-size: 14px; font-weight: 600; }
+  .pod .meta { font-size: 11px; color: var(--dim); margin-top: 2px; }
+  .pod .status { font-size: 9px; padding: 3px 9px; background: rgba(255,255,255,0.1); border-radius: 999px; color: var(--dim); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
+  .pod .swap { padding: 8px 14px; border: 1px solid var(--line-strong); background: transparent; color: var(--dim); border-radius: 8px; font-family: inherit; font-size: 11px; cursor: pointer; }
+</style>
+</head>
+<body>
+  <div class="modebar">
+    <div class="left">
+      <a class="pill" href="06-morning.html">☀ Morning</a>
+      <a class="pill" href="07-noon-work.html">⌘ Work</a>
+      <a class="pill on" href="08-evening-relax.html">⏵ Relax</a>
+      <a class="pill" href="09-shopping-inventory.html">⚑ Shopping</a>
+      <a class="pill" href="10-security-night.html">◉ Security</a>
+    </div>
+    <div class="right">
+      <span>Lights · Cinema</span>
+      <span id="now">—</span>
+    </div>
+  </div>
+
+  <div class="card plex playing" id="plex-card">
+    <div class="bg"></div>
+    <div class="body">
+      <div class="chip">▶ PLEX · Continue watching</div>
+      <div class="t">Andor · Season 2, Episode 7</div>
+      <div class="m">"Welcome to the Rebellion" · 2025</div>
+      <div class="meta-row">
+        <span class="t">4K HDR</span>
+        <span class="t">5.1 audio</span>
+        <span class="t">Direct Play</span>
+        <span class="t">nas → apple-tv</span>
+      </div>
+      <div class="progress" id="plex-progress"><div class="fill" id="plex-fill" style="width:38%"></div></div>
+      <div class="times"><span id="plex-cur">18:42</span><span id="plex-rem">-30:18</span></div>
+      <div class="ctrls">
+        <button class="btn" onclick="plexSkip(-30)">⏪</button>
+        <button class="btn play" id="plex-btn" onclick="plexToggle()">❚❚</button>
+        <button class="btn" onclick="plexSkip(30)">⏩</button>
+        <button class="btn">CC</button>
+        <div class="vol">
+          <span id="vol-pct">55%</span>
+          <div class="vol-slider" onclick="volAt(event)"><span id="vol-fill"></span></div>
+          <button class="btn">⇥</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card info-top">
+    <div class="label"><span>Evening</span><span>Austin</span></div>
+    <div class="t" id="clock">20:14</div>
+    <div class="d" id="dline">Wed · Apr 22 · sunset 19:58</div>
+    <div class="wx">
+      <div class="l">17° <span style="color:var(--dim);font-size:13px;font-weight:400">clear</span></div>
+      <div>Tomorrow <b style="color:var(--fg)">22°</b></div>
+    </div>
+  </div>
+
+  <div class="card scenes">
+    <div class="label"><span>Scenes · Living</span><span id="scene-name">Cinema</span></div>
+    <div class="grid">
+      <div class="s s1" onclick="selScene(this,'Warm')">Warm</div>
+      <div class="s s2 on" onclick="selScene(this,'Cinema')">Cinema</div>
+      <div class="s s3" onclick="selScene(this,'Dim')">Dim</div>
+      <div class="s s4" onclick="selScene(this,'Focus')">Focus</div>
+    </div>
+  </div>
+
+  <div class="card photos">
+    <div class="view">
+      <img class="on" src="https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=1200&auto=format&q=75" alt=""/>
+      <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&q=75" alt=""/>
+      <img src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1200&auto=format&q=75" alt=""/>
+      <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&auto=format&q=75" alt=""/>
+      <img src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8?w=1200&auto=format&q=75" alt=""/>
+    </div>
+    <div class="tag">Immich · Family 2024</div>
+    <div class="cap" id="photo-cap">Big Bend NP · Mar 2024</div>
+    <div class="nav">
+      <button class="prev" onclick="photoStep(-1)">‹</button>
+      <div class="dots"><span class="on"></span><span></span><span></span><span></span><span></span></div>
+      <button class="next" onclick="photoStep(1)">›</button>
+    </div>
+  </div>
+
+  <div class="card ambient">
+    <div class="label"><span>Ambience · Living</span><span>4 devices</span></div>
+    <div class="rows">
+      <div class="row"><span class="n">Brightness</span><div class="slider brightness" onclick="setSlider(event, this)"><span style="width:28%"></span></div><span class="v">28%</span></div>
+      <div class="row"><span class="n">Temp · lights</span><div class="slider" onclick="setSlider(event, this)"><span style="width:70%"></span></div><span class="v">2700K</span></div>
+      <div class="row"><span class="n">AC · set</span><div class="slider climate" onclick="setSlider(event, this)"><span style="width:42%"></span></div><span class="v">21°</span></div>
+      <div class="row"><span class="n">Fan · ceiling</span><div class="slider" onclick="setSlider(event, this)"><span style="width:15%"></span></div><span class="v">low</span></div>
+    </div>
+  </div>
+
+  <div class="card sleep">
+    <div class="label"><span>Sleep timer</span><span id="sleep-state" style="color:var(--violet)">active</span></div>
+    <div class="big" id="sleep-t">42:18</div>
+    <div class="sub">fade + off · night at end</div>
+    <div class="presets">
+      <button class="p" onclick="setSleep(this,15)">15m</button>
+      <button class="p on" onclick="setSleep(this,45)">45m</button>
+      <button class="p" onclick="setSleep(this,90)">90m</button>
+      <button class="p" onclick="cancelSleep(this)">off</button>
+    </div>
+  </div>
+
+  <div class="card pod">
+    <div class="art">🎙</div>
+    <div class="info">
+      <div class="label"><span>Podcast · paused</span><span class="status">Plex has audio</span></div>
+      <div class="title">The Changelog #587 — Local-first apps</div>
+      <div class="meta">Resume · 24:11 of 1:10:14</div>
+    </div>
+    <button class="swap">Swap</button>
+  </div>
+
+<script>
+  function tickClock() {
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+    const ss = String(d.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').textContent = `${hh}:${mm}`;
+    document.getElementById('now').textContent = `${hh}:${mm}:${ss} · Wed`;
+  }
+  tickClock(); setInterval(tickClock, 1000);
+
+  let plexPlaying = true, plexSec = 18*60 + 42, plexInt = null;
+  const TOTAL = 49*60;
+  function renderPlex() {
+    const pct = plexSec / TOTAL * 100;
+    document.getElementById('plex-fill').style.width = pct + '%';
+    const cM = String(Math.floor(plexSec/60)).padStart(2,'0');
+    const cS = String(plexSec%60).padStart(2,'0');
+    document.getElementById('plex-cur').textContent = `${cM}:${cS}`;
+    const rem = TOTAL - plexSec;
+    const rM = String(Math.floor(rem/60)).padStart(2,'0');
+    const rS = String(rem%60).padStart(2,'0');
+    document.getElementById('plex-rem').textContent = `-${rM}:${rS}`;
+  }
+  function startPlex() { plexInt = setInterval(() => { plexSec = Math.min(TOTAL, plexSec+1); renderPlex(); }, 1000); }
+  function plexToggle() {
+    plexPlaying = !plexPlaying;
+    document.getElementById('plex-btn').textContent = plexPlaying ? '❚❚' : '▶';
+    document.getElementById('plex-card').classList.toggle('playing', plexPlaying);
+    if (plexPlaying) startPlex(); else clearInterval(plexInt);
+  }
+  function plexSkip(s) { plexSec = Math.max(0, Math.min(TOTAL, plexSec+s)); renderPlex(); }
+  document.getElementById('plex-progress').addEventListener('click', e => {
+    const r = e.currentTarget.getBoundingClientRect();
+    plexSec = Math.floor(TOTAL * ((e.clientX - r.left) / r.width)); renderPlex();
+  });
+  renderPlex(); startPlex();
+
+  let vol = 55;
+  function volAt(e) {
+    const r = e.currentTarget.getBoundingClientRect();
+    vol = Math.max(0, Math.min(100, Math.round((e.clientX - r.left)/r.width*100)));
+    document.getElementById('vol-fill').style.width = vol + '%';
+    document.getElementById('vol-pct').textContent = vol + '%';
+  }
+
+  function selScene(el, name) {
+    document.querySelectorAll('.scenes .s').forEach(s => s.classList.remove('on'));
+    el.classList.add('on');
+    document.getElementById('scene-name').textContent = name;
+  }
+
+  const imgs = document.querySelectorAll('.photos .view img');
+  const dots = document.querySelectorAll('.photos .dots span');
+  const caps = ['Big Bend NP · Mar 2024','Sunset over Pedernales · Jan 2024','Kitchen renovation · Feb 2024','Taos, NM · Apr 2024','Brooklyn rooftop · May 2024'];
+  let pIdx = 0;
+  function showPhoto(i) {
+    pIdx = (i + imgs.length) % imgs.length;
+    imgs.forEach((m, j) => m.classList.toggle('on', j === pIdx));
+    dots.forEach((d, j) => d.classList.toggle('on', j === pIdx));
+    document.getElementById('photo-cap').textContent = caps[pIdx];
+  }
+  function photoStep(d) { showPhoto(pIdx + d); }
+  setInterval(() => showPhoto(pIdx + 1), 8000);
+
+  function setSlider(e, el) {
+    const r = el.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(100, (e.clientX - r.left)/r.width*100));
+    el.querySelector('span').style.width = pct + '%';
+    const v = el.parentElement.querySelector('.v');
+    if (v) v.textContent = Math.round(pct) + '%';
+  }
+
+  let sleepLeft = 42*60 + 18, sleepInt = null;
+  function renderSleep() {
+    const m = String(Math.floor(sleepLeft/60)).padStart(2,'0');
+    const s = String(sleepLeft%60).padStart(2,'0');
+    document.getElementById('sleep-t').textContent = `${m}:${s}`;
+  }
+  function startSleep() {
+    clearInterval(sleepInt);
+    sleepInt = setInterval(() => { sleepLeft = Math.max(0, sleepLeft-1); renderSleep(); if (sleepLeft===0) { clearInterval(sleepInt); document.getElementById('sleep-state').textContent='done'; } }, 1000);
+  }
+  function setSleep(el, mins) {
+    document.querySelectorAll('.sleep .p').forEach(p => p.classList.remove('on'));
+    el.classList.add('on');
+    sleepLeft = mins * 60;
+    document.getElementById('sleep-state').textContent = 'active';
+    document.getElementById('sleep-state').style.color = 'var(--violet)';
+    renderSleep(); startSleep();
+  }
+  function cancelSleep(el) {
+    document.querySelectorAll('.sleep .p').forEach(p => p.classList.remove('on'));
+    el.classList.add('on');
+    clearInterval(sleepInt);
+    document.getElementById('sleep-t').textContent = '--:--';
+    document.getElementById('sleep-state').textContent = 'off';
+    document.getElementById('sleep-state').style.color = 'var(--dim)';
+  }
+  renderSleep(); startSleep();
+</script>
+</body>
+</html>

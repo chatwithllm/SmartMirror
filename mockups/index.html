@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Smart Mirror · Design Mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f13;
+    --panel: #171a20;
+    --fg: #eef0f4;
+    --dim: #8a8f99;
+    --line: #262a33;
+    --accent: #5eadff;
+    --violet: #b887ff;
+    --green: #6ee7a7;
+    --amber: #ffb454;
+    --red: #ff6b6b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--fg); font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  header { padding: 60px 48px 30px; border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.02em; }
+  header h1 span { color: var(--accent); }
+  header p { color: var(--dim); margin-top: 8px; font-size: 15px; max-width: 780px; line-height: 1.55; }
+  header .meta { color: var(--dim); font-size: 12px; margin-top: 14px; }
+  header .meta code { background: var(--panel); border: 1px solid var(--line); padding: 2px 8px; border-radius: 4px; color: var(--fg); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+  section h2 { padding: 40px 48px 14px; font-size: 16px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--dim); font-weight: 600; }
+  section h2 em { color: var(--fg); font-style: normal; }
+
+  main { padding: 4px 48px 60px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 26px; }
+
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; overflow: hidden; transition: transform 0.2s, border-color 0.2s; display: flex; flex-direction: column; text-decoration: none; color: var(--fg); }
+  .card:hover { transform: translateY(-3px); border-color: #3a4150; }
+  .card .preview { aspect-ratio: 9 / 16; border-bottom: 1px solid var(--line); background: #000; overflow: hidden; position: relative; }
+  .card .preview iframe { width: 1080px; height: 1920px; transform: scale(calc(280 / 1080)); transform-origin: 0 0; border: 0; pointer-events: none; }
+  .card .body { padding: 18px 20px 20px; }
+  .card .num { font-size: 11px; letter-spacing: 0.22em; color: var(--dim); text-transform: uppercase; font-family: 'JetBrains Mono', monospace; }
+  .card h3 { font-size: 18px; font-weight: 600; margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+  .card h3 .int { font-size: 9px; padding: 2px 7px; background: rgba(110,231,167,0.14); color: var(--green); border-radius: 999px; letter-spacing: 0.12em; font-weight: 700; text-transform: uppercase; }
+  .card p { color: var(--dim); font-size: 13px; margin-top: 8px; line-height: 1.55; }
+  .card .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .card .tag { font-size: 10px; letter-spacing: 0.08em; color: var(--dim); background: var(--bg); border: 1px solid var(--line); padding: 3px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; }
+  .card .open { margin-top: 14px; display: inline-block; font-size: 13px; color: var(--accent); text-decoration: none; font-weight: 500; }
+
+  .footer-note { padding: 30px 48px 60px; color: var(--dim); font-size: 13px; border-top: 1px solid var(--line); }
+  .footer-note code { background: var(--panel); padding: 2px 8px; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Smart Mirror · <span>design mockups</span></h1>
+    <p>Two collections. <b>Style directions (01–05)</b> show the same data in five visual languages — pick the one that fits. <b>Mode mockups (06–10)</b> show the same chosen language applied to five full dashboards — morning, work, relax, shopping, security — each with live clocks, clickable lists, scrub bars, and real demo state.</p>
+    <div class="meta">
+      Target: <b>43" TV mounted vertical · 9:16 portrait · 4K (2160 × 3840)</b>. Mockups are authored at 1080 × 1920 base so they render on any laptop; production build scales to 4K with the same grid and ships a runtime resolution switcher (see DESIGN_SPEC §4). Self-contained HTML, no build step — open each file directly for full fidelity and interactivity.
+    </div>
+  </header>
+
+  <section>
+    <h2>Style directions · <em>visual language candidates</em></h2>
+  </section>
+
+  <main>
+    <a href="01-minimal-dark.html" class="card">
+      <div class="preview"><iframe src="01-minimal-dark.html" scrolling="no"></iframe></div>
+      <div class="body">
+        <div class="num">01</div>
+        <h3>Minimal Dark</h3>
+        <p>MagicMirror classic. Pure black, thin Inter, no cards. Content floats on a void. Legible at distance, low noise — ideal for night mode.</p>
+        <div class="tags"><span class="tag">#magicmirror</span><span class="tag">#minimal</span><span class="tag">#text-forward</span></div>
+        <span class="open">Open →</span>
+      </div>
+    </a>
+
+    <a href="02-bento-modern.html" class="card">
+      <div class="preview"><iframe src="02-bento-modern.html" scrolling="no"></iframe></div>
+      <div class="body">
+        <div class="num">02</div>
+        <h3>Bento Modern</h3>
+        <p>iOS / Pixel bento. Rounded 24px cards, subtle category gradients, bold weights. Most app-like of the five. Recommended default.</p>
+        <div class="tags"><span class="tag">#bento</span><span class="tag">#rounded</span><span class="tag">#default</span></div>
+        <span class="open">Open →</span>
+      </div>
+    </a>
+
+    <a href="03-ops-cyberpunk.html" class="card">
+      <div class="preview"><iframe src="03-ops-cyberpunk.html" scrolling="no"></iframe></div>
+      <div class="body">
+        <div class="num">03</div>
+        <h3>Ops / Mission Control</h3>
+        <p>NASA-meets-terminal. Dense grid, monospace, neon accents, live log tail, charts. Auto-activates on alerts / service down.</p>
+        <div class="tags"><span class="tag">#dense</span><span class="tag">#mono</span><span class="tag">#ops</span></div>
+        <span class="open">Open →</span>
+      </div>
+    </a>
+
+    <a href="04-editorial.html" class="card">
+      <div class="preview"><iframe src="04-editorial.html" scrolling="no"></iframe></div>
+      <div class="body">
+        <div class="num">04</div>
+        <h3>Editorial / Magazine</h3>
+        <p>The Mirror Daily. Fraunces serif, masthead, pull quote, drop cap. High personality, low data density. Great for guest / weekend mode.</p>
+        <div class="tags"><span class="tag">#serif</span><span class="tag">#editorial</span><span class="tag">#narrative</span></div>
+        <span class="open">Open →</span>
+      </div>
+    </a>
+
+    <a href="05-glass.html" class="card">
+      <div class="preview"><iframe src="05-glass.html" scrolling="no"></iframe></div>
+      <div class="body">
+        <div class="num">05</div>
+        <h3>Glass / Frosted</h3>
+        <p>Vision Pro territory. Frosted panels over Immich backdrop. Premium feel, heaviest GPU cost — use for showcase / party mode.</p>
+        <div class="tags"><span class="tag">#glass</span><span class="tag">#blur</span><span class="tag">#premium</span></div>
+        <span class="open">Open →</span>
+      </div>
+    </a>
+  </main>
+
+  <section>
+    <h2>Mode mockups · <em>interactive, dynamic dashboards</em></h2>
+  </section>
+
+  <main>
+    <a href="06-morning.html" class="card">
+      <div class="preview"><iframe src="06-morning.html" scrolling="no"></iframe></div>
+      <div class="body">
+        <div class="num">06</div>
+        <h3>☀ Morning <span class="int">live</span></h3>
+        <p>Sunrise gradient, live clock, animated sun, HRV + sleep stats, agenda countdown, news briefing, commute, breakfast stock, morning podcast queue. Interactive routine checklist with progress ring, pour-over coffee timer with start/reset, podcast scrubber.</p>
+        <div class="tags"><span class="tag">#sunrise</span><span class="tag">#routine</span><span class="tag">#agenda</span><span class="tag">#timer</span></div>
+        <span class="open">Open →</span>
+      </div>
+    </a>
+
+    <a href="07-noon-work.html" class="card">
+      <div class="preview"><iframe src="07-noon-work.html" scrolling="no"></iframe></div>
+      <div class="body">
+        <div class="num">07</div>
+        <h3>⌘ Work · Focus <span class="int">live</span></h3>
+        <p>Pomodoro timer (ticking down, ring animating), DND banner, live meeting countdown, 4-column kanban with drag-styled cards, PR list with CI check pips, deploy pipeline with current step pulsing, messages, goals bars. Click tabs, pause focus, ack msgs.</p>
+        <div class="tags"><span class="tag">#pomodoro</span><span class="tag">#kanban</span><span class="tag">#prs</span><span class="tag">#deploy</span></div>
+        <span class="open">Open →</span>
+      </div>
+    </a>
+
+    <a href="08-evening-relax.html" class="card">
+      <div class="preview"><iframe src="08-evening-relax.html" scrolling="no"></iframe></div>
+      <div class="body">
+        <div class="num">08</div>
+        <h3>⏵ Evening · Relax <span class="int">live</span></h3>
+        <p>Plex hero player — play/pause/scrub/volume slider, real progress tick. Immich slideshow auto-advances, ‹ › step. Ambient scene tiles (Warm / Cinema / Dim / Focus), four live sliders for brightness/temp/AC/fan, sleep timer presets (15/45/90). Podcast paused, "Plex has audio" guard shown.</p>
+        <div class="tags"><span class="tag">#plex</span><span class="tag">#immich</span><span class="tag">#ambient</span><span class="tag">#sleep-timer</span></div>
+        <span class="open">Open →</span>
+      </div>
+    </a>
+
+    <a href="09-shopping-inventory.html" class="card">
+      <div class="preview"><iframe src="09-shopping-inventory.html" scrolling="no"></iframe></div>
+      <div class="body">
+        <div class="num">09</div>
+        <h3>⚑ Shopping · Inventory <span class="int">live</span></h3>
+        <p>14-item shopping list — tap to check off (line-through, count updates), category pill filter (Produce / Dairy / Pantry / House). Pantry grid with live stock bars and −/+/✓ hover controls. Recipe suggestions ranked by ingredient match. Expiring-soon alerts. Grocery budget with pace line.</p>
+        <div class="tags"><span class="tag">#shopping</span><span class="tag">#grocy</span><span class="tag">#recipes</span><span class="tag">#budget</span></div>
+        <span class="open">Open →</span>
+      </div>
+    </a>
+
+    <a href="10-security-night.html" class="card">
+      <div class="preview"><iframe src="10-security-night.html" scrolling="no"></iframe></div>
+      <div class="body">
+        <div class="num">10</div>
+        <h3>◉ Security · Night <span class="int">live</span></h3>
+        <p>Frigate 5-cam wall with AI bounding boxes + detection chip. Arm/disarm toggle (Home / Away / Night / Disarm) updates top banner in real time. Event timeline with filter chips and ack buttons (events fade on ack). Zigbee sensor grid, 24h stats, quick actions with flash-confirm.</p>
+        <div class="tags"><span class="tag">#frigate</span><span class="tag">#nvr</span><span class="tag">#alarm</span><span class="tag">#sensors</span></div>
+        <span class="open">Open →</span>
+      </div>
+    </a>
+  </main>
+
+  <div class="footer-note">
+    <b>Try the mode switcher</b> — every mockup from 06 onward has a top pill bar linking to the others, so you can feel how HA would swap layouts at runtime. <br/><br/>
+    Serve locally for best fidelity: <code>cd mockups && python3 -m http.server 8080</code> then open <code>http://localhost:8080/index.html</code>. Next step — read <code>DESIGN_SPEC.md</code>, answer open questions, then phase 0.
+  </div>
+</body>
+</html>
