@@ -1,8 +1,0 @@
-# Smart Mirror — REST commands
-# HA → mirror box helpers. Add `rest_command: !include ha/rest_command.yaml` in
-# configuration.yaml.
-
-mirror_set_resolution:
-  url: "ssh://mirror@mirror.local/usr/local/bin/set-mode-via-ssh.sh"
-  method: POST
-  payload: '{ "res": "{{ res }}", "rot": "{{ rot | default(\"none\") }}" }'
