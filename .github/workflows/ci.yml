@@ -2,38 +2,49 @@ name: CI
 
 on:
   push:
-    branches: [main, "phase-*"]
-  pull_request:
     branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
   lint:
-    name: Lint (yaml, shell, markdown)
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install lint tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends shellcheck yamllint
+          npm install -g markdownlint-cli2@0.13.0
+
       - name: yamllint
-        uses: karancode/yamllint-github-action@master
-        with:
-          yamllint_config_filepath: .yamllint.yml
-          yamllint_strict: false
-          yamllint_comment: true
-        continue-on-error: true
+        run: |
+          if [ -d ha ] || ls *.yml *.yaml 2>/dev/null | grep -q .; then
+            yamllint -c .yamllint.yml . || true
+          fi
 
       - name: shellcheck
         run: |
-          find installer scripts -type f -name "*.sh" -print0 2>/dev/null | \
-            xargs -0 -r shellcheck --severity=warning
-        continue-on-error: true
+          files=$(find installer scripts -type f -name "*.sh" 2>/dev/null | tr '\n' ' ')
+          if [ -n "$files" ]; then
+            shellcheck --severity=warning $files
+          fi
 
       - name: markdownlint
-        uses: DavidAnson/markdownlint-cli2-action@v16
-        with:
-          globs: "**/*.md"
-          config: ".markdownlint.yml"
+        run: markdownlint-cli2 "**/*.md" "#node_modules" "#build" "#.svelte-kit"
         continue-on-error: true
 
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
@@ -41,20 +52,32 @@ jobs:
         continue-on-error: true
 
   frontend:
-    name: Frontend (build + test)
+    name: Frontend
     runs-on: ubuntu-latest
-    if: hashFiles('frontend/package.json') != ''
     steps:
       - uses: actions/checkout@v4
+      - name: Skip if no frontend
+        id: check
+        run: |
+          if [ -f frontend/package.json ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "frontend/ not yet present (pre-Phase 01); skipping"
+          fi
       - uses: pnpm/action-setup@v4
+        if: steps.check.outputs.present == 'true'
         with:
           version: 9
       - uses: actions/setup-node@v4
+        if: steps.check.outputs.present == 'true'
         with:
           node-version: 20
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
-      - working-directory: frontend
+      - name: Install + check + test + build
+        if: steps.check.outputs.present == 'true'
+        working-directory: frontend
         run: |
           pnpm install --frozen-lockfile
           pnpm check
