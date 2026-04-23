@@ -70,6 +70,25 @@ views:
       - type: grid
         cards:
           - type: heading
+            heading: Mirror PC
+            heading_style: title
+            icon: mdi:desktop-tower-monitor
+          - type: glance
+            show_name: true
+            show_state: true
+            show_icon: true
+            state_color: false
+            entities:
+              - entity: sensor.mirror_cpu
+                name: CPU
+              - entity: sensor.mirror_ram
+                name: RAM
+              - entity: sensor.mirror_disk
+                name: DISK
+
+      - type: grid
+        cards:
+          - type: heading
             heading: Controls
             heading_style: title
             icon: mdi:remote
