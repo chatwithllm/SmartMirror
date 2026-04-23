@@ -1,0 +1,38 @@
+# MQTT discovery for gesture + frontend metrics.
+# Include from configuration.yaml under `mqtt:`.
+
+event:
+  - name: "Mirror Gesture"
+    unique_id: mirror_gesture_event
+    state_topic: mirror/gesture
+    event_types:
+      - wake
+      - mode_next
+      - mode_prev
+      - resize_grow
+      - resize_shrink
+      - focus
+      - tile_fullscreen
+      - tile_minimize
+      - lock
+      - media_pause
+      - alert_ack
+    value_template: "{{ value_json.gesture }}"
+
+sensor:
+  - name: "Mirror Frontend FPS"
+    unique_id: mirror_frontend_fps
+    state_topic: mirror/metrics
+    value_template: "{{ value_json.fps }}"
+    unit_of_measurement: fps
+
+  - name: "Mirror Frontend Heap"
+    unique_id: mirror_frontend_heap_mb
+    state_topic: mirror/metrics
+    value_template: "{{ value_json.heap_mb }}"
+    unit_of_measurement: MB
+
+  - name: "Mirror Frontend DOM Nodes"
+    unique_id: mirror_frontend_dom_nodes
+    state_topic: mirror/metrics
+    value_template: "{{ value_json.dom }}"

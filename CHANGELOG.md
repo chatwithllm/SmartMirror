@@ -113,9 +113,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `+page.svelte` wires an `$effect` that coerces + applies theme on every layout change
 - Unit tests: 5 compat cases
 
-### Phase 12 — resize / FLIP / edit mode
+### Phase 12 — resize / FLIP / edit mode (PR #13, merged 2026-04-23)
 - `lib/grid/edit-mode.ts` — `editMode` store + patch buffer (overwrites per id)
 - `lib/grid/burnin.ts` — 8-min rotating offset store for static-tile guard
 - `ha/python_scripts/patch_mirror_layout.py` — merges tile patch into layout_json attribute
 - `ha/scripts/mirror_patch_tile.yaml` — wires service → python_script
 - `ha/automations/07_mirror_edit_mode_timeout.yaml` — auto-off after 15 min
+
+### Phase 13 — gesture subsystem
+- `addons/mirror-gesture/` full HA addon: `config.yaml`, `Dockerfile`, `run.sh`, `requirements.txt`
+- `addons/mirror-gesture/src/` — `main.py` loop, `camera.py`, `privacy.py` (face blur), `gestures.py` (rule-based classifier), `mqtt.py` publisher
+- `ha/mqtt/discovery.yaml` — MQTT event + sensors for gesture + metrics
+- `ha/automations/05_mirror_gesture_router.yaml` — MQTT → `mirror_gesture` event + service fanout
+- Frontend: `lib/gesture/events.ts` subscribes, `lib/gesture/router.ts` dispatches, `focusedTile` store
+- `docs/gesture-demo.md` — demo flow + kill-switches + privacy

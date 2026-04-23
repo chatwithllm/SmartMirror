@@ -1,0 +1,29 @@
+name: Mirror Gesture
+slug: mirror-gesture
+version: "0.1.0"
+description: MediaPipe-based gesture recognizer; publishes events via MQTT.
+arch:
+  - amd64
+  - aarch64
+startup: application
+boot: auto
+devices:
+  - /dev/video0:/dev/video0:rwm
+options:
+  camera_index: 0
+  resolution: [640, 480]
+  fps_limit: 15
+  mqtt_host: core-mosquitto
+  mqtt_port: 1883
+  mqtt_topic: mirror/gesture
+  face_blur: true
+  enabled: false
+schema:
+  camera_index: int
+  resolution: "[int, int]"
+  fps_limit: int
+  mqtt_host: str
+  mqtt_port: int
+  mqtt_topic: str
+  face_blur: bool
+  enabled: bool
