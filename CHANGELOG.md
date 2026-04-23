@@ -44,7 +44,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `ha/layouts/work.portrait.json` — smoke-fixture layout (clock + weather) for Phase 03 to pull
 - `ha/README.md` — install + verification steps
 
-### Phase 03 — control loop
+### Phase 03 — control loop (PR #4, merged 2026-04-23)
 - `lib/layout/schema.ts` upgraded to zod: `LayoutSchema`, `TileSchema`, `safeParseLayout`
 - `lib/layout/diff.ts` — pure diff function emitting add/remove/move/resize/move_resize/swap/props patches (9 unit tests)
 - `lib/layout/flip.ts` — FLIP animation helper (snapshotRects + flip)
@@ -57,3 +57,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `lib/audio/single-audio.ts` — enforce-single-audio guard (3 unit tests)
 - `lib/tiles/WeatherTile.svelte` + registry entry (demo data; real subscription lands Phase 04)
 - `routes/+page.svelte` — seeds demo layout, bootstraps HAClient when env/window config present, renders Grid + conn pill + toasts
+
+### Phase 04 — core tile pack
+- New tiles: `CalendarTile`, `NewsBriefingTile`, `ServiceStatusTile`, `HostHealthTile`, `AlertsTile`, `LogTailTile`, `MetricsChartTile`, `IframeTile` (+ `WeatherTile` upgrade, clock unchanged)
+- Registry expanded; 10 tile types recognised
+- 10 smoke unit tests covering minimal-props render for each tile
+- `ha/layouts/ops.portrait.json` — reference layout exercising all 10 tile types
