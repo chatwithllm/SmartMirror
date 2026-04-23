@@ -28,6 +28,10 @@ import ProjectBoardTile from './ProjectBoardTile.svelte';
 import PrListTile from './PrListTile.svelte';
 import DeployPipelineTile from './DeployPipelineTile.svelte';
 import MessagesTile from './MessagesTile.svelte';
+import AlarmPanelTile from './AlarmPanelTile.svelte';
+import EventTimelineTile from './EventTimelineTile.svelte';
+import SensorGridTile from './SensorGridTile.svelte';
+import QuickActionsTile from './QuickActionsTile.svelte';
 
 /**
  * Tile registry. Each build phase registers a new batch. Grid.svelte
@@ -63,7 +67,11 @@ export const TILES: Record<string, Component<any>> = {
   project_board: ProjectBoardTile,
   pr_list: PrListTile,
   deploy_pipeline: DeployPipelineTile,
-  messages: MessagesTile
+  messages: MessagesTile,
+  alarm_panel: AlarmPanelTile,
+  event_timeline: EventTimelineTile,
+  sensor_grid: SensorGridTile,
+  quick_actions: QuickActionsTile
 };
 
 export type TileType = keyof typeof TILES;
