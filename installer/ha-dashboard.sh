@@ -58,7 +58,7 @@ HA_URL = os.environ["HA_URL"].rstrip("/")
 HA_TOKEN = os.environ["HA_TOKEN"]
 DASH_YAML = os.environ["DASH_YAML"]
 
-URL_PATH = "mirror"
+URL_PATH = "smart-mirror"
 TITLE = "Smart Mirror"
 ICON = "mdi:monitor-dashboard"
 
