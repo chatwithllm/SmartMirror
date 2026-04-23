@@ -1,0 +1,10 @@
+# Smart Mirror — populate sensor.plex_continue_watching.rating_key
+# Called on demand (or on Plex state change) so the Plex tile always has
+# a fresh target to resume. See BACKEND_SPEC.md §12 (Plex integration).
+
+alias: "Mirror · Plex prep"
+sequence:
+  - service: plex.refresh_library
+    data: {}
+  - service: rest_command.plex_continue_watching
+    data: {}

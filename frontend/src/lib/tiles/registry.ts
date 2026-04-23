@@ -9,6 +9,9 @@ import AlertsTile from './AlertsTile.svelte';
 import LogTailTile from './LogTailTile.svelte';
 import MetricsChartTile from './MetricsChartTile.svelte';
 import IframeTile from './IframeTile.svelte';
+import PlexPlayerTile from './PlexPlayerTile.svelte';
+import PlexNowPlayingTile from './PlexNowPlayingTile.svelte';
+import PlexRecentTile from './PlexRecentTile.svelte';
 
 /**
  * Tile registry. Each build phase registers a new batch. Grid.svelte
@@ -25,7 +28,10 @@ export const TILES: Record<string, Component<any>> = {
   alerts: AlertsTile,
   log_tail: LogTailTile,
   metrics_chart: MetricsChartTile,
-  iframe: IframeTile
+  iframe: IframeTile,
+  plex_player: PlexPlayerTile,
+  plex_now_playing: PlexNowPlayingTile,
+  plex_recent: PlexRecentTile
 };
 
 export type TileType = keyof typeof TILES;

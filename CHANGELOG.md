@@ -58,8 +58,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `lib/tiles/WeatherTile.svelte` + registry entry (demo data; real subscription lands Phase 04)
 - `routes/+page.svelte` — seeds demo layout, bootstraps HAClient when env/window config present, renders Grid + conn pill + toasts
 
-### Phase 04 — core tile pack
+### Phase 04 — core tile pack (PR #5, merged 2026-04-23)
 - New tiles: `CalendarTile`, `NewsBriefingTile`, `ServiceStatusTile`, `HostHealthTile`, `AlertsTile`, `LogTailTile`, `MetricsChartTile`, `IframeTile` (+ `WeatherTile` upgrade, clock unchanged)
 - Registry expanded; 10 tile types recognised
 - 10 smoke unit tests covering minimal-props render for each tile
 - `ha/layouts/ops.portrait.json` — reference layout exercising all 10 tile types
+
+### Phase 05 — Plex tile
+- `lib/tiles/PlexPlayerTile.svelte` — hls.js integration, poster fallback, decode-error event emit
+- `lib/tiles/PlexNowPlayingTile.svelte` — active Plex sessions w/ progress bar
+- `lib/tiles/PlexRecentTile.svelte` — recently added carousel
+- `lib/resolution/tile-props.ts` — RES_CAPS + `currentResolution()` bitrate chooser
+- `ha/scripts/mirror_plex_prep.yaml` — populate continue-watching ratingKey
+- `ha/automations/01_mirror_plex_focus.yaml` — Plex playing → relax-minimal
+- `ha/layouts/relax.portrait.json` — Plex hero layout
+- `docs/plex-hw-decode-verify.md` — VA-API verification runbook

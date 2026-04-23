@@ -1,0 +1,17 @@
+# Smart Mirror — swap to relax-minimal when Plex starts playing.
+
+alias: "Mirror · Plex focus swap"
+id: mirror_plex_focus_swap
+mode: single
+
+trigger:
+  - platform: state
+    entity_id: media_player.plex_livingroom
+    to: "playing"
+
+action:
+  - service: input_select.select_option
+    target:
+      entity_id: input_select.mirror_preset
+    data:
+      option: relax-minimal
