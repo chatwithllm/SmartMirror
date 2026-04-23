@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "mode": "guest",
+  "orientation": "landscape",
+  "theme": "editorial",
+  "resolution": "1080p",
+  "transition": "fade",
+  "grid": { "cols": 12, "rows": 8, "gap": 14 },
+  "tiles": [
+    { "id": "photo", "type": "immich_slideshow", "x": 0, "y": 0, "w": 8, "h": 8 },
+    { "id": "clock", "type": "clock", "x": 8, "y": 0, "w": 4, "h": 3 },
+    { "id": "weather", "type": "weather", "x": 8, "y": 3, "w": 4, "h": 3 },
+    { "id": "scenes", "type": "ambient_scenes", "x": 8, "y": 6, "w": 4, "h": 2 }
+  ]
+}

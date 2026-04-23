@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "mode": "relax",
+  "orientation": "landscape",
+  "theme": "minimal-dark",
+  "resolution": "1080p",
+  "transition": "flip",
+  "grid": { "cols": 12, "rows": 8, "gap": 14 },
+  "tiles": [
+    { "id": "plex", "type": "plex_player", "x": 0, "y": 0, "w": 9, "h": 6, "audio": true, "props": { "autoplay": true } },
+    { "id": "now", "type": "plex_now_playing", "x": 9, "y": 0, "w": 3, "h": 3 },
+    { "id": "scene", "type": "ambient_scenes", "x": 9, "y": 3, "w": 3, "h": 3 },
+    { "id": "devices", "type": "device_slider", "x": 0, "y": 6, "w": 6, "h": 2 },
+    { "id": "sleep", "type": "sleep_timer", "x": 6, "y": 6, "w": 3, "h": 2 },
+    { "id": "pod", "type": "podcast", "x": 9, "y": 6, "w": 3, "h": 2 }
+  ]
+}
