@@ -4,8 +4,17 @@ import { spawn } from 'node:child_process';
 type Action = 'reload_browser' | 'restart_frontend' | 'reboot';
 const ALLOWED: readonly Action[] = ['reload_browser', 'restart_frontend', 'reboot'] as const;
 
-function runDetached(cmd: string, args: string[]): void {
-  const child = spawn(cmd, args, { detached: true, stdio: 'ignore' });
+function runLogged(cmd: string, args: string[]): void {
+  console.log(`[admin] exec: ${cmd} ${args.join(' ')}`);
+  const child = spawn(cmd, args, { detached: true, stdio: ['ignore', 'pipe', 'pipe'] });
+  child.stdout?.on('data', (d) => process.stdout.write(`[admin:${cmd}] ${d}`));
+  child.stderr?.on('data', (d) => process.stderr.write(`[admin:${cmd}] ${d}`));
+  child.on('exit', (code, sig) => {
+    console.log(`[admin] ${cmd} exited code=${code} sig=${sig ?? 'null'}`);
+  });
+  child.on('error', (err) => {
+    console.error(`[admin] ${cmd} spawn failed:`, err);
+  });
   child.unref();
 }
 
@@ -37,20 +46,23 @@ export const POST: RequestHandler = async ({ request }) => {
   if (!action || !ALLOWED.includes(action)) {
     return new Response('bad action', { status: 400 });
   }
+  console.log(`[admin] action=${action} host=${request.headers.get('host')}`);
 
   switch (action) {
     case 'reload_browser':
       // mirror user can kill its own chrome; mirror-kiosk systemd user
       // service has Restart=always so it respawns within ~5s.
-      runDetached('/usr/bin/pkill', ['-9', '-f', 'chrome']);
+      runLogged('/usr/bin/pkill', ['-9', '-f', 'chrome']);
       break;
     case 'restart_frontend':
       // Respond first, then exit. systemd restarts mirror-frontend.
       setTimeout(() => process.exit(0), 200);
       break;
     case 'reboot':
-      // Requires sudoers NOPASSWD for /sbin/reboot (dropped by installer).
-      runDetached('/usr/bin/sudo', ['-n', '/sbin/reboot']);
+      // Needs sudoers NOPASSWD (installer drops /etc/sudoers.d/mirror-reboot).
+      // /sbin/reboot is a symlink to /bin/systemctl on Ubuntu 24.04; the
+      // canonical, unambiguous command is `systemctl reboot`.
+      runLogged('/usr/bin/sudo', ['-n', '/usr/bin/systemctl', 'reboot']);
       break;
   }
 
