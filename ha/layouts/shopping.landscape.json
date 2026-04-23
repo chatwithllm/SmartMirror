@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "mode": "shopping",
+  "orientation": "landscape",
+  "theme": "minimal-dark",
+  "resolution": "1080p",
+  "transition": "flip",
+  "grid": { "cols": 12, "rows": 8, "gap": 14 },
+  "tiles": [
+    { "id": "shop", "type": "shopping_list", "x": 0, "y": 0, "w": 5, "h": 8 },
+    { "id": "inv", "type": "inventory_grid", "x": 5, "y": 0, "w": 7, "h": 4 },
+    { "id": "low", "type": "low_stock_alert", "x": 5, "y": 4, "w": 4, "h": 2 },
+    { "id": "expiry", "type": "expiry", "x": 9, "y": 4, "w": 3, "h": 2 },
+    { "id": "recipes", "type": "recipe_suggest", "x": 5, "y": 6, "w": 4, "h": 2 },
+    { "id": "budget", "type": "budget", "x": 9, "y": 6, "w": 3, "h": 2 }
+  ]
+}

@@ -95,7 +95,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - `ha/layouts/work.landscape.json` — landscape work dashboard
 - Registry at 29 tile types
 
-### Phase 09 — security + night bundle
+### Phase 09 — security + night bundle (PR #10, merged 2026-04-23)
 - Tiles: `AlarmPanelTile` (home/away/night/disarmed modes, dispatches `mirror:alarm_arm`), `EventTimelineTile` (ack), `SensorGridTile`, `QuickActionsTile`
 - `ha/layouts/security.portrait.json`, `ha/layouts/night.portrait.json`
 - Registry at 33 tile types
+
+### Phase 10 — morning + ambience bundle
+- Tiles: `RoutineChecklistTile` (ring % done), `CoffeeTimerTile`, `CommuteTile`, `AmbientScenesTile`, `DeviceSliderTile`, `SleepTimerTile`
+- Landscape layout variants for every mode (morning/work/relax/shopping/security/night/ops/guest/showcase/editorial) + portrait variants for guest/showcase/editorial
+- Registry at 39 tile types (full spec surface)
