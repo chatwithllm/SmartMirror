@@ -152,7 +152,7 @@
   }
   .forecast {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(3.69rem, 1fr));
     gap: var(--gap-sm);
     align-content: end;
   }

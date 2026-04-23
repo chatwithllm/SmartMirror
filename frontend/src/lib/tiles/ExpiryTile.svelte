@@ -77,7 +77,7 @@
   }
   li {
     display: grid;
-    grid-template-columns: 1fr auto 48px;
+    grid-template-columns: 1fr auto 3.69rem;
     gap: 8px;
     align-items: baseline;
     font-size: 0.85rem;

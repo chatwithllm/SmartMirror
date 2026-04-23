@@ -75,7 +75,7 @@
   }
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(6.15rem, 1fr));
     gap: 6px;
   }
   button {

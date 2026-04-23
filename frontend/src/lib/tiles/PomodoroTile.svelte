@@ -95,7 +95,7 @@
   .ring-wrap {
     position: relative;
     width: 100%;
-    max-width: 140px;
+    max-width: 10.77rem;
     aspect-ratio: 1;
   }
   .ring {

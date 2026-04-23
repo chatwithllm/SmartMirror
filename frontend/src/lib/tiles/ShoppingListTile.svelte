@@ -84,7 +84,7 @@
   }
   li {
     display: grid;
-    grid-template-columns: 20px 1fr auto auto;
+    grid-template-columns: 1.54rem 1fr auto auto;
     gap: 8px;
     align-items: center;
     padding: 3px 4px;

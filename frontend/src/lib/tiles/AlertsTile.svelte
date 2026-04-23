@@ -83,7 +83,7 @@
   }
   li {
     display: grid;
-    grid-template-columns: 64px 1fr auto 32px;
+    grid-template-columns: 4.92rem 1fr auto 2.46rem;
     gap: 8px;
     align-items: baseline;
     padding: 4px 6px;

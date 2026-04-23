@@ -156,7 +156,7 @@
     cursor: pointer;
   }
   .play {
-    min-width: 40px;
+    min-width: 3.08rem;
     background: var(--accent);
     color: #000;
     border-color: var(--accent);

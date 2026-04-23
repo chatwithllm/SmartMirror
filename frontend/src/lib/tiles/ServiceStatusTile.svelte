@@ -72,7 +72,7 @@
   }
   .row {
     display: grid;
-    grid-template-columns: 10px 1fr auto;
+    grid-template-columns: 0.77rem 1fr auto;
     gap: 8px;
     align-items: center;
     padding: 3px 0;

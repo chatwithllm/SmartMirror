@@ -65,7 +65,7 @@
   }
   li {
     display: grid;
-    grid-template-columns: 70px 1fr 32px;
+    grid-template-columns: 5.38rem 1fr 2.46rem;
     gap: 8px;
     align-items: baseline;
     padding: 3px 0;

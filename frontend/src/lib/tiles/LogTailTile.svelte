@@ -73,7 +73,7 @@
   .lvl {
     color: var(--dim);
     display: inline-block;
-    min-width: 48px;
+    min-width: 3.69rem;
   }
   .lvl-warn .lvl {
     color: var(--warn);
