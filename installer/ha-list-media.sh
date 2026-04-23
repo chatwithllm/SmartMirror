@@ -25,9 +25,8 @@ if [[ -f "$CA" ]]; then CURL_EXTRA+=(--cacert "$CA"); fi
 
 # Pull /api/states and filter for media_player/remote/switch entities
 # whose name hints at a TV. jq output: entity_id\tstate\tfriendly_name.
-curl -sS -H "Authorization: Bearer $HA_TOKEN" "${CURL_EXTRA[@]}" \
-  "$HA_URL/api/states" \
-  | python3 -c '
+TMP_PY=$(mktemp --suffix=.py)
+cat > "$TMP_PY" <<'PY'
 import json, sys
 data = json.load(sys.stdin)
 rows = []
@@ -40,10 +39,17 @@ for e in data:
     if dom in ("media_player", "remote") or (dom == "switch" and hint_tv):
         rows.append((dom, eid, state, name))
 rows.sort()
-print(f"{\"domain\":12}{\"entity_id\":45}{\"state\":18}friendly_name")
+fmt = "%-12s%-45s%-18s%s"
+print(fmt % ("domain", "entity_id", "state", "friendly_name"))
 print("-" * 110)
-for dom, eid, state, name in rows:
-    print(f"{dom:12}{eid:45}{state:18}{name}")
+for row in rows:
+    print(fmt % row)
 if not rows:
     print("(no media_player / remote entities found)")
-'
+PY
+
+curl -sS -H "Authorization: Bearer $HA_TOKEN" "${CURL_EXTRA[@]}" \
+  "$HA_URL/api/states" \
+  | python3 "$TMP_PY"
+
+rm -f "$TMP_PY"
