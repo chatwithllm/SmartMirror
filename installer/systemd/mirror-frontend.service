@@ -1,0 +1,30 @@
+[Unit]
+Description=Smart Mirror Frontend (SvelteKit, Node)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/mirror/config.env
+Environment=NODE_ENV=production
+Environment=HOST=0.0.0.0
+Environment=PORT=3000
+# If HA uses a self-signed cert, config.env supplies HA_CA_CERT and we feed it
+# to Node via NODE_EXTRA_CA_CERTS (see Phase 03+ when WS client lands).
+Environment=NODE_EXTRA_CA_CERTS=/etc/mirror/ha.crt
+WorkingDirectory=/opt/mirror/frontend
+ExecStart=/usr/bin/node build/index.js
+Restart=always
+RestartSec=5
+User=mirror
+Group=mirror
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ReadWritePaths=/var/log/mirror
+
+[Install]
+WantedBy=multi-user.target
