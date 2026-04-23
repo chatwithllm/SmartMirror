@@ -128,7 +128,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 - Frontend: `lib/gesture/events.ts` subscribes, `lib/gesture/router.ts` dispatches, `focusedTile` store
 - `docs/gesture-demo.md` — demo flow + kill-switches + privacy
 
-### Phase 14 — telemetry + installer polish + docs
+## [v1.0.0] — 2026-04-23
+All 14 phases merged. All phase branches preserved. Tag + GitHub release
+published. Tracking issue #16.
+
+### Phase 14 — telemetry + installer polish + docs (PR #15, merged 2026-04-23)
 - `lib/telemetry/fps.ts` — rAF-based FPS sampler + DOM/heap sampler stores
 - `lib/telemetry/report.ts` — posts `sensor.mirror_frontend_*` every 60s
 - `ha/rest_command.yaml` — `mirror_set_resolution` via SSH to the mirror box
