@@ -1,0 +1,16 @@
+node_modules
+.svelte-kit
+build
+.vite
+.env
+.env.*
+!.env.example
+
+# test artefacts
+coverage
+test-results
+playwright-report
+playwright/.cache
+
+# editor
+.DS_Store

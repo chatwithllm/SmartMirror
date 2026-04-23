@@ -162,16 +162,24 @@ EOF
 }
 
 install_systemd_units() {
-  log "install systemd units (Phase 00: kiosk only)"
+  log "install systemd units"
   local kiosk_unit_src="$SCRIPT_DIR/systemd/mirror-kiosk.service"
+  local frontend_unit_src="$SCRIPT_DIR/systemd/mirror-frontend.service"
   [[ -f "$kiosk_unit_src" ]] || die "missing: $kiosk_unit_src"
+  [[ -f "$frontend_unit_src" ]] || die "missing: $frontend_unit_src"
   local kiosk_sh="$SCRIPT_DIR/chromium/mirror-kiosk.sh"
   [[ -f "$kiosk_sh" ]] || die "missing: $kiosk_sh"
 
+  # Frontend (system-level, runs as mirror)
+  write_file /etc/systemd/system/mirror-frontend.service "$(cat "$frontend_unit_src")"
+
+  # Kiosk (user-level, mirror user)
   write_file /etc/systemd/user/mirror-kiosk.service "$(cat "$kiosk_unit_src")"
   write_file /usr/local/bin/mirror-kiosk.sh "$(cat "$kiosk_sh")"
   run chmod +x /usr/local/bin/mirror-kiosk.sh
 
+  run systemctl daemon-reload
+  run systemctl enable mirror-frontend.service
   run systemctl --machine=mirror@ --user daemon-reload
   run systemctl --machine=mirror@ --user enable mirror-kiosk.service
 }

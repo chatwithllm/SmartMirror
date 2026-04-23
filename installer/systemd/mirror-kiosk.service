@@ -1,12 +1,14 @@
 [Unit]
 Description=Smart Mirror Kiosk (Chromium)
-After=graphical-session.target
+After=graphical-session.target mirror-frontend.service
+Wants=mirror-frontend.service
 PartOf=graphical-session.target
 
 [Service]
 Type=simple
 EnvironmentFile=-/etc/mirror/config.env
 ExecStartPre=/usr/bin/sleep 3
+ExecStartPre=/bin/sh -c 'until curl -sf http://localhost:${FRONTEND_PORT:-3000} > /dev/null; do sleep 1; done'
 ExecStart=/usr/local/bin/mirror-kiosk.sh
 Restart=always
 RestartSec=3

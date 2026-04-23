@@ -1,0 +1,53 @@
+:root {
+  /* Minimal-dark tokens — locks in Phase 11, stub for Phase 01. */
+  --bg: #0c0d10;
+  --panel: #15171c;
+  --panel-2: #1c1f26;
+  --fg: #f2f3f5;
+  --dim: #8b8f99;
+  --dimmer: #555862;
+  --line: #22252d;
+  --line-strong: #2a2e38;
+  --accent: #5eadff;
+  --accent-2: #b887ff;
+  --ok: #6ee7a7;
+  --warn: #ffb454;
+  --bad: #ff6b6b;
+
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Menlo", monospace;
+
+  --radius-sm: 4px;
+  --radius-md: 12px;
+  --radius-lg: 22px;
+  --gap-sm: 6px;
+  --gap-md: 12px;
+  --gap-lg: 20px;
+  --motion-fast: 120ms;
+  --motion-med: 280ms;
+  --motion-slow: 400ms;
+  --overscan: 2vw;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  width: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.mono {
+  font-family: var(--font-mono);
+}

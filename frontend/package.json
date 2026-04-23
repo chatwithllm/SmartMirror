@@ -1,0 +1,41 @@
+{
+  "name": "smart-mirror-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev --host 0.0.0.0 --port 5173",
+    "build": "vite build",
+    "preview": "vite preview --port 3000",
+    "start": "node build/index.js",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.49.1",
+    "@sveltejs/adapter-node": "5.2.12",
+    "@sveltejs/kit": "2.15.2",
+    "@sveltejs/vite-plugin-svelte": "5.0.3",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/svelte": "5.2.6",
+    "@types/node": "22.10.5",
+    "happy-dom": "16.5.3",
+    "svelte": "5.17.3",
+    "svelte-check": "4.1.4",
+    "tslib": "2.8.1",
+    "typescript": "5.7.3",
+    "vite": "6.0.7",
+    "vitest": "3.0.5"
+  },
+  "dependencies": {
+    "flip-toolkit": "7.2.6",
+    "gridstack": "11.2.0",
+    "hls.js": "1.5.19",
+    "home-assistant-js-websocket": "9.4.0",
+    "zod": "3.24.1"
+  },
+  "packageManager": "pnpm@10.33.1"
+}
