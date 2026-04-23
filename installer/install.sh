@@ -152,6 +152,7 @@ install_system_deps() {
   ensure_apt_pkg curl ca-certificates gnupg whiptail unclutter \
     x11-xserver-utils x11-utils xdotool wmctrl \
     vainfo intel-media-va-driver-non-free \
+    python3 python3-venv python3-pip \
     build-essential
   # Node 20
   if ! command -v node >/dev/null 2>&1 || [[ "$(node --version 2>&1 | sed 's/v//' | cut -d. -f1)" -lt 20 ]]; then
