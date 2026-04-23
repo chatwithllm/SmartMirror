@@ -38,12 +38,15 @@
 </div>
 
 <style>
-  /* Absolute so overscan padding on .stage contains the strip instead of
-   * it being clipped by the TV bezel. Parent is .stage (position: relative). */
+  /* Absolute-positioned children of .stage sit against its padding-box
+   * (i.e. the border edge), so plain `right/bottom: 12px` would ignore
+   * the overscan inset. Offset by --os-right / --os-bottom (inline
+   * custom properties set on .stage) to shift the footer in by the
+   * same amount the rest of the UI is inset by the bezel guard. */
   .stats-footer {
     position: absolute;
-    right: 12px;
-    bottom: 8px;
+    right: calc(var(--os-right, 0px) + 12px);
+    bottom: calc(var(--os-bottom, 0px) + 8px);
     font-size: 0.75rem;
     letter-spacing: 0.1em;
     color: var(--dim);
