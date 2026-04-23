@@ -2,7 +2,7 @@
 
 Dynamic, Home-Assistant-driven dashboard for a 43" TV mounted vertical. Live tiles for clock, weather, calendar, Plex, Immich, Frigate cameras, inventory (Grocy), service health, projects, alerts. 4 themes, 10 modes, optional webcam gesture control.
 
-> **Status:** spec complete, autonomous build starting. See [CHANGELOG.md](CHANGELOG.md) for progress.
+> **Status:** v1.0.0 shipped — [release notes](https://github.com/chatwithllm/SmartMirror/releases/tag/v1.0.0). Deploy steps: **[docs/deploy.md](docs/deploy.md)**.
 
 ## Starting on a new machine
 
@@ -22,19 +22,24 @@ Dynamic, Home-Assistant-driven dashboard for a 43" TV mounted vertical. Live til
 
 10 interactive HTML mockups under [mockups/](mockups/). Open `mockups/index.html` in a browser for previews of all themes and modes.
 
-## Quickstart (once v1.0.0 ships)
+## Quickstart (v1.0.0)
 
-On the mirror box (Ubuntu Desktop):
+Full guide: **[docs/deploy.md](docs/deploy.md)**. TL;DR on the mirror box:
 
 ```bash
-git clone https://github.com/chatwithllm/SmartMirror.git /opt/mirror
-cd /opt/mirror
-sudo bash installer/install.sh
+sudo apt-get install -y git curl chromium-browser whiptail unclutter \
+  vainfo intel-media-va-driver-non-free wlr-randr
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs && sudo npm install -g pnpm@10
+
+sudo git clone --branch v1.0.0 https://github.com/chatwithllm/SmartMirror.git /opt/mirror
+cd /opt/mirror/frontend && pnpm install --frozen-lockfile && pnpm build
+cd /opt/mirror && sudo bash installer/install.sh --dry-run   # preview
+sudo bash installer/install.sh                                # apply
+sudo reboot
 ```
 
-The installer prompts for orientation, resolution, HA URL + token, optional Plex/Immich/Frigate/Grocy creds, webcam index. Reboots into kiosk.
-
-On the Home Assistant side, copy snippets from [ha/](ha/) into your config per [ha/README.md](ha/README.md).
+On the HA side, copy `ha/` into `/config/` and wire includes per [ha/README.md](ha/README.md).
 
 ## Hardware
 
