@@ -31,6 +31,14 @@ if [[ ! -f "$DASH_YAML" ]]; then
   exit 1
 fi
 
+# Preflight: python + venv + pip available.
+if ! python3 -c 'import venv, ensurepip' 2>/dev/null; then
+  echo "python3 venv/pip missing. Install once:" >&2
+  echo "  sudo apt-get install -y python3 python3-venv python3-pip" >&2
+  echo "Then re-run: sudo -u mirror bash $0" >&2
+  exit 1
+fi
+
 # Ensure venv with PyYAML + websockets.
 if [[ ! -x "$VENV_DIR/bin/python" ]]; then
   echo "[ha-dashboard] creating venv at $VENV_DIR"
