@@ -182,7 +182,7 @@
 
 <main
   class="stage"
-  style="padding: {overscan.top}vh {overscan.right}vw {overscan.bottom}vh {overscan.left}vw;"
+  style="--os-top:{overscan.top}vh; --os-right:{overscan.right}vw; --os-bottom:{overscan.bottom}vh; --os-left:{overscan.left}vw; padding: var(--os-top) var(--os-right) var(--os-bottom) var(--os-left);"
 >
   {#if $currentLayout}
     <Grid layout={$currentLayout} />

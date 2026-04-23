@@ -22,8 +22,11 @@ Group=mirror
 LogsDirectory=mirror
 LogsDirectoryMode=0755
 
-# Hardening (kept lenient so it actually starts on a fresh box)
-NoNewPrivileges=true
+# Hardening (kept lenient so it actually starts on a fresh box).
+# NoNewPrivileges must be OFF: the admin endpoint shells out to
+# `sudo -n /usr/bin/systemctl reboot` for the HA "Reboot PC" control,
+# and sudo refuses to elevate when this flag is on.
+NoNewPrivileges=false
 PrivateTmp=true
 ProtectControlGroups=true
 ProtectKernelModules=true
