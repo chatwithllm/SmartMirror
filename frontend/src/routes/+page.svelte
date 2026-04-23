@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { page } from '$app/stores';
+  import { get } from 'svelte/store';
   import Grid from '$lib/grid/Grid.svelte';
   import { layoutStore, currentLayout } from '$lib/layout/store.js';
   import { connection, toasts } from '$lib/stores/connection.js';
@@ -65,14 +67,12 @@
   onMount(() => {
     layoutStore.setLayout(DEMO_LAYOUT, 0);
 
-    const hassUrl =
-      (typeof window !== 'undefined' && (window as any).__HA_URL__) ||
-      (import.meta as any).env?.VITE_HA_URL ||
-      '';
-    const hassToken =
-      (typeof window !== 'undefined' && (window as any).__HA_TOKEN__) ||
-      (import.meta as any).env?.VITE_HA_TOKEN ||
-      '';
+    // Read directly from +layout.server.ts data — parent layout's onMount
+    // hasn't fired yet at this point (child mounts first), so window
+    // globals aren't populated yet.
+    const pageData = get(page).data as { haUrl?: string; haToken?: string };
+    const hassUrl = pageData?.haUrl || (import.meta as any).env?.VITE_HA_URL || '';
+    const hassToken = pageData?.haToken || (import.meta as any).env?.VITE_HA_TOKEN || '';
 
     if (!hassUrl || !hassToken) {
       connection.set({ kind: 'down', reason: 'no-ha-config' });
