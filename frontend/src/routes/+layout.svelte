@@ -1,7 +1,6 @@
 <script lang="ts">
   import '$lib/styles/root.css';
   import { onMount } from 'svelte';
-  import StatsFooter from '$lib/StatsFooter.svelte';
 
   interface Props {
     data: { haUrl: string; haToken: string };
@@ -22,4 +21,3 @@
 {#if children}
   {@render children()}
 {/if}
-<StatsFooter />

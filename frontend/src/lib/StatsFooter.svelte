@@ -38,16 +38,21 @@
 </div>
 
 <style>
+  /* Absolute so overscan padding on .stage contains the strip instead of
+   * it being clipped by the TV bezel. Parent is .stage (position: relative). */
   .stats-footer {
-    position: fixed;
-    right: 10px;
-    bottom: 6px;
-    font-size: 0.55rem;
-    letter-spacing: 0.08em;
-    color: var(--dimmer);
-    opacity: 0.75;
+    position: absolute;
+    right: 12px;
+    bottom: 8px;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--dim);
+    opacity: 0.95;
     pointer-events: none;
-    z-index: 1;
+    z-index: 2;
     white-space: nowrap;
+    padding: 2px 8px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: var(--radius-sm);
   }
 </style>

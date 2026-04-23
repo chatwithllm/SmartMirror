@@ -3,6 +3,7 @@
   import { page } from '$app/stores';
   import { get } from 'svelte/store';
   import Grid from '$lib/grid/Grid.svelte';
+  import StatsFooter from '$lib/StatsFooter.svelte';
   import { layoutStore, currentLayout } from '$lib/layout/store.js';
   import { connection, toasts } from '$lib/stores/connection.js';
   import { DEMO_LAYOUT } from '$lib/layout/demo.js';
@@ -200,6 +201,8 @@
       {/each}
     </ul>
   {/if}
+
+  <StatsFooter />
 </main>
 
 <style>
