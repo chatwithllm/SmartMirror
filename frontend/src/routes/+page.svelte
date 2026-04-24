@@ -4,7 +4,7 @@
   import { get } from 'svelte/store';
   import Grid from '$lib/grid/Grid.svelte';
   import StatsFooter from '$lib/StatsFooter.svelte';
-  import { ytCmd, type YTAction } from '$lib/youtube/controller.js';
+  import { ytCmd, ytLoadVideo, type YTAction } from '$lib/youtube/controller.js';
   import { layoutStore, currentLayout } from '$lib/layout/store.js';
   import { connection, toasts } from '$lib/stores/connection.js';
   import { DEMO_LAYOUT } from '$lib/layout/demo.js';
@@ -48,6 +48,7 @@
   };
   const lastSeenButton: Record<string, string | null> = {};
   let buttonBaselined = false;
+  let lastYtVideoInput: string | null = null;
 
   // Boolean-backed toggle: screen power. Watch input_boolean, dispatch
   // DPMS on transition. Baselined on first tick so a page reload
@@ -95,6 +96,19 @@
         lastSeenButton[k] = cur;
       }
     });
+  }
+
+  async function pollYtVideo(base: string, token: string) {
+    const cur = await fetchState(base, token, 'input_text.mirror_yt_video');
+    if (cur == null) return;
+    // Empty or unchanged -> ignore. We don't baseline like the buttons
+    // because the value is user-supplied content, not a trigger flag;
+    // the first time we see a non-empty value we should honour it.
+    if (cur === lastYtVideoInput) return;
+    lastYtVideoInput = cur;
+    if (!cur.trim()) return;
+    const ok = ytLoadVideo(cur);
+    toasts.push(ok ? 'info' : 'warn', ok ? `yt · loaded` : `yt · bad url`);
   }
 
   async function pollScreenToggle(base: string, token: string) {
@@ -186,10 +200,12 @@
     void applyHa(hassUrl, hassToken);
     void pollAdminButtons(hassUrl, hassToken);
     void pollScreenToggle(hassUrl, hassToken);
+    void pollYtVideo(hassUrl, hassToken);
     pollTimer = setInterval(() => {
       void applyHa(hassUrl, hassToken);
       void pollAdminButtons(hassUrl, hassToken);
       void pollScreenToggle(hassUrl, hassToken);
+      void pollYtVideo(hassUrl, hassToken);
     }, 2000);
   });
 
