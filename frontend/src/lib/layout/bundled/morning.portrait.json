@@ -6,7 +6,6 @@
   "resolution": "1080p",
   "transition": "fade",
   "grid": { "cols": 8, "rows": 14, "gap": 0 },
-  "overscan": { "top": 1, "right": 1, "bottom": 1, "left": 1 },
   "tiles": [
     { "id": "morning", "type": "morning", "x": 0, "y": 0, "w": 8, "h": 14,
       "props": {
