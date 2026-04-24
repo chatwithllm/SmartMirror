@@ -47,6 +47,7 @@ import GlassTile from './GlassTile.svelte';
 import WorkTile from './WorkTile.svelte';
 import SecurityTile from './SecurityTile.svelte';
 import RetroTile from './RetroTile.svelte';
+import ConsoleTile from './ConsoleTile.svelte';
 import MorningTile from './MorningTile.svelte';
 
 /**
@@ -103,7 +104,8 @@ export const TILES: Record<string, Component<any>> = {
   glass: GlassTile,
   work: WorkTile,
   security: SecurityTile,
-  retro: RetroTile
+  retro: RetroTile,
+  console: ConsoleTile
 };
 
 export type TileType = keyof typeof TILES;
