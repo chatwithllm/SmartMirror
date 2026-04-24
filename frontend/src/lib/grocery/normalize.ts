@@ -54,13 +54,22 @@ function pickArray(data: unknown): unknown[] {
 export function normalizeInventory(data: unknown): InvItem[] {
   return pickArray(data).map((raw, idx) => {
     const r = (raw ?? {}) as Record<string, unknown>;
+    const qty = toNumber(
+      firstDefined(r.qty, r.quantity, r.amount, r.count, r.stock, r.current_qty),
+    );
+    // LocalOCR doesn't ship a numeric min/threshold per item — it just
+    // flags is_low / manual_low booleans. Synthesise a min so the
+    // "qty < min" filter in LowStockAlertTile still catches them.
+    let min = toNumber(
+      firstDefined(r.min, r.min_qty, r.min_stock, r.threshold, r.reorder_point, r.par_level),
+    );
+    const flaggedLow = Boolean(firstDefined(r.is_low, r.manual_low, r.low));
+    if (!min && flaggedLow) min = qty + 1;
     return {
       id: toStr(firstDefined(r.id, r.uuid, r.product_id, idx)),
       name: toStr(firstDefined(r.name, r.product_name, r.title, r.label) ?? '—'),
-      qty: toNumber(firstDefined(r.qty, r.quantity, r.amount, r.count, r.stock, r.current_qty)),
-      min: toNumber(
-        firstDefined(r.min, r.min_qty, r.min_stock, r.threshold, r.reorder_point, r.par_level),
-      ),
+      qty,
+      min,
       unit: firstDefined(r.unit, r.uom, r.units) as string | undefined,
       category: firstDefined(r.category, r.section, r.aisle, r.group) as string | undefined,
     };
@@ -72,12 +81,17 @@ export function normalizeShopping(data: unknown): ShopItem[] {
     const r = (raw ?? {}) as Record<string, unknown>;
     const qtyRaw = firstDefined(r.qty, r.quantity, r.amount, r.count);
     const qty = qtyRaw == null ? undefined : toStr(qtyRaw);
+    // LocalOCR's shopping-list items have status: 'open' | 'bought' |
+    // 'cancelled'. Anything non-open is done.
+    const status = firstDefined(r.status) as string | undefined;
+    const doneFromStatus = status != null && status !== 'open';
+    const doneFromFlag = Boolean(firstDefined(r.done, r.completed, r.checked, r.bought));
     return {
       id: toStr(firstDefined(r.id, r.uuid, r.item_id, idx)),
       name: toStr(firstDefined(r.name, r.product_name, r.title, r.label) ?? '—'),
       qty: qty && qty !== '0' ? qty : undefined,
       category: firstDefined(r.category, r.section, r.aisle, r.group) as string | undefined,
-      done: Boolean(firstDefined(r.done, r.completed, r.checked, r.bought)),
+      done: doneFromStatus || doneFromFlag,
     };
   });
 }
