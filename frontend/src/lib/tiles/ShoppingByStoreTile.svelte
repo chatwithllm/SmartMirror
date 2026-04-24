@@ -73,13 +73,20 @@
     try {
       const r = await fetch('/api/admin/grocery/shopping-list', { cache: 'no-store' });
       if (!r.ok) return;
-      const j = (await r.json()) as { configured?: boolean; data?: { items?: ApiItem[] } };
+      const j = (await r.json()) as {
+        configured?: boolean;
+        data?: {
+          items?: ApiItem[];
+          suggested_stores?: Array<{ store: string; estimated_total: number; item_count: number }>;
+        };
+      };
       configured = Boolean(j?.configured);
       if (!configured) {
         loadedOnce = true;
         return;
       }
       const items = j.data?.items ?? [];
+      const suggested = j.data?.suggested_stores ?? [];
       const bucket = new Map<string, Row[]>();
       for (const it of items) {
         const done = (it.status ?? 'open') !== 'open';
@@ -101,14 +108,32 @@
         arr.push(row);
         bucket.set(store, arr);
       }
-      // Rank stores by open-item count descending, stable by name.
-      const out: Group[] = Array.from(bucket.entries())
-        .map(([store, rows]) => {
-          const openRows = rows.filter((r) => !r.done);
-          const total = openRows.reduce((s, r) => s + r.price, 0);
-          return { store, rows, total, count: openRows.length };
-        })
-        .sort((a, b) => b.count - a.count || a.store.localeCompare(b.store));
+
+      // Prefer the app-provided suggested_stores for authoritative
+      // per-store total + count. Fall back to summing our rows when
+      // an item's store isn't in suggested_stores.
+      const out: Group[] = [];
+      const seen = new Set<string>();
+      for (const s of suggested) {
+        seen.add(s.store);
+        out.push({
+          store: s.store,
+          rows: bucket.get(s.store) ?? [],
+          total: s.estimated_total,
+          count: s.item_count,
+        });
+      }
+      for (const [store, rows] of bucket) {
+        if (seen.has(store)) continue;
+        const openRows = rows.filter((r) => !r.done);
+        out.push({
+          store,
+          rows,
+          total: openRows.reduce((s, r) => s + r.price, 0),
+          count: openRows.length,
+        });
+      }
+      out.sort((a, b) => b.count - a.count || a.store.localeCompare(b.store));
       groups = out;
       loadedOnce = true;
     } catch {
