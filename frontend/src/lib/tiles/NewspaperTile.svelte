@@ -111,6 +111,20 @@
   let livePantry = $state<NonNullable<Props['props']>['pantry'] | null>(null);
   let shoppingCount = $state<number | null>(null);
 
+  type ShopRow = { name: string; qty: string; price: number };
+  type ShopGroup = { store: string; total: number; count: number; rows: ShopRow[] };
+  let shoppingGroups = $state<ShopGroup[]>([]);
+
+  function priceOfShopRaw(it: Record<string, unknown>): number {
+    const a = it.actual_price;
+    if (typeof a === 'number') return a;
+    const m = it.manual_estimated_price;
+    if (typeof m === 'number') return m;
+    const lp = it.latest_price as { price?: number } | null | undefined;
+    if (lp && typeof lp.price === 'number') return lp.price;
+    return 0;
+  }
+
   async function pullGrocery(): Promise<void> {
     try {
       const inv = await fetch('/api/admin/grocery/inventory', { cache: 'no-store' });
@@ -133,13 +147,51 @@
       if (shop.ok) {
         const j = (await shop.json()) as { configured?: boolean; data?: unknown };
         if (j.configured) {
-          const items = normalizeShopping(j.data);
-          shoppingCount = items.filter((i) => !i.done).length;
+          const normalized = normalizeShopping(j.data);
+          shoppingCount = normalized.filter((i) => !i.done).length;
+
+          // Build grouped-by-store view from the raw payload. Raw gives
+          // us store name + price; normalizeShopping dropped those.
+          const raw = (j.data as { items?: unknown[] } | null)?.items ?? [];
+          const bucket = new Map<string, ShopRow[]>();
+          for (const it of raw as Array<Record<string, unknown>>) {
+            if ((it.status as string | undefined) !== 'open') continue;
+            const store =
+              (it.effective_store as string | null) ||
+              (it.preferred_store as string | null) ||
+              'Other';
+            const name =
+              (it.name as string | undefined) ||
+              (it.product_display_name as string | undefined) ||
+              '(item)';
+            const qnum = (it.quantity as number | string | undefined) ?? '';
+            const unit =
+              (it.unit as string | undefined) && it.unit !== 'each' ? ` ${it.unit}` : '';
+            const size =
+              (it.size_label as string | undefined) ? ` ${it.size_label}` : '';
+            const qty = `${qnum}${unit}${size}`.trim();
+            const price = priceOfShopRaw(it);
+            const arr = bucket.get(store) ?? [];
+            arr.push({ name, qty, price });
+            bucket.set(store, arr);
+          }
+          shoppingGroups = Array.from(bucket.entries())
+            .map(([store, rows]) => ({
+              store,
+              rows,
+              count: rows.length,
+              total: rows.reduce((s, r) => s + r.price, 0),
+            }))
+            .sort((a, b) => b.count - a.count || a.store.localeCompare(b.store));
         }
       }
     } catch {
       /* keep previous */
     }
+  }
+
+  function money(n: number): string {
+    return `$${n.toFixed(2)}`;
   }
 
   onMount(() => {
@@ -381,6 +433,32 @@
         </div>
       </div>
     </section>
+
+    {#if shoppingGroups.length > 0}
+      <section class="market">
+        <div class="section-h market-h">At the Market</div>
+        <div class="stores">
+          {#each shoppingGroups as g (g.store)}
+            <div class="store">
+              <div class="sh">
+                <span class="store-name">{g.store}</span>
+                <span class="store-total">{money(g.total)}</span>
+              </div>
+              <ul>
+                {#each g.rows as r (r.name + '|' + r.qty)}
+                  <li>
+                    <span class="sn">{r.name}</span>
+                    {#if r.qty}<span class="sq">{r.qty}</span>{/if}
+                    <span class="sp">{money(r.price)}</span>
+                  </li>
+                {/each}
+              </ul>
+              <div class="sf">{g.count} item{g.count === 1 ? '' : 's'}</div>
+            </div>
+          {/each}
+        </div>
+      </section>
+    {/if}
 
     {#if nowPlaying}
       <div class="now">
@@ -701,6 +779,91 @@
   }
   .inv-side li.crit .q {
     color: var(--paper-red);
+  }
+
+  /* Market section — shopping list grouped by store, newspaper style. */
+  .market {
+    margin-bottom: 1.4rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--paper-line);
+  }
+  .market-h {
+    text-align: center;
+    margin-bottom: 0.8rem;
+  }
+  .stores {
+    /* 3-up on portrait, more columns when there's room. */
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0 1.4rem;
+    column-rule: 1px solid var(--paper-line);
+  }
+  .store {
+    padding: 0 0.6rem;
+    border-right: 1px solid var(--paper-line);
+    break-inside: avoid;
+  }
+  .store:last-child {
+    border-right: 0;
+  }
+  .store .sh {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--paper-line);
+    padding-bottom: 0.35rem;
+    margin-bottom: 0.45rem;
+  }
+  .store-name {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: var(--paper-ink);
+    letter-spacing: 0.01em;
+  }
+  .store-total {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 0.8rem;
+    color: var(--paper-gold);
+  }
+  .store ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .store li {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 0.5rem;
+    padding: 0.2rem 0;
+    font-size: 0.72rem;
+    align-items: baseline;
+  }
+  .sn {
+    color: var(--paper-ink);
+  }
+  .sq {
+    color: var(--paper-dim);
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.7rem;
+  }
+  .sp {
+    font-family: 'Fraunces', Georgia, serif;
+    color: var(--paper-dim);
+    font-size: 0.75rem;
+  }
+  .sf {
+    margin-top: 0.35rem;
+    text-align: right;
+    font-size: 0.55rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--paper-dimmer);
   }
 
   .now {
