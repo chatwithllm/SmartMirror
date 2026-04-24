@@ -1212,8 +1212,8 @@
   .shop .stores {
     margin-top: 0.3rem;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-    gap: 0 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 0 1.2rem;
     overflow: hidden;
   }
   .shop .st {
@@ -1233,7 +1233,7 @@
     margin-bottom: 0.35rem;
   }
   .shop .sn {
-    font-size: 0.78rem;
+    font-size: 1.02rem;
     font-weight: 700;
     color: var(--w-fg);
     letter-spacing: 0.01em;
@@ -1242,7 +1242,7 @@
     text-overflow: ellipsis;
   }
   .shop .stot {
-    font-size: 0.62rem;
+    font-size: 0.82rem;
     color: var(--w-accent);
     font-weight: 700;
     flex-shrink: 0;
@@ -1254,20 +1254,20 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.1rem;
+    gap: 0.15rem;
   }
   .shop li {
     display: flex;
     justify-content: space-between;
     gap: 0.5rem;
-    padding: 0.1rem 0;
-    font-size: 0.68rem;
+    padding: 0.15rem 0;
+    font-size: 0.9rem;
     color: var(--w-fg);
     font-weight: 500;
   }
   .shop li.more {
     color: var(--w-dimmer);
-    font-size: 0.6rem;
+    font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -1280,13 +1280,13 @@
   }
   .shop .rq {
     color: var(--w-dim);
-    font-size: 0.62rem;
+    font-size: 0.8rem;
     flex-shrink: 0;
     font-weight: 600;
   }
   .shop .empty {
     color: var(--w-dim);
-    font-size: 0.72rem;
+    font-size: 0.9rem;
     padding: 0.5rem 0;
   }
 </style>
