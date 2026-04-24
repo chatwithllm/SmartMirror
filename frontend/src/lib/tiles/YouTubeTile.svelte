@@ -47,9 +47,14 @@
     if (!browser) return;
 
     // Build the /paste URL the phone should open and render it as a
-    // QR overlay. The kiosk serves on http://<mirror-lan-ip>:3000, so
-    // location.origin is exactly what the phone needs on the same LAN.
-    pasteUrl = `${window.location.origin}/paste`;
+    // QR overlay. location.origin would be http://localhost:3000 in
+    // the kiosk — that's unreachable from the phone. +layout.server.ts
+    // detects the mirror's LAN-routable IP and stashes it in
+    // window.__MIRROR_LAN_URL__; fall back to location.origin if the
+    // env detection failed (e.g. dev machine).
+    const lan = (window as unknown as { __MIRROR_LAN_URL__?: string })
+      .__MIRROR_LAN_URL__;
+    pasteUrl = `${lan || window.location.origin}/paste`;
     try {
       qrDataUrl = await QRCode.toDataURL(pasteUrl, {
         margin: 1,
