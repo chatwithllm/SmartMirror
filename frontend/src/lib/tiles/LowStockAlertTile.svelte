@@ -35,7 +35,7 @@
   onMount(() => {
     if (!browser) return;
     void pull();
-    timer = setInterval(pull, 120_000);
+    timer = setInterval(pull, 30_000);
   });
 
   onDestroy(() => {

@@ -204,7 +204,7 @@
     calendarTimer = setInterval(() => void fetchCalendar(cEnt), 5 * 60_000);
     if (props.plexEntity) watchPlex(props.plexEntity);
     void pullGrocery();
-    groceryTimer = setInterval(() => void pullGrocery(), 2 * 60_000);
+    groceryTimer = setInterval(() => void pullGrocery(), 30_000);
   });
 
   onDestroy(() => {
