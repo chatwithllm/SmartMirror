@@ -269,11 +269,37 @@
 
 <style>
   .wrap {
+    container-type: inline-size;
     display: grid;
     grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
     gap: 0.5rem;
     width: 100%;
     height: 100%;
+  }
+  /* Narrow tile (e.g. 2-col slot in portrait): stack vertically with
+     the map on top and a thin details strip underneath. */
+  @container (max-width: 360px) {
+    .wrap {
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr auto;
+    }
+    .card {
+      gap: 0.1rem;
+    }
+    .title {
+      font-size: 0.82rem;
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+    }
+    .loc {
+      -webkit-line-clamp: 1;
+      line-clamp: 1;
+      font-size: 0.65rem;
+    }
+    .when {
+      font-size: 0.6rem;
+    }
   }
   .empty {
     grid-column: 1 / -1;
