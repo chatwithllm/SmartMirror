@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { browser } from '$app/environment';
+  import QRCode from 'qrcode';
   import BaseTile from './BaseTile.svelte';
   import { loadYouTubeIframeAPI, setYTPlayer } from '$lib/youtube/controller.js';
 
@@ -39,21 +40,36 @@
   });
 
   let player: unknown = null;
+  let qrDataUrl = $state<string>('');
+  let pasteUrl = $state<string>('');
 
   onMount(async () => {
-    if (!browser || !props.videoId) return;
+    if (!browser) return;
+
+    // Build the /paste URL the phone should open and render it as a
+    // QR overlay. The kiosk serves on http://<mirror-lan-ip>:3000, so
+    // location.origin is exactly what the phone needs on the same LAN.
+    pasteUrl = `${window.location.origin}/paste`;
+    try {
+      qrDataUrl = await QRCode.toDataURL(pasteUrl, {
+        margin: 1,
+        width: 220,
+        color: { dark: '#f2f3f5', light: '#00000000' },
+      });
+    } catch {
+      qrDataUrl = '';
+    }
+
+    if (!props.videoId) return;
     await loadYouTubeIframeAPI();
-    // The YT API wraps an existing iframe by DOM id.
     const w = window as unknown as {
       YT: { Player: new (id: string, opts: Record<string, unknown>) => unknown };
     };
     player = new w.YT.Player(frameId, {
       events: {
-        onReady: () => {
-          // Expose to the module-level singleton so HA-button polling
-          // in +page.svelte can pilot play/pause/mute/volume/seek.
-          setYTPlayer(player as never);
-        },
+        // Expose the player so HA-button polling in +page.svelte can
+        // pilot play/pause/mute/volume/seek.
+        onReady: () => setYTPlayer(player as never),
       },
     });
   });
@@ -67,29 +83,69 @@
 </script>
 
 <BaseTile {id} type="youtube" label={props.title ?? 'YouTube'}>
-  {#if src}
-    <iframe
-      id={frameId}
-      class="yt"
-      src={src}
-      title={props.title ?? 'YouTube'}
-      allow="autoplay; encrypted-media; picture-in-picture"
-      allowfullscreen
-      referrerpolicy="origin"
-      data-testid="youtube-frame"
-    ></iframe>
-  {:else}
-    <div class="empty mono" data-testid="youtube-empty">no videoId</div>
-  {/if}
+  <div class="yt-wrap">
+    {#if src}
+      <iframe
+        id={frameId}
+        class="yt"
+        src={src}
+        title={props.title ?? 'YouTube'}
+        allow="autoplay; encrypted-media; picture-in-picture"
+        allowfullscreen
+        referrerpolicy="origin"
+        data-testid="youtube-frame"
+      ></iframe>
+    {:else}
+      <div class="empty mono" data-testid="youtube-empty">no videoId</div>
+    {/if}
+    {#if qrDataUrl}
+      <div class="qr mono" data-testid="youtube-qr" title={pasteUrl}>
+        <img src={qrDataUrl} alt="scan to paste URL" />
+        <div class="qr-label">scan → paste</div>
+      </div>
+    {/if}
+  </div>
 </BaseTile>
 
 <style>
+  .yt-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
   .yt {
     width: 100%;
     height: 100%;
     border: 0;
     border-radius: calc(var(--radius-md) - 2px);
     background: #000;
+    display: block;
+  }
+  .qr {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    width: 68px;
+    padding: 6px 6px 4px;
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.72);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .qr img {
+    width: 56px;
+    height: 56px;
+    image-rendering: pixelated;
+  }
+  .qr-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    color: var(--dim);
+    white-space: nowrap;
   }
   .empty {
     display: flex;
