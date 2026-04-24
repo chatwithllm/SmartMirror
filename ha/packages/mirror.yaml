@@ -26,6 +26,7 @@ input_select:
       - night-minimal
       - security-security
       - showcase-editorial
+      - editorial-daily
     initial: auto
 
   mirror_mode:
@@ -37,6 +38,7 @@ input_select:
       - night
       - security
       - showcase
+      - editorial
     initial: auto
 
   mirror_theme:
