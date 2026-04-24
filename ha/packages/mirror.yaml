@@ -81,6 +81,12 @@ input_boolean:
   mirror_dnd:
     name: Mirror Do Not Disturb
     icon: mdi:bell-off
+  # Flip the morning-minimal MorningTile from warm-dark (default) to a
+  # pale dawn palette for daylight / glare-heavy rooms. Polled by the
+  # tile every 5 s.
+  mirror_light_mode:
+    name: Mirror Light Mode
+    icon: mdi:white-balance-sunny
   # Screen power. true = panel on, false = DPMS off. Mirror PC keeps
   # running; only the display goes dark/wakes.
   mirror_screen_on:
