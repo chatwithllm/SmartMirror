@@ -44,6 +44,13 @@
   };
   let directions = $state<Directions | null>(null);
 
+  type RouteData = {
+    polyline: string;
+    home_latlng: string;
+    dest_latlng: string;
+  };
+  let route = $state<RouteData | null>(null);
+
   async function fetchCalendar(): Promise<void> {
     if (!browser) return;
     const w = window as unknown as { __HA_URL__?: string; __HA_TOKEN__?: string };
@@ -89,13 +96,43 @@
     }
   }
 
+  async function fetchRoute(to: string): Promise<void> {
+    try {
+      const r = await fetch(`/api/admin/route?to=${encodeURIComponent(to)}`, {
+        cache: 'no-store',
+      });
+      if (!r.ok) {
+        route = null;
+        return;
+      }
+      const j = (await r.json()) as {
+        ok: boolean;
+        polyline?: string;
+        home_latlng?: string;
+        dest_latlng?: string;
+      };
+      if (j.ok && j.polyline && j.home_latlng && j.dest_latlng) {
+        route = {
+          polyline: j.polyline,
+          home_latlng: j.home_latlng,
+          dest_latlng: j.dest_latlng,
+        };
+      } else {
+        route = null;
+      }
+    } catch {
+      route = null;
+    }
+  }
+
   // Whenever the picked event changes, kick a fresh directions fetch
-  // and set up a traffic-refresh interval (Distance Matrix tolerates
-  // ~every 2 min comfortably).
+  // and set up a traffic-refresh interval. Route polyline is fetched
+  // once per event — geometry is cached server-side for an hour.
   $effect(() => {
     const loc = event?.location;
     if (!loc) {
       directions = null;
+      route = null;
       if (dirTimer) {
         clearInterval(dirTimer);
         dirTimer = null;
@@ -103,6 +140,7 @@
       return;
     }
     void fetchDirections(loc);
+    void fetchRoute(loc);
     if (dirTimer) clearInterval(dirTimer);
     dirTimer = setInterval(() => void fetchDirections(loc), 2 * 60_000);
   });
@@ -120,12 +158,19 @@
 
   const mapSrc = $derived.by(() => {
     if (!event) return '';
-    const qs = new URLSearchParams({
-      q: event.location,
-      w: '640',
-      h: '640',
-      zoom: String(props.zoom ?? 14),
-    });
+    const qs = new URLSearchParams();
+    qs.set('w', '640');
+    qs.set('h', '640');
+    if (route) {
+      // Route overlay: blue polyline + green home pin + red dest pin.
+      // Drop `q`/`zoom` so Static Maps auto-frames the whole path.
+      qs.set('path', `color:0x4285f4|weight:5|enc:${route.polyline}`);
+      qs.append('markers', `color:green|label:H|${route.home_latlng}`);
+      qs.append('markers', `color:red|${route.dest_latlng}`);
+    } else {
+      qs.set('q', event.location);
+      qs.set('zoom', String(props.zoom ?? 14));
+    }
     return `/api/admin/map?${qs}`;
   });
 

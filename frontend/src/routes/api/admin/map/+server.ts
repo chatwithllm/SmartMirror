@@ -10,17 +10,37 @@ export const GET: RequestHandler = async ({ url }) => {
   const q = url.searchParams.get('q')?.trim();
   const w = clamp(url.searchParams.get('w'), 120, 640, 640);
   const h = clamp(url.searchParams.get('h'), 120, 640, 320);
-  const zoom = clamp(url.searchParams.get('zoom'), 5, 19, 14);
+  // Route overlay (encoded polyline from Routes API) + extra markers.
+  // When `path` is set we let Google auto-frame the image (no center,
+  // no zoom) so the full route fits.
+  const path = url.searchParams.get('path')?.trim();
+  const markersAll = url.searchParams.getAll('markers');
+  const zoomParam = url.searchParams.get('zoom');
+  const zoom = zoomParam ? clamp(zoomParam, 5, 19, 14) : null;
 
   if (!key) return new Response('no-key', { status: 503 });
-  if (!q) return new Response('missing q', { status: 400 });
+  if (!q && !path) return new Response('missing q or path', { status: 400 });
 
   const gurl = new URL('https://maps.googleapis.com/maps/api/staticmap');
-  gurl.searchParams.set('center', q);
-  gurl.searchParams.set('zoom', String(zoom));
+  if (path) {
+    // path already carries the style prefix (color:0x...|weight:5|enc:...).
+    // Preserve Google's path=color:...|enc:... format — URLSearchParams
+    // encodes pipes, which Static Maps accepts.
+    gurl.searchParams.set('path', path);
+  } else if (zoom != null) {
+    gurl.searchParams.set('center', q as string);
+    gurl.searchParams.set('zoom', String(zoom));
+  } else if (q) {
+    gurl.searchParams.set('center', q);
+    gurl.searchParams.set('zoom', '14');
+  }
   gurl.searchParams.set('size', `${w}x${h}`);
   gurl.searchParams.set('scale', '2');
-  gurl.searchParams.set('markers', `color:red|${q}`);
+  if (markersAll.length > 0) {
+    for (const m of markersAll) gurl.searchParams.append('markers', m);
+  } else if (q) {
+    gurl.searchParams.append('markers', `color:red|${q}`);
+  }
   gurl.searchParams.set('maptype', 'roadmap');
   // Muted dark style, readable on the mirror.
   const darkStyles = [
