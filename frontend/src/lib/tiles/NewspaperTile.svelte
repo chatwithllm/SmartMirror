@@ -20,6 +20,7 @@
   import { browser } from '$app/environment';
   import BaseTile from './BaseTile.svelte';
   import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
+  import { normalizeInventory, normalizeShopping } from '$lib/grocery/normalize.js';
 
   interface Props {
     id: string;
@@ -103,6 +104,43 @@
   }
 
   let calendarTimer: ReturnType<typeof setInterval> | null = null;
+  let groceryTimer: ReturnType<typeof setInterval> | null = null;
+
+  // Live pantry + shopping from /api/admin/grocery if the user has
+  // the key wired; otherwise the DEFAULT_PANTRY demo wins.
+  let livePantry = $state<NonNullable<Props['props']>['pantry'] | null>(null);
+  let shoppingCount = $state<number | null>(null);
+
+  async function pullGrocery(): Promise<void> {
+    try {
+      const inv = await fetch('/api/admin/grocery/inventory', { cache: 'no-store' });
+      if (inv.ok) {
+        const j = (await inv.json()) as { configured?: boolean; data?: unknown };
+        if (j.configured) {
+          const rows = normalizeInventory(j.data);
+          // Prioritise low-stock for the newspaper pantry column.
+          const low = rows.filter((r) => r.qty < r.min).slice(0, 6);
+          const rest = rows.filter((r) => !(r.qty < r.min)).slice(0, Math.max(0, 6 - low.length));
+          const merged = [...low, ...rest].slice(0, 6).map((r) => ({
+            name: r.name,
+            qty: `${r.qty}${r.unit ?? ''}`.trim(),
+            level: (r.qty < r.min ? 'crit' : 'ok') as 'crit' | 'ok',
+          }));
+          if (merged.length) livePantry = merged;
+        }
+      }
+      const shop = await fetch('/api/admin/grocery/shopping-list', { cache: 'no-store' });
+      if (shop.ok) {
+        const j = (await shop.json()) as { configured?: boolean; data?: unknown };
+        if (j.configured) {
+          const items = normalizeShopping(j.data);
+          shoppingCount = items.filter((i) => !i.done).length;
+        }
+      }
+    } catch {
+      /* keep previous */
+    }
+  }
 
   onMount(() => {
     if (!browser) return;
@@ -113,11 +151,14 @@
     void fetchCalendar(cEnt);
     calendarTimer = setInterval(() => void fetchCalendar(cEnt), 5 * 60_000);
     if (props.plexEntity) watchPlex(props.plexEntity);
+    void pullGrocery();
+    groceryTimer = setInterval(() => void pullGrocery(), 2 * 60_000);
   });
 
   onDestroy(() => {
     if (clockTimer) clearInterval(clockTimer);
     if (calendarTimer) clearInterval(calendarTimer);
+    if (groceryTimer) clearInterval(groceryTimer);
     for (const fn of stopWatchers) {
       try {
         fn();
@@ -179,7 +220,7 @@
   });
 
   const services = $derived(props.services ?? DEFAULT_SERVICES);
-  const pantry = $derived(props.pantry ?? DEFAULT_PANTRY);
+  const pantry = $derived(livePantry ?? props.pantry ?? DEFAULT_PANTRY);
   const upCount = $derived(services.filter((s) => s.state === 'ok').length);
   const warnCount = $derived(services.filter((s) => s.state === 'warn').length);
   const downCount = $derived(services.filter((s) => s.state === 'bad').length);
@@ -325,7 +366,9 @@
       </div>
 
       <div>
-        <div class="section-h">Pantry</div>
+        <div class="section-h">
+          Pantry{shoppingCount != null ? ` · ${shoppingCount} to buy` : ''}
+        </div>
         <div class="inv-side">
           <ul>
             {#each pantry as p (p.name)}
