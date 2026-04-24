@@ -536,7 +536,12 @@
     box-sizing: border-box;
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(28, minmax(0, 1fr));
+    /* Row bands:
+     *   clock 5 + (weather 5 || upnext 5) + plex 5 + svc 3 +
+     *   (inv 5 || pod 5) + (hosts 3 || cam 3) = 26
+     * Spans match the band heights so auto-flow packs edge-to-edge —
+     * no dead strips at top/bottom. */
+    grid-template-rows: repeat(26, minmax(0, 1fr));
     gap: 0.9rem;
   }
 
@@ -672,7 +677,7 @@
   /* PLEX HERO */
   .plex {
     grid-column: span 8;
-    grid-row: span 6;
+    grid-row: span 5;
     position: relative;
     overflow: hidden;
     border: 1px solid var(--g-line-strong);
@@ -805,7 +810,7 @@
   /* PODCAST */
   .pod {
     grid-column: span 3;
-    grid-row: span 3;
+    grid-row: span 5;
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
