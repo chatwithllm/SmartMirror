@@ -10,7 +10,8 @@ export const ALLOWED: Record<ModeName, ThemeName[]> = {
   ops: ['ops-cyberpunk', 'security'],
   guest: ['editorial', 'minimal-dark'],
   showcase: ['editorial', 'minimal-dark'],
-  editorial: ['editorial']
+  editorial: ['editorial'],
+  minimal: ['minimal-dark']
 };
 
 export interface CoerceResult {

@@ -28,6 +28,7 @@ input_select:
       - showcase-editorial
       - editorial-daily
       - shopping-minimal
+      - minimal
     initial: auto
 
   mirror_mode:
@@ -41,6 +42,7 @@ input_select:
       - showcase
       - editorial
       - shopping
+      - minimal
     initial: auto
 
   mirror_theme:
