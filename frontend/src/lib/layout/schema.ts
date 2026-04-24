@@ -16,7 +16,8 @@ export const ModeName = z.enum([
   'ops',
   'guest',
   'showcase',
-  'editorial'
+  'editorial',
+  'minimal'
 ]);
 export type ModeName = z.infer<typeof ModeName>;
 

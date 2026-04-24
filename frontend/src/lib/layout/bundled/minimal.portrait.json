@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "mode": "minimal",
+  "orientation": "portrait",
+  "theme": "minimal-dark",
+  "resolution": "1080p",
+  "transition": "fade",
+  "grid": { "cols": 8, "rows": 14, "gap": 0 },
+  "tiles": [
+    { "id": "minimal", "type": "minimal", "x": 0, "y": 0, "w": 8, "h": 14,
+      "props": {
+        "weatherEntity": "weather.4340",
+        "calendarEntity": "calendar.palakurla4340_gmail_com",
+        "cameraEntities": [
+          "camera.porch",
+          "camera.backyard",
+          "camera.garage_outside_camera_main",
+          "camera.garage_inside_camera_fluent"
+        ],
+        "locationLabel": "Home · Living Room"
+      }
+    }
+  ]
+}
