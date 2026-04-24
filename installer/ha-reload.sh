@@ -28,20 +28,36 @@ CA="${NODE_EXTRA_CA_CERTS:-/etc/mirror/ha.crt}"
 CURL_EXTRA=()
 if [[ -f "$CA" ]]; then CURL_EXTRA+=(--cacert "$CA"); fi
 
-echo "[ha-reload] calling homeassistant.reload_all"
-http_code=$(curl -sS -o /tmp/ha-reload.out -w '%{http_code}' \
-  -X POST \
-  -H "Authorization: Bearer $HA_TOKEN" \
-  -H "Content-Type: application/json" \
-  "${CURL_EXTRA[@]}" \
-  "$HA_URL/api/services/homeassistant/reload_all" \
-  -d '{}' || true)
-
-if [[ "$http_code" != "200" ]]; then
-  echo "[ha-reload] HTTP $http_code" >&2
-  cat /tmp/ha-reload.out >&2 || true
+call_reload() {
+  local service="$1"
+  local code
+  code=$(curl -sS -o /tmp/ha-reload.out -w '%{http_code}' \
+    -X POST \
+    -H "Authorization: Bearer $HA_TOKEN" \
+    -H "Content-Type: application/json" \
+    "${CURL_EXTRA[@]}" \
+    "$HA_URL/api/services/$service" \
+    -d '{}' || true)
+  if [[ "$code" == "200" ]]; then
+    echo "[ha-reload] $service ok"
+  else
+    echo "[ha-reload] $service HTTP $code" >&2
+    cat /tmp/ha-reload.out >&2 || true
+    echo >&2
+  fi
   rm -f /tmp/ha-reload.out
-  exit 1
-fi
-rm -f /tmp/ha-reload.out
-echo "[ha-reload] ok — YAML reloaded"
+}
+
+# homeassistant.reload_all handles most things, but in practice some
+# input_* domains only reload cleanly when hit directly — especially
+# when a new entity is added to an existing block.
+call_reload homeassistant/reload_all
+call_reload input_text/reload
+call_reload input_boolean/reload
+call_reload input_select/reload
+call_reload input_number/reload
+call_reload input_button/reload
+call_reload automation/reload
+call_reload rest_command/reload 2>/dev/null || true
+
+echo "[ha-reload] done"
