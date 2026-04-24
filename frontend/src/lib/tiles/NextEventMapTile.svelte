@@ -1,0 +1,241 @@
+<script lang="ts">
+  /**
+   * Next calendar event with a location — rendered as a Google Static
+   * Map with the event details in a side card. Pulls calendar events
+   * from HA (same pattern as CalendarTile / NewspaperTile), picks the
+   * first upcoming event that has a location, and fetches the map
+   * image through /api/admin/map so the Google key stays server-side.
+   */
+  import { onDestroy, onMount } from 'svelte';
+  import { browser } from '$app/environment';
+  import BaseTile from './BaseTile.svelte';
+
+  interface Props {
+    id: string;
+    props?: {
+      entity_id?: string;
+      zoom?: number;
+      /** Skip past events + all-day events. */
+      upcomingDays?: number;
+    };
+  }
+  let { id, props = {} }: Props = $props();
+
+  type ApiEvent = {
+    start?: { dateTime?: string; date?: string };
+    end?: { dateTime?: string; date?: string };
+    summary?: string;
+    location?: string;
+    description?: string;
+  };
+
+  type PickedEvent = { start: Date; summary: string; location: string };
+  let event = $state<PickedEvent | null>(null);
+  let loaded = $state(false);
+  let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+  async function fetchCalendar(): Promise<void> {
+    if (!browser) return;
+    const w = window as unknown as { __HA_URL__?: string; __HA_TOKEN__?: string };
+    if (!w.__HA_URL__ || !w.__HA_TOKEN__) return;
+    const eid = props.entity_id ?? 'calendar.palakurla4340_gmail_com';
+    const days = Math.max(1, props.upcomingDays ?? 14);
+    const start = new Date().toISOString();
+    const end = new Date(Date.now() + days * 86400 * 1000).toISOString();
+    try {
+      const r = await fetch(
+        `${w.__HA_URL__}/api/calendars/${eid}?start=${start}&end=${end}`,
+        { headers: { Authorization: `Bearer ${w.__HA_TOKEN__}` } },
+      );
+      if (!r.ok) return;
+      const arr = (await r.json()) as ApiEvent[];
+      const now = Date.now();
+      const first = arr
+        .map((e) => {
+          const raw = e.start?.dateTime ?? e.start?.date ?? '';
+          const d = new Date(raw);
+          return { date: d, summary: e.summary ?? '', location: (e.location ?? '').trim() };
+        })
+        .filter((e) => !isNaN(e.date.getTime()) && e.date.getTime() >= now && e.location)
+        .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
+      event = first
+        ? { start: first.date, summary: first.summary || '(event)', location: first.location }
+        : null;
+      loaded = true;
+    } catch {
+      /* keep previous */
+    }
+  }
+
+  onMount(() => {
+    if (!browser) return;
+    void fetchCalendar();
+    pollTimer = setInterval(fetchCalendar, 5 * 60_000);
+  });
+
+  onDestroy(() => {
+    if (pollTimer) clearInterval(pollTimer);
+  });
+
+  const mapSrc = $derived.by(() => {
+    if (!event) return '';
+    const qs = new URLSearchParams({
+      q: event.location,
+      w: '640',
+      h: '640',
+      zoom: String(props.zoom ?? 14),
+    });
+    return `/api/admin/map?${qs}`;
+  });
+
+  const whenText = $derived.by(() => {
+    if (!event) return '';
+    const d = event.start;
+    const now = new Date();
+    const sameDay = d.toDateString() === now.toDateString();
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const isTomorrow = d.toDateString() === tomorrow.toDateString();
+    const time = d.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+    if (sameDay) return `today · ${time}`;
+    if (isTomorrow) return `tomorrow · ${time}`;
+    return `${d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })} · ${time}`;
+  });
+
+  const relText = $derived.by(() => {
+    if (!event) return '';
+    const diff = event.start.getTime() - Date.now();
+    const mins = Math.round(diff / 60000);
+    if (mins < 60) return `in ${mins} min`;
+    const hrs = Math.round(mins / 60);
+    if (hrs < 24) return `in ${hrs}h`;
+    const days = Math.round(hrs / 24);
+    return `in ${days}d`;
+  });
+</script>
+
+<BaseTile {id} type="next_event_map" label="Next event">
+  <div class="wrap" data-testid="next-event-map">
+    {#if !loaded}
+      <div class="empty mono">loading…</div>
+    {:else if !event}
+      <div class="empty mono">no upcoming event with a location</div>
+    {:else}
+      <div class="map">
+        {#if mapSrc}
+          <img
+            src={mapSrc}
+            alt={`Map of ${event.location}`}
+            onerror={(e) => {
+              const img = e.currentTarget as HTMLImageElement;
+              img.style.display = 'none';
+              const sibling = img.parentElement?.querySelector('.map-fallback');
+              if (sibling instanceof HTMLElement) sibling.style.display = 'flex';
+            }}
+          />
+          <div class="map-fallback mono">
+            map · set GOOGLE_MAPS_KEY in config.env
+          </div>
+        {/if}
+      </div>
+      <div class="card">
+        <div class="rel mono">{relText}</div>
+        <div class="title">{event.summary}</div>
+        <div class="when mono">{whenText}</div>
+        <div class="loc">{event.location}</div>
+      </div>
+    {/if}
+  </div>
+</BaseTile>
+
+<style>
+  .wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    width: 100%;
+    height: 100%;
+  }
+  .empty {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dim);
+    font-size: 0.8rem;
+  }
+  .map {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: var(--panel-2);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .map img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .map-fallback {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--dim);
+    font-size: 0.65rem;
+    padding: 0.5rem;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    justify-content: center;
+    padding: 0 0.2rem;
+    min-width: 0;
+  }
+  .rel {
+    color: var(--accent);
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .title {
+    font-size: 1rem;
+    line-height: 1.15;
+    color: var(--fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .when {
+    color: var(--dim);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.25rem;
+  }
+  .loc {
+    color: var(--dim);
+    font-size: 0.72rem;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    margin-top: 0.35rem;
+  }
+</style>
