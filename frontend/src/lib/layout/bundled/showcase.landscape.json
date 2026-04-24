@@ -7,6 +7,16 @@
   "transition": "fade",
   "grid": { "cols": 12, "rows": 8, "gap": 0 },
   "tiles": [
-    { "id": "tank", "type": "fish_tank", "x": 0, "y": 0, "w": 12, "h": 8 }
+    { "id": "tank", "type": "youtube", "x": 0, "y": 0, "w": 12, "h": 8,
+      "props": {
+        "videoId": "843jfVOYnac",
+        "autoplay": true,
+        "mute": true,
+        "loop": true,
+        "hideQr": true,
+        "chromeless": true,
+        "title": "aquarium"
+      }
+    }
   ]
 }

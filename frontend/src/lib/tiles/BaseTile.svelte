@@ -7,14 +7,17 @@
     id: string;
     type: string;
     label?: string;
+    /** Immersive tiles drop the border + padding so content fills the cell. */
+    chromeless?: boolean;
     children?: import('svelte').Snippet;
   }
 
-  let { id, type, label, children }: Props = $props();
+  let { id, type, label, chromeless = false, children }: Props = $props();
 </script>
 
 <section
   class="tile"
+  class:chromeless
   data-tile-id={id}
   data-tile-type={type}
   aria-label={label ?? type}
@@ -46,5 +49,13 @@
   :global(.tile[data-focused='true']) {
     border-color: var(--accent);
     transform: scale(1.03);
+  }
+
+  /* Immersive mode — for fill-the-screen content like aquarium stream. */
+  .tile.chromeless {
+    background: #000;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
   }
 </style>
