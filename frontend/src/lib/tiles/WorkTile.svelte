@@ -10,15 +10,16 @@
    *   prs          (5×4)  — pull requests (demo)
    *   deploy       (3×4)  — deploy pipeline steps (demo)
    *   hosts        (8×3)  — mirror PC + demo hosts, cpu/ram/disk bars
-   *   messages     (5×2)  — triaged messages (demo)
-   *   goals        (3×2)  — 3 daily progress bars
+   *   shopping     (8×2)  — /api/admin/grocery/shopping-list grouped
+   *                          by store, per-store total + open count
    *
    * Live:
    *   clock            — local tick
    *   meet             — HA calendar first upcoming event
    *   hosts            — /api/admin/stats for mirror PC (first row)
+   *   shopping         — grocery app (same source as NewspaperTile)
    * Demo (swap to real integrations later):
-   *   kanban / prs / deploy / msg / goals
+   *   kanban / prs / deploy
    */
   import { onDestroy, onMount } from 'svelte';
   import { browser } from '$app/environment';
@@ -303,16 +304,80 @@
     { label: 'Promote', duration: '—', state: 'todo' },
   ];
 
-  const MSGS = [
-    { name: 'Sam · slack', avatar: 'SM', avClass: 'sam', time: '2m', preview: 'Can you rebase #142 on main?' },
-    { name: 'Kai · review', avatar: 'KJ', avClass: 'kai', time: '1h', preview: 'Comments on #133 — one blocker, rest nits.' },
-  ];
+  // ---------- shopping by store (bottom row) ----------
+  type ShopRow = { name: string; qty: string };
+  type ShopGroup = { store: string; total: number; count: number; rows: ShopRow[] };
+  let shoppingGroups = $state<ShopGroup[]>([]);
+  let shopTimer: ReturnType<typeof setInterval> | null = null;
 
-  const GOALS = $derived([
-    { name: 'Focus · 6h', current: todayFocusLabel, pct: focusGoalPct, color: 'accent' },
-    { name: 'PRs · 3', current: '2', pct: 66, color: 'green' },
-    { name: 'Steps · 8k', current: '2.1k', pct: 26, color: 'amber' },
-  ]);
+  async function fetchShopping(): Promise<void> {
+    try {
+      const r = await fetch('/api/admin/grocery/shopping-list', { cache: 'no-store' });
+      if (!r.ok) return;
+      const j = (await r.json()) as {
+        configured?: boolean;
+        data?: {
+          items?: Array<Record<string, unknown>>;
+          suggested_stores?: Array<{ store: string; estimated_total: number; item_count: number }>;
+        } | null;
+      };
+      if (!j?.configured || !j.data) return;
+      const suggested = j.data.suggested_stores ?? [];
+      const rowsByStore = new Map<string, ShopRow[]>();
+      for (const it of j.data.items ?? []) {
+        if ((it.status as string | undefined) !== 'open') continue;
+        const store =
+          (it.effective_store as string | null) ||
+          (it.preferred_store as string | null) ||
+          'Other';
+        const name =
+          (it.name as string | undefined) ||
+          (it.product_display_name as string | undefined) ||
+          '(item)';
+        const qnum = (it.quantity as number | string | undefined) ?? '';
+        const unit = (it.unit as string | undefined) && it.unit !== 'each' ? ` ${it.unit}` : '';
+        const size = (it.size_label as string | undefined) ? ` ${it.size_label}` : '';
+        const qty = `${qnum}${unit}${size}`.trim();
+        const arr = rowsByStore.get(store) ?? [];
+        arr.push({ name, qty });
+        rowsByStore.set(store, arr);
+      }
+      const groups: ShopGroup[] = [];
+      const seen = new Set<string>();
+      for (const s of suggested) {
+        seen.add(s.store);
+        groups.push({
+          store: s.store,
+          total: s.estimated_total,
+          count: s.item_count,
+          rows: rowsByStore.get(s.store) ?? [],
+        });
+      }
+      for (const [store, rows] of rowsByStore) {
+        if (seen.has(store)) continue;
+        groups.push({ store, rows, total: 0, count: rows.length });
+      }
+      groups.sort((a, b) => b.count - a.count || a.store.localeCompare(b.store));
+      shoppingGroups = groups;
+    } catch {
+      /* keep previous */
+    }
+  }
+
+  onMount(() => {
+    void fetchShopping();
+    shopTimer = setInterval(fetchShopping, 30_000);
+  });
+
+  onDestroy(() => {
+    if (shopTimer) clearInterval(shopTimer);
+  });
+
+  function money(n: number): string {
+    return `$${n.toFixed(2)}`;
+  }
+
+  const shoppingOpenTotal = $derived(shoppingGroups.reduce((s, g) => s + g.count, 0));
 </script>
 
 <BaseTile {id} type="work" chromeless={true} label="work">
@@ -488,38 +553,36 @@
         </div>
       </section>
 
-      <!-- MESSAGES -->
-      <section class="msg">
-        <div class="lbl"><span>Messages · triaged</span><span>2 unread</span></div>
-        <div class="mlist">
-          {#each MSGS as m (m.name)}
-            <div class="r">
-              <div class="av {m.avClass}">{m.avatar}</div>
-              <div class="b">
-                <div class="n">
-                  <span class="nn">{m.name}</span>
-                  <span class="tt mono">{m.time}</span>
-                </div>
-                <div class="p">{m.preview}</div>
-              </div>
-            </div>
-          {/each}
+      <!-- SHOPPING BY STORE (replaces prior msg + goals row) -->
+      <section class="shop">
+        <div class="lbl">
+          <span>Shopping · by store</span>
+          <span>{shoppingOpenTotal} open</span>
         </div>
-      </section>
-
-      <!-- GOALS -->
-      <section class="goals">
-        <div class="lbl"><span>Goals · today</span><span>3</span></div>
-        <div class="glist">
-          {#each GOALS as g (g.name)}
-            <div class="g">
-              <div class="n">
-                <span>{g.name}</span>
-                <span class="p mono">{g.current}</span>
+        <div class="stores">
+          {#if shoppingGroups.length === 0}
+            <div class="empty">nothing on the list</div>
+          {:else}
+            {#each shoppingGroups as g (g.store)}
+              <div class="st">
+                <div class="sh">
+                  <span class="sn">{g.store}</span>
+                  <span class="stot mono">{money(g.total)} · {g.count}</span>
+                </div>
+                <ul>
+                  {#each g.rows.slice(0, 3) as r (r.name + r.qty)}
+                    <li>
+                      <span class="rn">{r.name}</span>
+                      {#if r.qty}<span class="rq mono">{r.qty}</span>{/if}
+                    </li>
+                  {/each}
+                  {#if g.rows.length > 3}
+                    <li class="more">+{g.rows.length - 3} more</li>
+                  {/if}
+                </ul>
               </div>
-              <div class="bar"><span style:width={`${g.pct}%`} style:background={`var(--w-${g.color})`}></span></div>
-            </div>
-          {/each}
+            {/each}
+          {/if}
         </div>
       </section>
     </div>
@@ -603,7 +666,7 @@
     grid-template-columns: repeat(8, 1fr);
     /* Row bands:
      *   (focus 6 || cclock 3 + meet 3) + kan 5 + (prs 4 || dep 4) +
-     *   hosts 3 + (msg 2 || goals 2) = 6 + 5 + 4 + 3 + 2 = 20 */
+     *   hosts 3 + shopping 2 = 6 + 5 + 4 + 3 + 2 = 20 */
     grid-template-rows: repeat(20, minmax(0, 1fr));
     gap: 0.9rem;
   }
@@ -1137,102 +1200,93 @@
     color: var(--w-red);
   }
 
-  /* ---- Messages ---- */
-  .msg {
-    grid-column: span 5;
+  /* ---- Shopping by store (bottom strip) ---- */
+  .shop {
+    grid-column: span 8;
     grid-row: span 2;
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
+    min-height: 0;
   }
-  .msg .mlist {
+  .shop .stores {
     margin-top: 0.3rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0 1rem;
+    overflow: hidden;
   }
-  .msg .r {
-    display: flex;
-    gap: 0.55rem;
-    font-size: 0.72rem;
-  }
-  .msg .av {
-    width: 1.8rem;
-    height: 1.8rem;
-    border-radius: 50%;
-    flex-shrink: 0;
-    background: linear-gradient(135deg, var(--w-accent), var(--w-violet));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: #fff;
-  }
-  .msg .av.sam {
-    background: linear-gradient(135deg, var(--w-green), var(--w-accent));
-  }
-  .msg .av.kai {
-    background: linear-gradient(135deg, var(--w-pink), var(--w-violet));
-  }
-  .msg .b {
-    flex: 1;
+  .shop .st {
+    padding: 0 0.4rem;
+    border-right: 1px solid var(--w-line);
     min-width: 0;
   }
-  .msg .n {
+  .shop .st:last-child {
+    border-right: 0;
+  }
+  .shop .sh {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--w-line);
+    margin-bottom: 0.35rem;
   }
-  .msg .n .nn {
+  .shop .sn {
+    font-size: 0.78rem;
     font-weight: 700;
     color: var(--w-fg);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .msg .n .tt {
-    font-size: 0.6rem;
-    color: var(--w-dimmer);
+  .shop .stot {
+    font-size: 0.62rem;
+    color: var(--w-accent);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-left: 0.4rem;
   }
-  .msg .p {
-    font-size: 0.68rem;
-    color: var(--w-dim);
-    font-weight: 500;
-  }
-
-  /* ---- Goals ---- */
-  .goals {
-    grid-column: span 3;
-    grid-row: span 2;
+  .shop ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.4rem;
+    gap: 0.1rem;
   }
-  .goals .glist {
-    margin-top: 0.3rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-  }
-  .goals .g .n {
+  .shop li {
     display: flex;
     justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.1rem 0;
     font-size: 0.68rem;
     color: var(--w-fg);
-    font-weight: 600;
+    font-weight: 500;
   }
-  .goals .g .n .p {
-    color: var(--w-dim);
+  .shop li.more {
+    color: var(--w-dimmer);
+    font-size: 0.6rem;
     font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
-  .goals .g .bar {
-    height: 4px;
-    background: var(--w-line);
-    border-radius: 3px;
+  .shop .rn {
+    min-width: 0;
+    white-space: nowrap;
     overflow: hidden;
-    margin-top: 0.25rem;
+    text-overflow: ellipsis;
   }
-  .goals .g .bar > span {
-    display: block;
-    height: 100%;
-    background: var(--w-accent);
+  .shop .rq {
+    color: var(--w-dim);
+    font-size: 0.62rem;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+  .shop .empty {
+    color: var(--w-dim);
+    font-size: 0.72rem;
+    padding: 0.5rem 0;
   }
 </style>
