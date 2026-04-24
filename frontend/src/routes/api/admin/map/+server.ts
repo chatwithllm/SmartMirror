@@ -39,7 +39,16 @@ export const GET: RequestHandler = async ({ url }) => {
 
   try {
     const r = await fetch(gurl.toString());
-    if (!r.ok) return new Response(`upstream ${r.status}`, { status: 502 });
+    if (!r.ok) {
+      // Google returns the explanation as text/html or text/plain on
+      // 4xx (billing / API not enabled / key restriction). Forward
+      // the first 400 chars so the LAN user can see why.
+      const body = await r.text().catch(() => '');
+      const snippet = body.slice(0, 400).replace(/\s+/g, ' ').trim();
+      return new Response(`upstream ${r.status}${snippet ? ': ' + snippet : ''}`, {
+        status: 502,
+      });
+    }
     const buf = await r.arrayBuffer();
     return new Response(buf, {
       headers: {
