@@ -119,7 +119,7 @@
   onMount(() => {
     if (!browser) return;
     void pull();
-    timer = setInterval(pull, Math.max(30_000, props.pollMs ?? 60_000));
+    timer = setInterval(pull, Math.max(30_000, props.pollMs ?? 30_000));
   });
 
   onDestroy(() => {

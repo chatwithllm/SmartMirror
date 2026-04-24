@@ -40,7 +40,7 @@
   onMount(() => {
     if (!browser) return;
     void pull();
-    timer = setInterval(pull, 60_000);
+    timer = setInterval(pull, 30_000);
   });
 
   onDestroy(() => {
