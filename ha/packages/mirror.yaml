@@ -32,6 +32,7 @@ input_select:
       - glass
       - work
       - retro
+      - console
     initial: auto
 
   mirror_mode:
@@ -48,6 +49,7 @@ input_select:
       - minimal
       - glass
       - retro
+      - console
     initial: auto
 
   mirror_theme:

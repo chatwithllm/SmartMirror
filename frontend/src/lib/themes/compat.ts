@@ -13,7 +13,8 @@ export const ALLOWED: Record<ModeName, ThemeName[]> = {
   editorial: ['editorial'],
   minimal: ['minimal-dark'],
   glass: ['minimal-dark'],
-  retro: ['minimal-dark']
+  retro: ['minimal-dark'],
+  console: ['minimal-dark']
 };
 
 export interface CoerceResult {
