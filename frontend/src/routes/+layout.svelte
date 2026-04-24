@@ -3,7 +3,7 @@
   import { onMount } from 'svelte';
 
   interface Props {
-    data: { haUrl: string; haToken: string };
+    data: { haUrl: string; haToken: string; mirrorLanUrl?: string };
     children?: import('svelte').Snippet;
   }
 
@@ -11,10 +11,11 @@
 
   onMount(() => {
     if (typeof window === 'undefined') return;
-    // Seed globals so +page.svelte's onMount picks up HA creds without
-    // prop-drilling them through every component.
+    // Seed globals so child components (e.g. YouTubeTile's QR) can
+    // read LAN-routable URL / HA creds without prop drilling.
     (window as any).__HA_URL__ = data.haUrl || undefined;
     (window as any).__HA_TOKEN__ = data.haToken || undefined;
+    (window as any).__MIRROR_LAN_URL__ = data.mirrorLanUrl || undefined;
   });
 </script>
 
