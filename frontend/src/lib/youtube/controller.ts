@@ -15,6 +15,8 @@ type YTPlayer = {
   getCurrentTime(): number;
   seekTo(t: number, allowSeekAhead: boolean): void;
   getPlayerState(): number;
+  loadVideoById(id: string | { videoId: string; startSeconds?: number }): void;
+  cueVideoById(id: string | { videoId: string }): void;
 };
 
 let player: YTPlayer | null = null;
@@ -67,6 +69,41 @@ export function ytCmd(action: YTAction): boolean {
     return false;
   }
   return false;
+}
+
+/**
+ * Parse either a bare 11-char YouTube ID or a full URL (watch?v=..., youtu.be/...,
+ * shorts/..., live/...) down to the video ID. Returns null when the input is
+ * empty or clearly not a valid ID.
+ */
+export function parseYouTubeId(input: string): string | null {
+  const s = (input ?? '').trim();
+  if (!s) return null;
+  // Bare 11-char ID.
+  if (/^[A-Za-z0-9_-]{11}$/.test(s)) return s;
+  try {
+    const u = new URL(s);
+    const v = u.searchParams.get('v');
+    if (v && /^[A-Za-z0-9_-]{11}$/.test(v)) return v;
+    // youtu.be/<id>, /shorts/<id>, /live/<id>, /embed/<id>
+    const segs = u.pathname.split('/').filter(Boolean);
+    const last = segs[segs.length - 1] ?? '';
+    if (/^[A-Za-z0-9_-]{11}$/.test(last)) return last;
+  } catch {
+    /* not a URL, fall through */
+  }
+  return null;
+}
+
+export function ytLoadVideo(input: string): boolean {
+  const id = parseYouTubeId(input);
+  if (!id || !player) return false;
+  try {
+    player.loadVideoById(id);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 let apiLoading: Promise<void> | null = null;

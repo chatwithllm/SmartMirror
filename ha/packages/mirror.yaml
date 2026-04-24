@@ -133,6 +133,13 @@ input_text:
     name: Mirror Focused Tile
     max: 64
     initial: ""
+  # Type a YouTube URL or 11-char ID here; the mirror polls the value
+  # and loads the matching video in the tile. HA mobile app supports
+  # this natively — long-press tile → "Set value" → paste a share URL.
+  mirror_yt_video:
+    name: Mirror · YT Video URL / ID
+    max: 256
+    initial: ""
 
 input_number:
   mirror_override_minutes:

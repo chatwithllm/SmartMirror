@@ -135,6 +135,12 @@ views:
             heading: YouTube
             heading_style: title
             icon: mdi:youtube
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: input_text.mirror_yt_video
+                name: Video URL or ID
+                icon: mdi:link-variant
           - type: horizontal-stack
             cards:
               - type: button
