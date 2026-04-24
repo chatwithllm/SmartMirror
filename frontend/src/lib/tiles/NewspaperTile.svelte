@@ -145,16 +145,26 @@
       }
       const shop = await fetch('/api/admin/grocery/shopping-list', { cache: 'no-store' });
       if (shop.ok) {
-        const j = (await shop.json()) as { configured?: boolean; data?: unknown };
-        if (j.configured) {
+        const j = (await shop.json()) as {
+          configured?: boolean;
+          data?: {
+            items?: unknown[];
+            suggested_stores?: Array<{ store: string; estimated_total: number; item_count: number }>;
+            open_count?: number;
+          } | null;
+        };
+        if (j.configured && j.data) {
           const normalized = normalizeShopping(j.data);
-          shoppingCount = normalized.filter((i) => !i.done).length;
+          shoppingCount = j.data.open_count ?? normalized.filter((i) => !i.done).length;
 
-          // Build grouped-by-store view from the raw payload. Raw gives
-          // us store name + price; normalizeShopping dropped those.
-          const raw = (j.data as { items?: unknown[] } | null)?.items ?? [];
-          const bucket = new Map<string, ShopRow[]>();
-          for (const it of raw as Array<Record<string, unknown>>) {
+          // Build grouped-by-store view. Per-store TOTAL + COUNT come
+          // straight from the app's `suggested_stores` so the mirror
+          // shows the same numbers as the grocery UI. Row contents are
+          // filled from items bucketed by store name.
+          const suggested = j.data.suggested_stores ?? [];
+          const rowsByStore = new Map<string, ShopRow[]>();
+          const rawItems = (j.data.items ?? []) as Array<Record<string, unknown>>;
+          for (const it of rawItems) {
             if ((it.status as string | undefined) !== 'open') continue;
             const store =
               (it.effective_store as string | null) ||
@@ -167,22 +177,39 @@
             const qnum = (it.quantity as number | string | undefined) ?? '';
             const unit =
               (it.unit as string | undefined) && it.unit !== 'each' ? ` ${it.unit}` : '';
-            const size =
-              (it.size_label as string | undefined) ? ` ${it.size_label}` : '';
+            const size = (it.size_label as string | undefined) ? ` ${it.size_label}` : '';
             const qty = `${qnum}${unit}${size}`.trim();
             const price = priceOfShopRaw(it);
-            const arr = bucket.get(store) ?? [];
+            const arr = rowsByStore.get(store) ?? [];
             arr.push({ name, qty, price });
-            bucket.set(store, arr);
+            rowsByStore.set(store, arr);
           }
-          shoppingGroups = Array.from(bucket.entries())
-            .map(([store, rows]) => ({
+
+          const groups: ShopGroup[] = [];
+          const seen = new Set<string>();
+          for (const s of suggested) {
+            seen.add(s.store);
+            groups.push({
+              store: s.store,
+              total: s.estimated_total,
+              count: s.item_count,
+              rows: rowsByStore.get(s.store) ?? [],
+            });
+          }
+          // Stores present in items but missing from suggested_stores
+          // (rare — fallback so rows don't vanish).
+          for (const [store, rows] of rowsByStore) {
+            if (seen.has(store)) continue;
+            groups.push({
               store,
               rows,
               count: rows.length,
               total: rows.reduce((s, r) => s + r.price, 0),
-            }))
-            .sort((a, b) => b.count - a.count || a.store.localeCompare(b.store));
+            });
+          }
+          // Keep stores with most items first, tie-break alphabetically.
+          groups.sort((a, b) => b.count - a.count || a.store.localeCompare(b.store));
+          shoppingGroups = groups;
         }
       }
     } catch {
