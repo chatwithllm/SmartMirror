@@ -24,6 +24,13 @@
     }
   });
 
+  // Per-layout overscan override takes precedence over HA helpers —
+  // lets showcase-editorial drop the bezel inset to 0 for immersion.
+  $effect(() => {
+    const l = $currentLayout;
+    if (l?.overscan) overscan = { ...l.overscan };
+  });
+
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let localTimer: ReturnType<typeof setInterval> | null = null;
   let lastHash = '';
@@ -156,14 +163,19 @@
     ]);
 
     // Overscan updates independently of layout — no hash short-circuit.
-    const parseN = (s: string | null, fallback: number) =>
-      s == null ? fallback : Number(s) || fallback;
-    overscan = {
-      top: parseN(osT, 2),
-      right: parseN(osR, 2),
-      bottom: parseN(osB, 2),
-      left: parseN(osL, 2)
-    };
+    // Layouts with their own overscan field (immersive presets like
+    // showcase-editorial) override the HA helpers.
+    const layoutOverride = get(currentLayout)?.overscan;
+    if (!layoutOverride) {
+      const parseN = (s: string | null, fallback: number) =>
+        s == null ? fallback : Number(s) || fallback;
+      overscan = {
+        top: parseN(osT, 2),
+        right: parseN(osR, 2),
+        bottom: parseN(osB, 2),
+        left: parseN(osL, 2)
+      };
+    }
 
     const hash = `${preset}|${mode}|${theme}|${orientation}`;
     if (hash === lastHash) return;
