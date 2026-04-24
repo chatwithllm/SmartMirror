@@ -11,7 +11,8 @@ export const ALLOWED: Record<ModeName, ThemeName[]> = {
   guest: ['editorial', 'minimal-dark'],
   showcase: ['editorial', 'minimal-dark'],
   editorial: ['editorial'],
-  minimal: ['minimal-dark']
+  minimal: ['minimal-dark'],
+  glass: ['minimal-dark']
 };
 
 export interface CoerceResult {

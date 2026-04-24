@@ -43,6 +43,7 @@ import NewspaperTile from './NewspaperTile.svelte';
 import ShoppingByStoreTile from './ShoppingByStoreTile.svelte';
 import NextEventMapTile from './NextEventMapTile.svelte';
 import MinimalTile from './MinimalTile.svelte';
+import GlassTile from './GlassTile.svelte';
 import MorningTile from './MorningTile.svelte';
 
 /**
@@ -95,7 +96,8 @@ export const TILES: Record<string, Component<any>> = {
   shopping_by_store: ShoppingByStoreTile,
   next_event_map: NextEventMapTile,
   morning: MorningTile,
-  minimal: MinimalTile
+  minimal: MinimalTile,
+  glass: GlassTile
 };
 
 export type TileType = keyof typeof TILES;

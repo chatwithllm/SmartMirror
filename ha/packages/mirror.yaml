@@ -29,6 +29,7 @@ input_select:
       - editorial-daily
       - shopping-minimal
       - minimal
+      - glass
     initial: auto
 
   mirror_mode:
@@ -43,6 +44,7 @@ input_select:
       - editorial
       - shopping
       - minimal
+      - glass
     initial: auto
 
   mirror_theme:
