@@ -1,19 +1,22 @@
 :root[data-theme='editorial'] {
-  --bg: #f5f1e8;
-  --panel: #ffffff;
-  --panel-2: #ede6d6;
-  --fg: #1a1a1a;
-  --dim: #55514a;
-  --dimmer: #8a857a;
-  --line: #d8d0c0;
-  --line-strong: #b8ae99;
-  --accent: #7a4b2d;
-  --accent-2: #b2511d;
-  --ok: #3d7a4a;
-  --warn: #a8731c;
-  --bad: #a8331c;
-  --info: #3d567a;
-  --violet: #6e478a;
+  /* Dark-paper palette matching the 04-editorial mockup. Swapped from
+   * the old cream-and-white palette so the NewspaperTile's overscan
+   * gutter reads as dark paper, not a white frame around the content. */
+  --bg: #12100e;
+  --panel: #1a1714;
+  --panel-2: #221e18;
+  --fg: #f4ece0;
+  --dim: #b5a99a;
+  --dimmer: #6e6458;
+  --line: #2c2720;
+  --line-strong: #3d362d;
+  --accent: #d8b36b;
+  --accent-2: #c89854;
+  --ok: #87a876;
+  --warn: #d8b36b;
+  --bad: #c95a4a;
+  --info: #8fa6c9;
+  --violet: #b7a0d4;
 
   --font-ui: 'Georgia', serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'Menlo', monospace;
@@ -26,8 +29,8 @@
   --gap-md: 16px;
   --gap-lg: 28px;
 
-  --shadow-1: 0 2px 4px rgba(26, 26, 26, 0.08);
-  --shadow-2: 0 16px 40px rgba(26, 26, 26, 0.08);
+  --shadow-1: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 16px 40px rgba(0, 0, 0, 0.5);
   --backdrop-blur: 0px;
   --motion-fast: 150ms;
   --motion-med: 320ms;
