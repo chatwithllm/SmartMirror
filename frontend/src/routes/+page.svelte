@@ -4,6 +4,7 @@
   import { get } from 'svelte/store';
   import Grid from '$lib/grid/Grid.svelte';
   import StatsFooter from '$lib/StatsFooter.svelte';
+  import { ytCmd, type YTAction } from '$lib/youtube/controller.js';
   import { layoutStore, currentLayout } from '$lib/layout/store.js';
   import { connection, toasts } from '$lib/stores/connection.js';
   import { DEMO_LAYOUT } from '$lib/layout/demo.js';
@@ -37,7 +38,13 @@
       entity: 'input_button.mirror_restart_frontend',
       action: 'restart_frontend'
     },
-    reboot: { entity: 'input_button.mirror_reboot', action: 'reboot' }
+    reboot: { entity: 'input_button.mirror_reboot', action: 'reboot' },
+    // YouTube tile controls — dispatched inline (no server exec).
+    yt_toggle: { entity: 'input_button.mirror_yt_toggle', action: 'yt_toggle' },
+    yt_mute: { entity: 'input_button.mirror_yt_mute', action: 'yt_mute' },
+    yt_vol_up: { entity: 'input_button.mirror_yt_vol_up', action: 'yt_vol_up' },
+    yt_vol_down: { entity: 'input_button.mirror_yt_vol_down', action: 'yt_vol_down' },
+    yt_skip: { entity: 'input_button.mirror_yt_skip', action: 'yt_skip' }
   };
   const lastSeenButton: Record<string, string | null> = {};
   let buttonBaselined = false;
@@ -49,6 +56,13 @@
   let screenBaselined = false;
 
   async function dispatchAction(action: string) {
+    // YouTube actions run entirely in the browser against the IFrame
+    // Player — no round-trip through the admin endpoint.
+    if (action.startsWith('yt_')) {
+      const ok = ytCmd(action as YTAction);
+      if (!ok) toasts.push('warn', `yt · player not ready`);
+      return;
+    }
     try {
       await fetch('/api/admin/command', {
         method: 'POST',

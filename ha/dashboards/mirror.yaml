@@ -132,6 +132,62 @@ views:
       - type: grid
         cards:
           - type: heading
+            heading: YouTube
+            heading_style: title
+            icon: mdi:youtube
+          - type: horizontal-stack
+            cards:
+              - type: button
+                name: Play/Pause
+                icon: mdi:play-pause
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_yt_toggle
+                show_state: false
+              - type: button
+                name: Mute
+                icon: mdi:volume-mute
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_yt_mute
+                show_state: false
+              - type: button
+                name: Skip 30s
+                icon: mdi:skip-next
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_yt_skip
+                show_state: false
+          - type: horizontal-stack
+            cards:
+              - type: button
+                name: Vol -
+                icon: mdi:volume-minus
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_yt_vol_down
+                show_state: false
+              - type: button
+                name: Vol +
+                icon: mdi:volume-plus
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_yt_vol_up
+                show_state: false
+
+      - type: grid
+        cards:
+          - type: heading
             heading: Overscan (bezel inset)
             heading_style: title
             icon: mdi:border-all-variant
