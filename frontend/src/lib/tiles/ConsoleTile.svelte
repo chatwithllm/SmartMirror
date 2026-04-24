@@ -398,6 +398,7 @@
 </script>
 
 <BaseTile {id} type="console" chromeless={true} label="console">
+  <div class="con-wrap">
   <div class="con" data-testid="console">
     <div class="top-bar">
       <span><span class="dot">●</span> {isoUtc}</span>
@@ -640,9 +641,17 @@
       [<span class="ok">ok</span>] mirror-frontend running · svc=mirror-frontend · v1.0.0-homelab
     </div>
   </div>
+  </div>
 </BaseTile>
 
 <style>
+  .con-wrap {
+    container-type: size;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+  }
   .con {
     --fg-hero: #ffffff;
     --fg-pri: #e6e6e6;
@@ -658,15 +667,20 @@
     font-family: 'JetBrains Mono', ui-monospace, 'Menlo', monospace;
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum', 'zero';
-    font-size: 0.82rem;
-    line-height: 1.4;
+    /* Scale with cell — base size tracks container height, clamped so it
+     * stays readable at extreme overscan and never blows up at zero. */
+    font-size: clamp(0.55rem, 1.1cqh, 0.95rem);
+    line-height: 1.35;
     width: 100%;
     height: 100%;
-    overflow-y: auto;
-    padding: 1.4rem 1.5rem 2rem;
+    overflow: hidden;
+    padding: 1.4rem 1.5rem 1.6rem;
     box-sizing: border-box;
   }
 
+  :global(:root[data-mode='light']) .con-wrap {
+    background: #f5f0e6;
+  }
   :global(:root[data-mode='light']) .con {
     background: #f5f0e6;
     color: #2a2a2a;
