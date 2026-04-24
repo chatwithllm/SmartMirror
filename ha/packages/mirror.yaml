@@ -109,6 +109,24 @@ input_button:
   mirror_reboot:
     name: Mirror · Reboot PC
     icon: mdi:power
+  # YouTube tile remote control. Pressing these pokes the YT IFrame
+  # Player on the kiosk via the mirror frontend's in-browser dispatcher;
+  # no server exec needed.
+  mirror_yt_toggle:
+    name: Mirror · YT Play/Pause
+    icon: mdi:play-pause
+  mirror_yt_mute:
+    name: Mirror · YT Mute
+    icon: mdi:volume-mute
+  mirror_yt_vol_up:
+    name: Mirror · YT Volume +
+    icon: mdi:volume-plus
+  mirror_yt_vol_down:
+    name: Mirror · YT Volume -
+    icon: mdi:volume-minus
+  mirror_yt_skip:
+    name: Mirror · YT Skip 30s
+    icon: mdi:skip-next
 
 input_text:
   mirror_focused_tile:
