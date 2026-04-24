@@ -18,7 +18,11 @@ async function haCall(path: string, body: unknown) {
     },
     body: JSON.stringify(body),
   });
-  if (!r.ok) throw new Error(`ha-${r.status}`);
+  if (!r.ok) {
+    const text = await r.text().catch(() => '');
+    const snippet = text.slice(0, 120).replace(/\s+/g, ' ').trim();
+    throw new Error(`ha-${r.status}${snippet ? `: ${snippet}` : ''}`);
+  }
 }
 
 export const actions: Actions = {
