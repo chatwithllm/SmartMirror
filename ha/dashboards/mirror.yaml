@@ -24,115 +24,11 @@ views:
     type: sections
     max_columns: 2
     sections:
+      # Paste a URL here first — fastest thing to reach from the mobile app.
       - type: grid
         cards:
           - type: heading
-            heading: Preset
-            heading_style: title
-            icon: mdi:view-dashboard-variant
-          - type: entities
-            show_header_toggle: false
-            entities:
-              - entity: input_select.mirror_preset
-                name: Preset (bundle)
-              - entity: input_select.mirror_mode
-                name: Mode
-              - entity: input_select.mirror_theme
-                name: Theme
-              - entity: input_select.mirror_orientation
-                name: Orientation
-              - entity: input_select.mirror_resolution
-                name: Resolution
-
-      - type: grid
-        cards:
-          - type: heading
-            heading: Behavior
-            heading_style: title
-            icon: mdi:tune
-          - type: entities
-            show_header_toggle: false
-            entities:
-              - entity: input_boolean.mirror_screen_on
-                name: Screen
-                icon: mdi:monitor
-              - entity: input_boolean.mirror_edit_mode
-                name: Edit mode
-              - entity: input_boolean.mirror_gesture_enable
-                name: Gestures
-              - entity: input_boolean.mirror_dnd
-                name: Do not disturb
-              - entity: input_text.mirror_focused_tile
-                name: Focused tile
-              - entity: input_number.mirror_override_minutes
-                name: Override timeout
-
-      - type: grid
-        cards:
-          - type: heading
-            heading: Mirror PC
-            heading_style: title
-            icon: mdi:desktop-tower-monitor
-          - type: glance
-            show_name: true
-            show_state: true
-            show_icon: true
-            state_color: false
-            entities:
-              - entity: sensor.mirror_cpu
-                name: CPU
-              - entity: sensor.mirror_ram
-                name: RAM
-              - entity: sensor.mirror_disk
-                name: DISK
-              - entity: sensor.mirror_uptime
-                name: UP
-
-      - type: grid
-        cards:
-          - type: heading
-            heading: Controls
-            heading_style: title
-            icon: mdi:remote
-          - type: horizontal-stack
-            cards:
-              - type: button
-                name: Reload Browser
-                icon: mdi:refresh
-                entity: input_button.mirror_reload_browser
-                tap_action:
-                  action: call-service
-                  service: input_button.press
-                  target:
-                    entity_id: input_button.mirror_reload_browser
-                show_state: false
-              - type: button
-                name: Restart Frontend
-                icon: mdi:restart
-                entity: input_button.mirror_restart_frontend
-                tap_action:
-                  action: call-service
-                  service: input_button.press
-                  target:
-                    entity_id: input_button.mirror_restart_frontend
-                show_state: false
-              - type: button
-                name: Reboot PC
-                icon: mdi:power
-                entity: input_button.mirror_reboot
-                tap_action:
-                  action: call-service
-                  service: input_button.press
-                  target:
-                    entity_id: input_button.mirror_reboot
-                confirmation:
-                  text: Reboot the mirror PC now?
-                show_state: false
-
-      - type: grid
-        cards:
-          - type: heading
-            heading: YouTube
+            heading: Play YouTube
             heading_style: title
             icon: mdi:youtube
           - type: entities
@@ -189,6 +85,111 @@ views:
                   service: input_button.press
                   target:
                     entity_id: input_button.mirror_yt_vol_up
+                show_state: false
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Mirror PC
+            heading_style: title
+            icon: mdi:desktop-tower-monitor
+          - type: glance
+            show_name: true
+            show_state: true
+            show_icon: true
+            state_color: false
+            entities:
+              - entity: sensor.mirror_cpu
+                name: CPU
+              - entity: sensor.mirror_ram
+                name: RAM
+              - entity: sensor.mirror_disk
+                name: DISK
+              - entity: sensor.mirror_uptime
+                name: UP
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Preset
+            heading_style: title
+            icon: mdi:view-dashboard-variant
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: input_select.mirror_preset
+                name: Preset (bundle)
+              - entity: input_select.mirror_mode
+                name: Mode
+              - entity: input_select.mirror_theme
+                name: Theme
+              - entity: input_select.mirror_orientation
+                name: Orientation
+              - entity: input_select.mirror_resolution
+                name: Resolution
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Behavior
+            heading_style: title
+            icon: mdi:tune
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: input_boolean.mirror_screen_on
+                name: Screen
+                icon: mdi:monitor
+              - entity: input_boolean.mirror_edit_mode
+                name: Edit mode
+              - entity: input_boolean.mirror_gesture_enable
+                name: Gestures
+              - entity: input_boolean.mirror_dnd
+                name: Do not disturb
+              - entity: input_text.mirror_focused_tile
+                name: Focused tile
+              - entity: input_number.mirror_override_minutes
+                name: Override timeout
+
+      - type: grid
+        cards:
+          - type: heading
+            heading: Controls
+            heading_style: title
+            icon: mdi:remote
+          - type: horizontal-stack
+            cards:
+              - type: button
+                name: Reload Browser
+                icon: mdi:refresh
+                entity: input_button.mirror_reload_browser
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_reload_browser
+                show_state: false
+              - type: button
+                name: Restart Frontend
+                icon: mdi:restart
+                entity: input_button.mirror_restart_frontend
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_restart_frontend
+                show_state: false
+              - type: button
+                name: Reboot PC
+                icon: mdi:power
+                entity: input_button.mirror_reboot
+                tap_action:
+                  action: call-service
+                  service: input_button.press
+                  target:
+                    entity_id: input_button.mirror_reboot
+                confirmation:
+                  text: Reboot the mirror PC now?
                 show_state: false
 
       - type: grid
