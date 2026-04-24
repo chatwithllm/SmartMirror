@@ -9,10 +9,10 @@
   "tiles": [
     { "id": "clock",   "type": "clock",             "x": 0, "y": 0,  "w": 4, "h": 2, "props": { "format": "12h", "showSeconds": false, "showDate": true } },
     { "id": "weather", "type": "weather",           "x": 4, "y": 0,  "w": 4, "h": 2, "props": { "entity_id": "weather.4340", "units": "imperial", "days": 5 } },
-    { "id": "next",    "type": "next_event_map",    "x": 0, "y": 2,  "w": 8, "h": 4, "props": { "entity_id": "calendar.palakurla4340_gmail_com", "zoom": 14 } },
-    { "id": "porch",   "type": "frigate_camera",    "x": 0, "y": 6,  "w": 8, "h": 3, "props": { "entity_id": "camera.porch" } },
-    { "id": "youtube", "type": "youtube",           "x": 0, "y": 9,  "w": 4, "h": 2, "props": { "videoId": "jfKfPfyJRdk", "title": "lofi radio", "mute": true, "autoplay": true } },
-    { "id": "sensors", "type": "sensor_grid",       "x": 4, "y": 9,  "w": 4, "h": 2 },
-    { "id": "cal",     "type": "calendar",          "x": 0, "y": 11, "w": 8, "h": 3, "props": { "entity_id": "calendar.palakurla4340_gmail_com", "count": 8 } }
+    { "id": "next",    "type": "next_event_map",    "x": 0, "y": 2,  "w": 8, "h": 3, "props": { "entity_id": "calendar.palakurla4340_gmail_com", "zoom": 14 } },
+    { "id": "porch",   "type": "frigate_camera",    "x": 0, "y": 5,  "w": 8, "h": 3, "props": { "entity_id": "camera.porch" } },
+    { "id": "youtube", "type": "youtube",           "x": 0, "y": 8,  "w": 4, "h": 2, "props": { "videoId": "jfKfPfyJRdk", "title": "lofi radio", "mute": true, "autoplay": true } },
+    { "id": "sensors", "type": "sensor_grid",       "x": 4, "y": 8,  "w": 4, "h": 2 },
+    { "id": "cal",     "type": "calendar",          "x": 0, "y": 10, "w": 8, "h": 4, "props": { "entity_id": "calendar.palakurla4340_gmail_com", "count": 10 } }
   ]
 }
