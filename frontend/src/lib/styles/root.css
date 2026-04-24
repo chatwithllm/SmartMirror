@@ -29,8 +29,12 @@
 }
 
 :root {
-  /* Minimal-dark tokens — locks in Phase 11, stub for Phase 01. */
-  --bg: #0c0d10;
+  /* Minimal-dark tokens — locks in Phase 11, stub for Phase 01.
+   * --bg is pure #000 because a two-way-mirror surface renders black
+   * pixels as mirror finish (reflects the room). Anything above #000
+   * like the old #0c0d10 shows as haze around tile edges (overscan
+   * padding) when viewed through the glass. */
+  --bg: #000000;
   --panel: #15171c;
   --panel-2: #1c1f26;
   --fg: #f2f3f5;
