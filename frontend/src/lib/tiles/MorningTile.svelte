@@ -42,7 +42,32 @@
   }
   let { id, props = {} }: Props = $props();
 
-  const palette: Palette = $derived(props.palette ?? 'warm');
+  // HA input_boolean.mirror_light_mode overrides the prop. When on,
+  // tile flips to the light dawn palette; off returns to the mockup's
+  // warm dark palette. Polled every 5 s against HA.
+  let lightModeHA = $state<boolean | null>(null);
+  let lightTimer: ReturnType<typeof setInterval> | null = null;
+
+  async function pollLightMode(): Promise<void> {
+    if (!browser) return;
+    const w = window as unknown as { __HA_URL__?: string; __HA_TOKEN__?: string };
+    if (!w.__HA_URL__ || !w.__HA_TOKEN__) return;
+    try {
+      const r = await fetch(
+        `${w.__HA_URL__}/api/states/input_boolean.mirror_light_mode`,
+        { headers: { Authorization: `Bearer ${w.__HA_TOKEN__}` }, cache: 'no-store' },
+      );
+      if (!r.ok) return;
+      const j = (await r.json()) as { state?: string };
+      lightModeHA = j.state === 'on';
+    } catch {
+      /* keep previous */
+    }
+  }
+
+  const palette: Palette = $derived(
+    lightModeHA === true ? 'light' : lightModeHA === false ? 'warm' : (props.palette ?? 'warm'),
+  );
 
   // ---------- clock / date ----------
   let now = $state(new Date());
@@ -304,6 +329,8 @@
     calTimer = setInterval(fetchCalendar, 5 * 60_000);
     void fetchStock();
     stockTimer = setInterval(fetchStock, 30_000);
+    void pollLightMode();
+    lightTimer = setInterval(pollLightMode, 5_000);
   });
 
   onDestroy(() => {
@@ -312,6 +339,7 @@
     if (stockTimer) clearInterval(stockTimer);
     if (dirTimer) clearInterval(dirTimer);
     if (tInterval) clearInterval(tInterval);
+    if (lightTimer) clearInterval(lightTimer);
     for (const fn of stopWatchers) {
       try {
         fn();
