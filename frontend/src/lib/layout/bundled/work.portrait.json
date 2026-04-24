@@ -2,21 +2,18 @@
   "version": 1,
   "mode": "work",
   "orientation": "portrait",
-  "theme": "ops-cyberpunk",
+  "theme": "minimal-dark",
   "resolution": "1080p",
-  "transition": "flip",
-  "grid": { "cols": 8, "rows": 14, "gap": 14 },
+  "transition": "fade",
+  "grid": { "cols": 8, "rows": 14, "gap": 0 },
   "tiles": [
-    { "id": "clock",   "type": "clock",    "x": 0, "y": 0, "w": 4, "h": 2, "props": { "format": "24h", "showSeconds": true, "showDate": true } },
-    { "id": "weather", "type": "weather",  "x": 4, "y": 0, "w": 4, "h": 2, "props": { "entity_id": "weather.4340", "units": "imperial", "days": 3 } },
-    { "id": "cal",     "type": "calendar", "x": 0, "y": 2, "w": 8, "h": 4, "props": { "entity_id": "calendar.palakurla4340_gmail_com", "count": 6 } },
-    { "id": "hosts",   "type": "host_health", "x": 0, "y": 6, "w": 8, "h": 3, "props": {
-      "hosts": [
-        { "name": "ha", "cpu": "sensor.processor_use", "ram": "sensor.memory_use_percent", "disk": "sensor.disk_use_percent_config" }
-      ]
-    } },
-    { "id": "alerts",  "type": "alerts",         "x": 0, "y": 9, "w": 8, "h": 2, "props": { "severity_min": "warn" } },
-    { "id": "news",    "type": "news_briefing",  "x": 0, "y": 11, "w": 4, "h": 3, "props": { "count": 5 } },
-    { "id": "board",   "type": "project_board",  "x": 4, "y": 11, "w": 4, "h": 3, "props": {} }
+    { "id": "work", "type": "work", "x": 0, "y": 0, "w": 8, "h": 14,
+      "props": {
+        "calendarEntity": "calendar.palakurla4340_gmail_com",
+        "cityLabel": "Indianapolis",
+        "pomodoroMinutes": 25,
+        "dailyFocusGoalMinutes": 360
+      }
+    }
   ]
 }

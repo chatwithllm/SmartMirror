@@ -28,7 +28,8 @@ const PRESETS: Record<string, { mode: ModeName; theme: ThemeName }> = {
   'showcase-editorial': { mode: 'showcase', theme: 'editorial' },
   'editorial-daily':    { mode: 'editorial', theme: 'editorial' },
   'minimal':            { mode: 'minimal', theme: 'minimal-dark' },
-  'glass':              { mode: 'glass', theme: 'minimal-dark' }
+  'glass':              { mode: 'glass', theme: 'minimal-dark' },
+  'work':               { mode: 'work', theme: 'minimal-dark' }
 };
 
 export interface ResolveInput {
