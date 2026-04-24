@@ -138,7 +138,11 @@ input_text:
   # this natively — long-press tile → "Set value" → paste a share URL.
   mirror_yt_video:
     name: Mirror · YT Video URL / ID
-    max: 256
+    # HA caps input_text max at 255; 256 fails validation silently and
+    # the whole input_text block is skipped, taking the other entities
+    # with it. Keep at 255 — a YouTube share URL is ~43 chars, a full
+    # watch URL with params is ~110.
+    max: 255
     initial: ""
 
 input_number:
