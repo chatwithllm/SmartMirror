@@ -12,25 +12,19 @@
 # in the HA UI and the kiosk reacts within ~2s.
 
 input_select:
+  # Curated preset list — only the ones actually tuned for this box.
+  # Stock layouts (work-*, relax-*, shopping-*, guest-*, ops-ops,
+  # *-editorial variants that never got the real HA entities wired)
+  # live on disk under frontend/src/lib/layout/bundled/ so they can be
+  # re-enabled by listing them here again.
   mirror_preset:
     name: Mirror Preset (bundle)
     icon: mdi:monitor-dashboard
     options:
       - auto
       - morning-minimal
-      - morning-editorial
-      - work-ops
-      - work-minimal
-      - relax-minimal
-      - relax-editorial
-      - shopping-minimal
-      - shopping-ops
-      - security-security
-      - security-ops
       - night-minimal
-      - night-security
-      - ops-ops
-      - guest-editorial
+      - security-security
       - showcase-editorial
     initial: auto
 
@@ -40,15 +34,9 @@ input_select:
     options:
       - auto
       - morning
-      - work
-      - relax
-      - shopping
-      - security
       - night
-      - ops
-      - guest
+      - security
       - showcase
-      - editorial
     initial: auto
 
   mirror_theme:
