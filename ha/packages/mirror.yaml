@@ -30,6 +30,7 @@ input_select:
       - shopping-minimal
       - minimal
       - glass
+      - work
     initial: auto
 
   mirror_mode:
