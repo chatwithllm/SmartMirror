@@ -35,9 +35,14 @@
       mute: (props.mute ?? true) ? '1' : '0',
       start: String(props.start ?? 0),
       enablejsapi: '1',
-      controls: '1',
+      // Chromeless = immersive backdrop, hide the player controls / info
+      // overlay so nothing chromes the video but the video itself.
+      controls: props.chromeless ? '0' : '1',
+      disablekb: props.chromeless ? '1' : '0',
+      iv_load_policy: '3',
       rel: '0',
       modestbranding: '1',
+      playsinline: '1',
       origin: browser ? window.location.origin : '',
     };
     if (props.loop) {
@@ -52,6 +57,31 @@
   let player: unknown = null;
   let qrDataUrl = $state<string>('');
   let pasteUrl = $state<string>('');
+  // Chromeless cover sizing: we oversize the iframe so the 16:9 video
+  // fills the (likely portrait) cell on both axes and the excess is
+  // clipped by overflow:hidden on the wrapper. Width/height are kept
+  // as numbers so the style binding is single-source.
+  let coverW = $state<number | null>(null);
+  let coverH = $state<number | null>(null);
+  let wrapEl: HTMLDivElement | null = $state(null);
+
+  function recomputeCover(): void {
+    if (!props.chromeless || !wrapEl) return;
+    const r = wrapEl.getBoundingClientRect();
+    if (r.width <= 0 || r.height <= 0) return;
+    const aspect = 16 / 9;
+    // Scale to cover the wrapper: pick the axis that would leave a gap
+    // at the video's native aspect and grow past 100% on the other.
+    if (r.width / r.height > aspect) {
+      coverW = r.width;
+      coverH = r.width / aspect;
+    } else {
+      coverH = r.height;
+      coverW = r.height * aspect;
+    }
+  }
+
+  let coverRO: ResizeObserver | null = null;
 
   onMount(async () => {
     if (!browser) return;
@@ -75,6 +105,12 @@
       qrDataUrl = '';
     }
 
+    if (props.chromeless && wrapEl) {
+      recomputeCover();
+      coverRO = new ResizeObserver(() => recomputeCover());
+      coverRO.observe(wrapEl);
+    }
+
     if (!props.videoId) return;
     await loadYouTubeIframeAPI();
     const w = window as unknown as {
@@ -92,13 +128,14 @@
   onDestroy(() => {
     if (!browser) return;
     setYTPlayer(null);
+    coverRO?.disconnect();
     // YT.Player.destroy() exists but re-loading the tile tears down
     // the iframe anyway; no need for an explicit kill.
   });
 </script>
 
 <BaseTile {id} type="youtube" label={props.title ?? 'YouTube'} chromeless={props.chromeless ?? false}>
-  <div class="yt-wrap">
+  <div class="yt-wrap" class:cover={props.chromeless} bind:this={wrapEl}>
     {#if src}
       <iframe
         id={frameId}
@@ -109,6 +146,8 @@
         allowfullscreen
         referrerpolicy="origin"
         data-testid="youtube-frame"
+        style:width={props.chromeless && coverW != null ? `${coverW}px` : null}
+        style:height={props.chromeless && coverH != null ? `${coverH}px` : null}
       ></iframe>
     {:else}
       <div class="empty mono" data-testid="youtube-empty">no videoId</div>
@@ -135,6 +174,23 @@
     border-radius: calc(var(--radius-md) - 2px);
     background: #000;
     display: block;
+  }
+  /* Immersive cover mode: oversize the iframe beyond the cell and clip
+   * so the video fills both axes with no letterboxing. JS sets the
+   * explicit width/height so the inner YT player renders its video at
+   * 16:9 over the entire container. */
+  .yt-wrap.cover {
+    overflow: hidden;
+    background: #000;
+  }
+  .yt-wrap.cover .yt {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 0;
+    max-width: none;
+    max-height: none;
   }
   .qr {
     position: absolute;

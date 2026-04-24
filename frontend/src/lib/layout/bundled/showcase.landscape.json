@@ -6,16 +6,17 @@
   "resolution": "1080p",
   "transition": "fade",
   "grid": { "cols": 12, "rows": 8, "gap": 0 },
+  "overscan": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
   "tiles": [
     { "id": "tank", "type": "youtube", "x": 0, "y": 0, "w": 12, "h": 8,
       "props": {
-        "videoId": "abbR-Ttd-cA",
+        "videoId": "jGwbyaPXM1w",
         "autoplay": true,
         "mute": true,
         "loop": true,
         "hideQr": true,
         "chromeless": true,
-        "title": "Monterey Bay Kelp Forest"
+        "title": "aquarium"
       }
     }
   ]

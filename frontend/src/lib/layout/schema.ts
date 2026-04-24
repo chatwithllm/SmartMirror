@@ -53,7 +53,21 @@ export const LayoutSchema = z.object({
   grid: GridSchema,
   tiles: z.array(TileSchema),
   transition: z.enum(['fade', 'flip', 'none']).default('flip'),
-  ttl_seconds: z.number().int().optional()
+  ttl_seconds: z.number().int().optional(),
+  /**
+   * Per-layout overscan override. When set, replaces the HA-driven
+   * input_number.mirror_overscan_* values — lets an immersive
+   * layout (showcase-editorial) zero the bezel inset so content
+   * reaches every edge.
+   */
+  overscan: z
+    .object({
+      top: z.number().min(0).max(15),
+      right: z.number().min(0).max(15),
+      bottom: z.number().min(0).max(15),
+      left: z.number().min(0).max(15)
+    })
+    .optional()
 });
 export type Layout = z.infer<typeof LayoutSchema>;
 
