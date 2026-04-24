@@ -100,6 +100,12 @@ export function ytLoadVideo(input: string): boolean {
   if (!id || !player) return false;
   try {
     player.loadVideoById(id);
+    // User-triggered load -> assume they want audio. The default
+    // videoId in layouts autoplays muted (background vibe), but a
+    // paste from /paste is an explicit intent, so unmute and bump
+    // volume above the HA mute toggle's default floor.
+    player.unMute();
+    if (player.getVolume() < 20) player.setVolume(60);
     return true;
   } catch {
     return false;
