@@ -11,6 +11,10 @@
     mute?: boolean;
     start?: number;
     title?: string;
+    hideQr?: boolean;
+    loop?: boolean;
+    /** Drop BaseTile chrome (border/padding) and stretch edge-to-edge. */
+    chromeless?: boolean;
   }
 
   interface Props {
@@ -26,7 +30,7 @@
 
   const src = $derived.by(() => {
     if (!props.videoId) return '';
-    const params = new URLSearchParams({
+    const params: Record<string, string> = {
       autoplay: (props.autoplay ?? true) ? '1' : '0',
       mute: (props.mute ?? true) ? '1' : '0',
       start: String(props.start ?? 0),
@@ -35,8 +39,14 @@
       rel: '0',
       modestbranding: '1',
       origin: browser ? window.location.origin : '',
-    });
-    return `https://www.youtube.com/embed/${encodeURIComponent(props.videoId)}?${params}`;
+    };
+    if (props.loop) {
+      // YouTube requires playlist=<id> to make loop=1 actually loop a
+      // single video in the embed.
+      params.loop = '1';
+      params.playlist = props.videoId;
+    }
+    return `https://www.youtube.com/embed/${encodeURIComponent(props.videoId)}?${new URLSearchParams(params)}`;
   });
 
   let player: unknown = null;
@@ -87,7 +97,7 @@
   });
 </script>
 
-<BaseTile {id} type="youtube" label={props.title ?? 'YouTube'}>
+<BaseTile {id} type="youtube" label={props.title ?? 'YouTube'} chromeless={props.chromeless ?? false}>
   <div class="yt-wrap">
     {#if src}
       <iframe
@@ -103,7 +113,7 @@
     {:else}
       <div class="empty mono" data-testid="youtube-empty">no videoId</div>
     {/if}
-    {#if qrDataUrl}
+    {#if qrDataUrl && !props.hideQr}
       <div class="qr mono" data-testid="youtube-qr" title={pasteUrl}>
         <img src={qrDataUrl} alt="scan to paste URL" />
         <div class="qr-label">scan → paste</div>
