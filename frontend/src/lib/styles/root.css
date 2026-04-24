@@ -59,6 +59,44 @@
   --overscan: 2vw;
 }
 
+/* Light-mode override — applied to <html> by +page.svelte when
+ * input_boolean.mirror_light_mode is on. Pales out the bg/panel and
+ * flips ink dark, keeping each theme's accent colour. Works across
+ * minimal-dark / security / ops-cyberpunk / editorial. Tiles that
+ * roll their own palette (MorningTile, NewspaperTile) opt in via
+ * their own data attributes. */
+:root[data-mode='light'] {
+  --bg: #f5f0e6;
+  --panel: #ffffff;
+  --panel-2: #efe7d7;
+  --fg: #1c1a18;
+  --dim: #5b564e;
+  --dimmer: #8c857a;
+  --line: #d5cdbc;
+  --line-strong: #b5ad9c;
+}
+/* Per-theme accent tweaks for readability on light bg. */
+:root[data-theme='security'][data-mode='light'] {
+  --accent: #b02a2a;
+  --accent-2: #7a1c1c;
+}
+:root[data-theme='editorial'][data-mode='light'] {
+  --bg: #f4ecdc;
+  --panel: #ffffff;
+  --panel-2: #ede1c6;
+  --fg: #2c2013;
+  --dim: #6b5c47;
+  --dimmer: #9a8c75;
+  --line: #d8ccae;
+  --line-strong: #b8a97f;
+  --accent: #9a6a18;
+  --accent-2: #7d540d;
+}
+:root[data-theme='ops-cyberpunk'][data-mode='light'] {
+  --accent: #a038d8;
+  --accent-2: #006e8f;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

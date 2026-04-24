@@ -121,6 +121,18 @@
     }
   }
 
+  async function pollLightMode(base: string, token: string) {
+    const cur = await fetchState(base, token, 'input_boolean.mirror_light_mode');
+    if (cur == null) return;
+    // Applied as data-mode attribute on <html> — global CSS in root.css
+    // flips bg/panel/fg tokens. Tiles that want their own palette (the
+    // MorningTile warm sunrise, NewspaperTile dark paper) opt out via
+    // their own data attributes.
+    if (typeof document !== 'undefined') {
+      document.documentElement.dataset.mode = cur === 'on' ? 'light' : 'dark';
+    }
+  }
+
   async function pollScreenToggle(base: string, token: string) {
     const cur = await fetchState(base, token, 'input_boolean.mirror_screen_on');
     if (!cur) return;
@@ -220,10 +232,12 @@
     void applyHa(hassUrl, hassToken);
     void pollAdminButtons(hassUrl, hassToken);
     void pollScreenToggle(hassUrl, hassToken);
+    void pollLightMode(hassUrl, hassToken);
     pollTimer = setInterval(() => {
       void applyHa(hassUrl, hassToken);
       void pollAdminButtons(hassUrl, hassToken);
       void pollScreenToggle(hassUrl, hassToken);
+      void pollLightMode(hassUrl, hassToken);
     }, 2000);
   });
 
