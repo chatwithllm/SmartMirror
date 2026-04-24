@@ -25,6 +25,7 @@
   });
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
+  let localTimer: ReturnType<typeof setInterval> | null = null;
   let lastHash = '';
   let overscan = $state({ top: 2, right: 2, bottom: 2, left: 2 });
 
@@ -48,7 +49,7 @@
   };
   const lastSeenButton: Record<string, string | null> = {};
   let buttonBaselined = false;
-  let lastYtVideoInput: string | null = null;
+  let lastYtTs = 0;
 
   // Boolean-backed toggle: screen power. Watch input_boolean, dispatch
   // DPMS on transition. Baselined on first tick so a page reload
@@ -98,17 +99,19 @@
     });
   }
 
-  async function pollYtVideo(base: string, token: string) {
-    const cur = await fetchState(base, token, 'input_text.mirror_yt_video');
-    if (cur == null) return;
-    // Empty or unchanged -> ignore. We don't baseline like the buttons
-    // because the value is user-supplied content, not a trigger flag;
-    // the first time we see a non-empty value we should honour it.
-    if (cur === lastYtVideoInput) return;
-    lastYtVideoInput = cur;
-    if (!cur.trim()) return;
-    const ok = ytLoadVideo(cur);
-    toasts.push(ok ? 'info' : 'warn', ok ? `yt · loaded` : `yt · bad url`);
+  async function pollYtLocal() {
+    try {
+      const r = await fetch('/api/admin/yt', { cache: 'no-store' });
+      if (!r.ok) return;
+      const j = (await r.json()) as { value: string; ts: number };
+      if (!j || !j.ts || j.ts <= lastYtTs) return;
+      lastYtTs = j.ts;
+      if (!j.value) return;
+      const ok = ytLoadVideo(j.value);
+      toasts.push(ok ? 'info' : 'warn', ok ? 'yt · loaded' : 'yt · bad url');
+    } catch {
+      /* transient */
+    }
   }
 
   async function pollScreenToggle(base: string, token: string) {
@@ -190,6 +193,11 @@
     const hassUrl = pageData?.haUrl || (import.meta as any).env?.VITE_HA_URL || '';
     const hassToken = pageData?.haToken || (import.meta as any).env?.VITE_HA_TOKEN || '';
 
+    // Local YT poll runs regardless of HA connectivity — /paste and
+    // /api/admin/yt are served by the mirror itself.
+    void pollYtLocal();
+    localTimer = setInterval(() => void pollYtLocal(), 2000);
+
     if (!hassUrl || !hassToken) {
       connection.set({ kind: 'down', reason: 'no-ha-config' });
       toasts.push('info', 'No HA config — running in demo mode');
@@ -200,12 +208,10 @@
     void applyHa(hassUrl, hassToken);
     void pollAdminButtons(hassUrl, hassToken);
     void pollScreenToggle(hassUrl, hassToken);
-    void pollYtVideo(hassUrl, hassToken);
     pollTimer = setInterval(() => {
       void applyHa(hassUrl, hassToken);
       void pollAdminButtons(hassUrl, hassToken);
       void pollScreenToggle(hassUrl, hassToken);
-      void pollYtVideo(hassUrl, hassToken);
     }, 2000);
   });
 
@@ -213,6 +219,10 @@
     if (pollTimer) {
       clearInterval(pollTimer);
       pollTimer = null;
+    }
+    if (localTimer) {
+      clearInterval(localTimer);
+      localTimer = null;
     }
   });
 
