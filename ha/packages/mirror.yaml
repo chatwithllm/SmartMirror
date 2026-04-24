@@ -27,6 +27,7 @@ input_select:
       - security-security
       - showcase-editorial
       - editorial-daily
+      - shopping-minimal
     initial: auto
 
   mirror_mode:
@@ -39,6 +40,7 @@ input_select:
       - security
       - showcase
       - editorial
+      - shopping
     initial: auto
 
   mirror_theme:

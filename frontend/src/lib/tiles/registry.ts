@@ -40,6 +40,7 @@ import DeviceSliderTile from './DeviceSliderTile.svelte';
 import SleepTimerTile from './SleepTimerTile.svelte';
 import FishTankTile from './FishTankTile.svelte';
 import NewspaperTile from './NewspaperTile.svelte';
+import ShoppingByStoreTile from './ShoppingByStoreTile.svelte';
 
 /**
  * Tile registry. Each build phase registers a new batch. Grid.svelte
@@ -87,7 +88,8 @@ export const TILES: Record<string, Component<any>> = {
   device_slider: DeviceSliderTile,
   sleep_timer: SleepTimerTile,
   fish_tank: FishTankTile,
-  newspaper: NewspaperTile
+  newspaper: NewspaperTile,
+  shopping_by_store: ShoppingByStoreTile
 };
 
 export type TileType = keyof typeof TILES;
