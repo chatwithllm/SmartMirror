@@ -612,7 +612,14 @@
     padding: 1.2rem;
     display: grid;
     grid-template-columns: repeat(8, 1fr);
-    grid-auto-rows: minmax(5.4rem, auto);
+    /* 18 equal-fraction rows (sum of card spans:
+     *   hero 5 + wx/commute+timer 4 + agenda/routine 4 + news/brk 3 + pod 2 = 18)
+     * so the whole dashboard scales into whatever height the parent
+     * cell gives us — critical when the HA overscan sliders trim the
+     * stage padding. Previously grid-auto-rows: minmax(5.4rem, auto)
+     * locked row height and any overscan clipped content instead of
+     * shrinking it. */
+    grid-template-rows: repeat(18, minmax(0, 1fr));
     gap: 0.9rem;
     overflow: hidden;
   }
