@@ -11,6 +11,14 @@
 
 set -euo pipefail
 
+FULL_RESTART=0
+for arg in "$@"; do
+  case "$arg" in
+    --full|--restart) FULL_RESTART=1 ;;
+    *) ;;
+  esac
+done
+
 ENV_FILE="/etc/mirror/config.env"
 if [[ ! -r "$ENV_FILE" ]]; then
   echo "cannot read $ENV_FILE — run as mirror user: sudo -u mirror bash $0" >&2
@@ -59,5 +67,13 @@ call_reload input_number/reload
 call_reload input_button/reload
 call_reload automation/reload
 call_reload rest_command/reload 2>/dev/null || true
+
+if [[ "$FULL_RESTART" -eq 1 ]]; then
+  # Per-domain reloads don't register NEW helpers added to an existing
+  # input_* block — only a full HA core restart picks those up. Use
+  # --full when adding new entities (not just editing existing ones).
+  echo "[ha-reload] issuing homeassistant/restart (--full)"
+  call_reload homeassistant/restart
+fi
 
 echo "[ha-reload] done"
