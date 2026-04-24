@@ -11,6 +11,8 @@ const EXPECTED = [
   'GROCERY_EMAIL',
   'GROCERY_PASSWORD',
   'GOOGLE_MAPS_KEY',
+  'HOME_ADDRESS',
+  'HOME_LATLNG',
 ];
 
 export const GET: RequestHandler = async () => {

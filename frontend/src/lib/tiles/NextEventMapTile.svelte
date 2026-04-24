@@ -33,6 +33,16 @@
   let event = $state<PickedEvent | null>(null);
   let loaded = $state(false);
   let pollTimer: ReturnType<typeof setInterval> | null = null;
+  let dirTimer: ReturnType<typeof setInterval> | null = null;
+
+  type Directions = {
+    ok: boolean;
+    distance?: { text: string; value: number };
+    duration?: { text: string; value: number };
+    duration_in_traffic?: { text: string; value: number } | null;
+    error?: string;
+  };
+  let directions = $state<Directions | null>(null);
 
   async function fetchCalendar(): Promise<void> {
     if (!browser) return;
@@ -67,6 +77,36 @@
     }
   }
 
+  async function fetchDirections(to: string): Promise<void> {
+    try {
+      const r = await fetch(`/api/admin/directions?to=${encodeURIComponent(to)}`, {
+        cache: 'no-store',
+      });
+      const j = (await r.json()) as Directions;
+      directions = j;
+    } catch {
+      directions = null;
+    }
+  }
+
+  // Whenever the picked event changes, kick a fresh directions fetch
+  // and set up a traffic-refresh interval (Distance Matrix tolerates
+  // ~every 2 min comfortably).
+  $effect(() => {
+    const loc = event?.location;
+    if (!loc) {
+      directions = null;
+      if (dirTimer) {
+        clearInterval(dirTimer);
+        dirTimer = null;
+      }
+      return;
+    }
+    void fetchDirections(loc);
+    if (dirTimer) clearInterval(dirTimer);
+    dirTimer = setInterval(() => void fetchDirections(loc), 2 * 60_000);
+  });
+
   onMount(() => {
     if (!browser) return;
     void fetchCalendar();
@@ -75,6 +115,7 @@
 
   onDestroy(() => {
     if (pollTimer) clearInterval(pollTimer);
+    if (dirTimer) clearInterval(dirTimer);
   });
 
   const mapSrc = $derived.by(() => {
@@ -116,6 +157,32 @@
     const days = Math.round(hrs / 24);
     return `in ${days}d`;
   });
+
+  const travelLine = $derived.by(() => {
+    const d = directions;
+    if (!d) return '';
+    if (!d.ok) return d.error === 'no-home-address' ? 'set HOME_ADDRESS' : '';
+    const base = d.duration?.text ?? '';
+    const tr = d.duration_in_traffic?.text;
+    const dist = d.distance?.text ?? '';
+    const parts: string[] = [];
+    if (tr && d.duration && d.duration_in_traffic) {
+      const delta = d.duration_in_traffic.value - d.duration.value;
+      const delayMin = Math.round(delta / 60);
+      if (delayMin > 1) parts.push(`${tr} (+${delayMin}m traffic)`);
+      else parts.push(tr);
+    } else if (base) {
+      parts.push(base);
+    }
+    if (dist) parts.push(dist);
+    return parts.join(' · ');
+  });
+
+  const trafficBad = $derived.by(() => {
+    const d = directions;
+    if (!d?.ok || !d.duration || !d.duration_in_traffic) return false;
+    return d.duration_in_traffic.value - d.duration.value > 5 * 60;
+  });
 </script>
 
 <BaseTile {id} type="next_event_map" label="Next event">
@@ -147,6 +214,9 @@
         <div class="title">{event.summary}</div>
         <div class="when mono">{whenText}</div>
         <div class="loc">{event.location}</div>
+        {#if travelLine}
+          <div class="travel mono" class:bad={trafficBad}>{travelLine}</div>
+        {/if}
       </div>
     {/if}
   </div>
@@ -237,5 +307,15 @@
     line-clamp: 3;
     -webkit-box-orient: vertical;
     margin-top: 0.35rem;
+  }
+  .travel {
+    color: var(--accent);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.35rem;
+  }
+  .travel.bad {
+    color: var(--warn);
   }
 </style>
