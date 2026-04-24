@@ -5,10 +5,8 @@
   "theme": "editorial",
   "resolution": "1080p",
   "transition": "fade",
-  "grid": { "cols": 8, "rows": 14, "gap": 14 },
+  "grid": { "cols": 8, "rows": 14, "gap": 0 },
   "tiles": [
-    { "id": "photo", "type": "immich_slideshow", "x": 0, "y": 0, "w": 8, "h": 12, "props": { "interval": 10 } },
-    { "id": "clock", "type": "clock", "x": 0, "y": 12, "w": 4, "h": 2 },
-    { "id": "now", "type": "plex_now_playing", "x": 4, "y": 12, "w": 4, "h": 2 }
+    { "id": "tank", "type": "fish_tank", "x": 0, "y": 0, "w": 8, "h": 14 }
   ]
 }
