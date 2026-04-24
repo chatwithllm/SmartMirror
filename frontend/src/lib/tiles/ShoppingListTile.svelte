@@ -1,13 +1,8 @@
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import BaseTile from './BaseTile.svelte';
-
-  interface Item {
-    id: string;
-    name: string;
-    qty?: string;
-    category?: string;
-    done?: boolean;
-  }
+  import { normalizeShopping, type ShopItem as Item } from '$lib/grocery/normalize.js';
 
   interface Props {
     id: string;
@@ -16,18 +11,41 @@
 
   let { id, props = {} }: Props = $props();
 
-  let items = $state<Item[]>(
-    props.demo ?? [
-      { id: '1', name: 'Milk', qty: '2L', category: 'dairy' },
-      { id: '2', name: 'Tomatoes', qty: '6', category: 'produce' },
-      { id: '3', name: 'Bread', qty: '1 loaf', category: 'bakery' },
-      { id: '4', name: 'Pasta', qty: '500g', category: 'pantry' },
-      { id: '5', name: 'Olive oil', qty: '750ml', category: 'pantry' },
-      { id: '6', name: 'Coffee', qty: '1kg', category: 'pantry' },
-      { id: '7', name: 'Butter', qty: '250g', category: 'dairy' },
-      { id: '8', name: 'Yogurt', qty: '4', category: 'dairy' }
-    ]
-  );
+  const demo: Item[] = props.demo ?? [
+    { id: '1', name: 'Milk', qty: '2L', category: 'dairy' },
+    { id: '2', name: 'Tomatoes', qty: '6', category: 'produce' },
+    { id: '3', name: 'Bread', qty: '1 loaf', category: 'bakery' },
+    { id: '4', name: 'Pasta', qty: '500g', category: 'pantry' },
+    { id: '5', name: 'Olive oil', qty: '750ml', category: 'pantry' },
+    { id: '6', name: 'Coffee', qty: '1kg', category: 'pantry' },
+    { id: '7', name: 'Butter', qty: '250g', category: 'dairy' },
+    { id: '8', name: 'Yogurt', qty: '4', category: 'dairy' }
+  ];
+  let items = $state<Item[]>(demo);
+  let timer: ReturnType<typeof setInterval> | null = null;
+
+  async function pull() {
+    try {
+      const r = await fetch('/api/admin/grocery/shopping-list', { cache: 'no-store' });
+      if (!r.ok) return;
+      const j = (await r.json()) as { configured?: boolean; data?: unknown };
+      if (!j?.configured) return;
+      const live = normalizeShopping(j.data);
+      if (live.length) items = live;
+    } catch {
+      /* keep current items */
+    }
+  }
+
+  onMount(() => {
+    if (!browser) return;
+    void pull();
+    timer = setInterval(pull, 60_000);
+  });
+
+  onDestroy(() => {
+    if (timer) clearInterval(timer);
+  });
 
   const todoCount = $derived(items.filter((i) => !i.done).length);
 
