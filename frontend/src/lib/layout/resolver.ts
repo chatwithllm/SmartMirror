@@ -18,7 +18,6 @@ const PRESETS: Record<string, { mode: ModeName; theme: ThemeName }> = {
   'relax-editorial':    { mode: 'relax',    theme: 'editorial' },
   'shopping-minimal':   { mode: 'shopping', theme: 'minimal-dark' },
   'shopping-ops':       { mode: 'shopping', theme: 'ops-cyberpunk' },
-  'security-security':  { mode: 'security', theme: 'security' },
   'security-ops':       { mode: 'security', theme: 'ops-cyberpunk' },
   'night-security':     { mode: 'night',    theme: 'security' },
   'ops-ops':            { mode: 'ops',      theme: 'ops-cyberpunk' },
