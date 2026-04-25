@@ -22,8 +22,6 @@ input_select:
     icon: mdi:monitor-dashboard
     options:
       - auto
-      - morning-minimal
-      - night-minimal
       - security-security
       - showcase-editorial
       - editorial-daily
