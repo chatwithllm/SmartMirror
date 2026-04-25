@@ -522,17 +522,19 @@
 </BaseTile>
 
 <style>
-  /* Paper palette mirrors the mockup. */
+  /* Reflection-first palette matching ConsoleTile — pure black bg so the
+   * mirror glass shows true reflection at the bezel; bright text for
+   * legibility through the half-silvered surface. */
   .paper {
-    --paper-bg: #12100e;
-    --paper-ink: #f4ece0;
-    --paper-dim: #b5a99a;
-    --paper-dimmer: #6e6458;
-    --paper-line: #2c2720;
-    --paper-gold: #d8b36b;
-    --paper-red: #c95a4a;
-    --paper-green: #87a876;
-    --paper-face: #1a1714;
+    --paper-bg: #000000;
+    --paper-ink: #ffffff;
+    --paper-dim: #9a9a9a;
+    --paper-dimmer: #5a5a5a;
+    --paper-line: #2a2a2a;
+    --paper-gold: #d6b06a;
+    --paper-red: #d67070;
+    --paper-green: #7fc99a;
+    --paper-face: #0a0a0a;
     background: var(--paper-bg);
     color: var(--paper-ink);
     width: 100%;
