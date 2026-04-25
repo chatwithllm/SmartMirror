@@ -11,7 +11,6 @@ const BUNDLED = import.meta.glob('./bundled/*.json', {
 }) as Record<string, unknown>;
 
 const PRESETS: Record<string, { mode: ModeName; theme: ThemeName }> = {
-  'morning-minimal':    { mode: 'morning',  theme: 'minimal-dark' },
   'morning-editorial':  { mode: 'morning',  theme: 'editorial' },
   'work-ops':           { mode: 'work',     theme: 'ops-cyberpunk' },
   'work-minimal':       { mode: 'work',     theme: 'minimal-dark' },
@@ -21,7 +20,6 @@ const PRESETS: Record<string, { mode: ModeName; theme: ThemeName }> = {
   'shopping-ops':       { mode: 'shopping', theme: 'ops-cyberpunk' },
   'security-security':  { mode: 'security', theme: 'security' },
   'security-ops':       { mode: 'security', theme: 'ops-cyberpunk' },
-  'night-minimal':      { mode: 'night',    theme: 'minimal-dark' },
   'night-security':     { mode: 'night',    theme: 'security' },
   'ops-ops':            { mode: 'ops',      theme: 'ops-cyberpunk' },
   'guest-editorial':    { mode: 'guest',    theme: 'editorial' },
