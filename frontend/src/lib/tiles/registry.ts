@@ -49,6 +49,7 @@ import SecurityTile from './SecurityTile.svelte';
 import RetroTile from './RetroTile.svelte';
 import ConsoleTile from './ConsoleTile.svelte';
 import MorningTile from './MorningTile.svelte';
+import ActiveWorkTile from './ActiveWorkTile.svelte';
 
 /**
  * Tile registry. Each build phase registers a new batch. Grid.svelte
@@ -105,7 +106,8 @@ export const TILES: Record<string, Component<any>> = {
   work: WorkTile,
   security: SecurityTile,
   retro: RetroTile,
-  console: ConsoleTile
+  console: ConsoleTile,
+  'active-work': ActiveWorkTile
 };
 
 export type TileType = keyof typeof TILES;
