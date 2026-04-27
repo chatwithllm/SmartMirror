@@ -7,6 +7,8 @@
   import { ytCmd, ytLoadVideo, type YTAction } from '$lib/youtube/controller.js';
   import { layoutStore, currentLayout } from '$lib/layout/store.js';
   import { connection, toasts } from '$lib/stores/connection.js';
+  import { wireGestures } from '$lib/gesture/events.js';
+  import { registerDefaultHandlers } from '$lib/gesture/handlers.js';
   import { DEMO_LAYOUT } from '$lib/layout/demo.js';
   import { applyTheme } from '$lib/themes/loader.js';
   import { coerceTheme } from '$lib/themes/compat.js';
@@ -33,6 +35,8 @@
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let localTimer: ReturnType<typeof setInterval> | null = null;
+  let stopGestures: (() => void) | null = null;
+  let stopGestureHandlers: (() => void) | null = null;
   let lastHash = '';
   let overscan = $state({ top: 2, right: 2, bottom: 2, left: 2 });
 
@@ -222,6 +226,13 @@
     void pollYtLocal();
     localTimer = setInterval(() => void pollYtLocal(), 2000);
 
+    // Gesture subsystem: handlers register against the singleton router
+    // unconditionally (they're cheap and safe in demo mode). The
+    // poll-side wireGestures only does anything when HA creds are
+    // present — it short-circuits otherwise.
+    stopGestureHandlers = registerDefaultHandlers();
+    stopGestures = wireGestures();
+
     if (!hassUrl || !hassToken) {
       connection.set({ kind: 'down', reason: 'no-ha-config' });
       toasts.push('info', 'No HA config — running in demo mode');
@@ -249,6 +260,14 @@
     if (localTimer) {
       clearInterval(localTimer);
       localTimer = null;
+    }
+    if (stopGestures) {
+      stopGestures();
+      stopGestures = null;
+    }
+    if (stopGestureHandlers) {
+      stopGestureHandlers();
+      stopGestureHandlers = null;
     }
   });
 
