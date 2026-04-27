@@ -14,6 +14,7 @@ export type Gesture =
   | 'alert_ack';
 
 export const focusedTile = writable<string | null>(null);
+export const fullscreenTile = writable<string | null>(null);
 
 type Handler = (payload?: unknown) => void;
 

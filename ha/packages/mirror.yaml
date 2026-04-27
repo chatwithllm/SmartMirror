@@ -148,6 +148,15 @@ input_text:
     # watch URL with params is ~110.
     max: 255
     initial: ""
+  # Bridge for the gesture subsystem. The mirror-gesture addon publishes
+  # to MQTT; the gesture router automation mirrors the latest classified
+  # event into this helper as compact JSON ({"gesture","ts","payload"}).
+  # Frontend REST-poll picks it up, ts changes ⇒ dispatch into the
+  # client-side gesture router. Stays under the 255-char cap.
+  mirror_last_gesture:
+    name: Mirror · Last Gesture
+    max: 255
+    initial: ""
 
 input_number:
   mirror_override_minutes:

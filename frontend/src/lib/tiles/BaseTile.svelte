@@ -3,6 +3,8 @@
    * Shared tile chrome. Every Tile type renders its content inside this
    * wrapper so theme tokens, focus state, and resize hooks stay central.
    */
+  import { focusedTile, fullscreenTile } from '$lib/gesture/router.js';
+
   interface Props {
     id: string;
     type: string;
@@ -13,13 +15,21 @@
   }
 
   let { id, type, label, chromeless = false, children }: Props = $props();
+
+  // Subscribe to gesture-driven focus + fullscreen so every tile
+  // reflects state without each implementation having to remember.
+  const focused = $derived($focusedTile === id);
+  const fullscreen = $derived($fullscreenTile === id);
 </script>
 
 <section
   class="tile"
   class:chromeless
+  class:fullscreen
   data-tile-id={id}
   data-tile-type={type}
+  data-focused={focused ? 'true' : undefined}
+  data-fullscreen={fullscreen ? 'true' : undefined}
   aria-label={label ?? type}
 >
   {#if children}
@@ -49,6 +59,16 @@
   :global(.tile[data-focused='true']) {
     border-color: var(--accent);
     transform: scale(1.03);
+  }
+
+  /* Fullscreen — gesture-driven takeover of the stage. Pulls the tile
+   * out of the grid visually without actually rewriting layout. */
+  .tile.fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    border-radius: 0;
+    transform: none;
   }
 
   /* Immersive mode — for fill-the-screen content like aquarium stream. */

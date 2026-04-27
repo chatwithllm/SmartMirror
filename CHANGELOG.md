@@ -6,6 +6,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Phase 13.1 — gesture subsystem · runtime wiring
+- `frontend/src/lib/gesture/events.ts` no longer a stub — REST-polls
+  `input_text.mirror_last_gesture` every 1 s, baselines the first tick,
+  drops events older than 30 s, dispatches into the in-browser router.
+- `frontend/src/lib/gesture/handlers.ts` registers default handlers:
+  `wake` toast, `focus` cycles tiles via the `focusedTile` store,
+  `tile_fullscreen` / `tile_minimize` drive a new `fullscreenTile`
+  store, `media_pause` proxies to `ytCmd('yt_toggle')`, `alert_ack`
+  dispatches a `mirror:alert_ack` window event.
+- `frontend/src/lib/tiles/BaseTile.svelte` now reads `focusedTile` /
+  `fullscreenTile` and projects them as `data-focused` /
+  `data-fullscreen` (CSS already styled the focused state).
+- `frontend/src/routes/+page.svelte` mounts `wireGestures()` +
+  `registerDefaultHandlers()` on mount and tears them down on destroy.
+- `ha/packages/mirror.yaml` adds `input_text.mirror_last_gesture`
+  helper bridging MQTT → REST-poll for the kiosk.
+- `ha/automations/05_mirror_gesture_router.yaml` (new) — MQTT-to-event
+  bridge + helper mirror + mode/lock fanout.
+- `docs/gesture-demo.md` updated to describe the actual REST-poll
+  bridge, handler set, and current limits (resize_* are no-ops in this
+  build because layouts are bundled).
+- Tests: `frontend/src/lib/gesture/events.test.ts` (9 cases covering
+  parsing, baselining, ts replay, freshness window) and
+  `handlers.test.ts` (5 cases covering focus cycling, fullscreen
+  toggle, alert event, teardown).
+
 ### Added
 - Initial specs: `DESIGN_SPEC.md`, `FRONTEND_SPEC.md`, `BACKEND_SPEC.md`
 - Phase plan: `PHASES.md`, `AGENT_INSTRUCTIONS.md`, `BUILD_PROMPT.md`
