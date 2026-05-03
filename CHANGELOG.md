@@ -6,6 +6,49 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Phase 13.2 — gesture subsystem · kiosk-local camera path
+- Pivoted from HA addon (camera on HA box, MQTT bridge) to a
+  kiosk-local systemd service: USB webcam plugged into the mirror PC,
+  Python service runs MediaPipe on the kiosk, POSTs classified
+  gestures to `http://localhost:3000/api/gesture` (Bearer-auth).
+- `addons/mirror-gesture/src/`: new `config.py`, `camera_pick.py`
+  (v4l2 capability probe), `http_publisher.py`. Rewrote `main.py` to
+  release/reacquire the camera around the HA enable boolean (LED
+  actually goes dark when paused). Extended `gestures.py` classifier:
+  added `focus` (point), `tile_fullscreen`/`tile_minimize` (pinch
+  open/close), `media_pause` (palm held still); added per-gesture
+  `Cooldown` to stop held poses re-firing every frame.
+- Removed HA addon shell: `Dockerfile`, `config.yaml`, `run.sh`,
+  `requirements.txt`. Added `pyproject.toml` for venv install.
+- `installer/install-gesture.sh` (new): idempotent installer — venv at
+  `/opt/mirror/gesture`, generates `MIRROR_GESTURE_TOKEN` in
+  `/etc/mirror/config.env`, drops the systemd unit.
+- `installer/systemd/mirror-gesture.service` (new): hardened unit
+  with `User=mirror`, `SupplementaryGroups=video`,
+  `DeviceAllow=char-video4linux rw`.
+- `frontend/src/lib/server/gestureBus.ts` (new): in-process
+  EventEmitter; gestureBus.emit on POST → SSE fan-out.
+- `frontend/src/routes/api/gesture/+server.ts` (new): bearer-authed
+  POST endpoint with strict gesture-name + confidence + ts validation.
+- `frontend/src/routes/api/gesture/stream/+server.ts` (new): SSE
+  endpoint with 15 s heartbeat and `x-accel-buffering: no`.
+- `frontend/src/lib/gesture/sse.ts` (new) replaces the deleted
+  `events.ts` REST-poll: `EventSource('/api/gesture/stream')`,
+  drops events older than 30 s. Same `wireGestures()` signature so
+  `+page.svelte` only changed the import path.
+- `ha/packages/mirror.yaml`: dropped `input_text.mirror_last_gesture`
+  helper (no longer the bridge).
+- `ha/automations/05_mirror_gesture_router.yaml`: dropped MQTT
+  bridge; only handles HA-owned gestures (mode_next/prev cycles
+  `input_select.mirror_mode`; `lock` toggles
+  `input_boolean.mirror_gesture_enable` off for 5 min).
+- `docs/gesture-setup.md` rewritten as kiosk-local install runbook.
+  `docs/gesture-demo.md` updated with the new architecture diagram
+  and the eight-gesture vocabulary table.
+- Tests: `frontend/src/lib/gesture/sse.test.ts` (7 cases) replaces
+  the deleted `events.test.ts`. Existing `handlers.test.ts` and
+  `router.test.ts` unchanged.
+
 ### Phase 13.1 — gesture subsystem · runtime wiring
 - `frontend/src/lib/gesture/events.ts` no longer a stub — REST-polls
   `input_text.mirror_last_gesture` every 1 s, baselines the first tick,

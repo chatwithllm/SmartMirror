@@ -7,7 +7,7 @@
   import { ytCmd, ytLoadVideo, type YTAction } from '$lib/youtube/controller.js';
   import { layoutStore, currentLayout } from '$lib/layout/store.js';
   import { connection, toasts } from '$lib/stores/connection.js';
-  import { wireGestures } from '$lib/gesture/events.js';
+  import { wireGestures } from '$lib/gesture/sse.js';
   import { registerDefaultHandlers } from '$lib/gesture/handlers.js';
   import { DEMO_LAYOUT } from '$lib/layout/demo.js';
   import { applyTheme } from '$lib/themes/loader.js';

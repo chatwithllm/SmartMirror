@@ -40,5 +40,5 @@ test-results/
 
 # Python addon builds
 addons/*/.venv/
-addons/*/__pycache__/
-addons/*/*.pyc
+**/__pycache__/
+**/*.pyc

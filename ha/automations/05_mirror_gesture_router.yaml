@@ -1,58 +1,19 @@
-# Smart Mirror · gesture router
+# Smart Mirror · gesture router (Phase 13.2)
 #
-# Drop into /config/automations/ (or include via configuration.yaml). Two
-# automations:
+# The gesture service runs on the kiosk PC (USB webcam plugged into
+# the kiosk) and POSTs each classified gesture to:
 #
-#   1. MQTT bridge — turns each `mirror/gesture` MQTT message into an
-#      `event.mirror_gesture` on the HA event bus AND mirrors it into
-#      `input_text.mirror_last_gesture` so the REST-poll frontend can
-#      pick it up without a websocket.
+#   1. http://kiosk:3000/api/gesture           — UI fan-out via SSE
+#   2. {HA_URL}/api/events/mirror_gesture      — global state via HA bus
 #
-#   2. Action fanout — handles HA-side gestures (mode_next/prev cycle
-#      `input_select.mirror_mode`; lock toggles
-#      `input_boolean.mirror_gesture_enable` off and re-enables after
-#      5 minutes). UI-only gestures (focus, tile_fullscreen, alert_ack,
-#      media_pause, resize_grow/shrink, wake) flow through the helper to
-#      the client.
+# This automation owns (2). It only acts on the gestures that change
+# global HA state: mode_next/prev cycle input_select.mirror_mode,
+# and lock toggles input_boolean.mirror_gesture_enable off for 5
+# minutes (the kiosk service polls the boolean and releases the
+# camera so the LED actually goes dark).
 #
-# Prereqs: mqtt: integration live, addons/mirror-gesture installed and
-# enabled, input_boolean.mirror_gesture_enable on.
-
-- alias: "Mirror · gesture · MQTT bridge"
-  id: mirror_gesture_mqtt_bridge
-  mode: queued
-  max: 16
-  trigger:
-    - platform: mqtt
-      topic: mirror/gesture
-  condition:
-    - condition: state
-      entity_id: input_boolean.mirror_gesture_enable
-      state: "on"
-  action:
-    # Fire on the bus first — automations that already key off
-    # event.mirror_gesture (HA blueprints, NodeRED, voice flows) keep
-    # working unchanged.
-    - event: mirror_gesture
-      event_data:
-        gesture: "{{ trigger.payload_json.gesture }}"
-        confidence: "{{ trigger.payload_json.confidence | float(0) }}"
-        ts: "{{ trigger.payload_json.ts | float(0) }}"
-        payload: "{{ trigger.payload_json.payload | default({}, true) }}"
-    # Then mirror the latest into the helper that the kiosk polls.
-    # Compact JSON keeps us under the 255-char input_text cap.
-    - service: input_text.set_value
-      target:
-        entity_id: input_text.mirror_last_gesture
-      data:
-        value: >-
-          {{
-            {
-              'gesture': trigger.payload_json.gesture,
-              'ts': trigger.payload_json.ts | float(0),
-              'payload': trigger.payload_json.payload | default({}, true)
-            } | to_json
-          }}
+# UI-only gestures (focus, tile_fullscreen, tile_minimize, alert_ack,
+# media_pause, wake) flow through (1) — HA never sees them.
 
 - alias: "Mirror · gesture · action fanout"
   id: mirror_gesture_action_fanout
@@ -61,6 +22,10 @@
   trigger:
     - platform: event
       event_type: mirror_gesture
+  condition:
+    - condition: state
+      entity_id: input_boolean.mirror_gesture_enable
+      state: "on"
   action:
     - choose:
         - conditions:
@@ -78,14 +43,12 @@
         - conditions:
             - "{{ trigger.event.data.gesture == 'lock' }}"
           sequence:
-            # Closed-fist hold == "stop watching me". Disable the addon
-            # for 5 min so the LED goes dark; re-enable on its own.
+            # Closed-fist hold == "stop watching me". Disable the
+            # gesture service for 5 min — it polls this boolean once a
+            # second and releases the camera so the LED goes dark.
             - service: input_boolean.turn_off
               target: { entity_id: input_boolean.mirror_gesture_enable }
             - delay: { minutes: 5 }
             - service: input_boolean.turn_on
               target: { entity_id: input_boolean.mirror_gesture_enable }
-      # All other gestures (wake, focus, resize_*, tile_*, alert_ack,
-      # media_pause) are UI-only — the helper update fired by the bridge
-      # automation above is enough; the kiosk picks them up via REST.
       default: []

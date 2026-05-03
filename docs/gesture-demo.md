@@ -1,79 +1,88 @@
 # Gesture demo + test plan
 
-## Architecture
+## Architecture (Phase 13.2)
 
 ```
-webcam → mirror-gesture addon (MediaPipe + face blur)
-       → MQTT topic   mirror/gesture
-       → HA gesture router (ha/automations/05_mirror_gesture_router.yaml):
-           1. fires event.mirror_gesture
-           2. mirrors latest into input_text.mirror_last_gesture
-           3. routes mode_next/prev → input_select.mirror_mode cycle
-           4. routes lock           → input_boolean.mirror_gesture_enable off (5 min)
-       → kiosk REST poll every 1 s on input_text.mirror_last_gesture
-       → frontend gesture router (lib/gesture/router.ts) dispatches
-       → registered handlers act on the focused tile / fullscreen state
+USB webcam
+   │
+   ▼
+mirror-gesture.service (systemd, kiosk PC, mirror user)
+   ├─ MediaPipe Hands @ 15 fps
+   ├─ face blur (Haar cascade)
+   ├─ classifier with hold-time gate (gestures.py)
+   └─ per-gesture cooldown (default 800 ms)
+   │
+   │   POST http://localhost:3000/api/gesture
+   │   Authorization: Bearer ${MIRROR_GESTURE_TOKEN}
+   │
+   ▼
+SvelteKit Node server
+   ├─ /api/gesture        — validates bearer, gestureBus.emit
+   └─ /api/gesture/stream — SSE subscriber
+   │
+   │   text/event-stream
+   ▼
+browser
+   ├─ sse.ts → router.dispatch
+   └─ handlers.ts → focusedTile / fullscreenTile / ytCmd / window event
+
+Side channel for global state (still HA, still REST):
+   gesture service → POST /api/events/mirror_gesture (HA bus)
+                  → ha/automations/05_mirror_gesture_router.yaml
+                  → input_select.select_next on mode_next
+                  → input_boolean.turn_off (5 min) on lock
 ```
 
-The frontend uses REST polling (no websocket) to match every other
-HA-driven entity in this build. The HA automation owns mode cycling
-and the lock kill-switch; the kiosk owns focus, fullscreen, alert ack,
-and media pause.
+Frames never leave the kiosk PC. The HA round-trip exists only for the
+two gestures that change global HA state.
 
-## Prereqs
+## Gesture vocabulary
 
-- HA with Mosquitto addon and `mqtt:` integration active
-- Webcam with a visible LED
-- This addon installed and `enabled: true` via the addon UI
-- `input_boolean.mirror_gesture_enable` toggled on
-- `ha/packages/mirror.yaml` includes `input_text.mirror_last_gesture` (added in this phase)
-- `ha/automations/05_mirror_gesture_router.yaml` loaded (e.g. via
-  `automation: !include_dir_merge_list automations/`)
+| Gesture | What you do | What happens |
+|---|---|---|
+| `wake` | Open palm enters frame | Toast "gesture · awake" — proof of life |
+| `mode_next` | Open palm, swipe → | HA cycles `input_select.mirror_mode` forward |
+| `mode_prev` | Open palm, swipe ← | HA cycles `input_select.mirror_mode` backward |
+| `focus` | Point with index finger | Cycle through visible tiles (sets `focusedTile`) |
+| `tile_fullscreen` | Pinch open (thumb away from index) | Focused tile takes the stage |
+| `tile_minimize` | Pinch shut (thumb meets index) | Return to grid |
+| `media_pause` | Open palm held still ~1 s | `ytCmd('yt_toggle')` on the YouTube tile |
+| `lock` | Closed fist held ~1 s | HA disables gesture service for 5 min, LED off |
+| `alert_ack` | (handler exists; classifier doesn't emit yet) | Dispatches `mirror:alert_ack` window event |
+
+`resize_grow`/`resize_shrink` registered as toast stubs — the bundled-
+layouts simplification removed `patch_layout`. Restore the service to
+re-enable.
 
 ## Demo flow
 
-1. Open `input_boolean.mirror_gesture_enable` in HA → turn on.
-2. Open the mirror UI.
-3. Wave an open palm left-to-right in front of the camera.
-   - MQTT `mirror/gesture` receives `{ gesture: "mode_next" }`.
-   - HA fires `event.mirror_gesture` and updates `input_text.mirror_last_gesture`.
-   - HA cycles `input_select.mirror_mode` to the next option.
-   - Frontend layout poll (≤2 s) swaps the layout for the new mode.
-4. Wave open palm right-to-left → `mode_prev`.
-5. Close fist and hold ~1 second → `lock` → addon paused for 5 min,
-   webcam LED dark.
-6. Open palm forward (focus) → focused-tile ring advances; visible as
-   `[data-focused='true']` border on the active `<section.tile>`.
-7. Pinch out → `tile_fullscreen` → focused tile takes the stage.
-   Pinch in → `tile_minimize` → return to the grid.
-8. With a YouTube tile playing → palm-down (media_pause) toggles play.
-9. With an alert toast on screen → swipe up (alert_ack) dispatches
-   `mirror:alert_ack` on `window`.
+1. Open `input_boolean.mirror_gesture_enable` in HA → on.
+2. `journalctl -u mirror-gesture.service -f` shows "camera opened".
+3. Wave an open palm — toast appears. ✅ Service → SSE → router live.
+4. Swipe right → mode advances within ~2 s. ✅ Service → HA → kiosk poll.
+5. Point with index finger → tile border highlights, scale 1.03.
+6. Pinch open → focused tile fills the screen.
+7. Pinch shut → returns to grid.
+8. Hold open palm → YouTube tile pause/play.
+9. Hold a fist for ~1 s → service log says "gesture enable → off",
+   webcam LED goes dark, browser stops receiving gestures.
+10. Wait 5 min → HA re-enables; service reacquires camera; LED on.
 
 ## Kill-switches
 
-- Addon UI toggle `enabled: false` → webcam released within 3 s.
-- `input_boolean.mirror_gesture_enable` off → bridge automation
-  short-circuits, no events propagate, and the helper stops updating
-  so the kiosk goes quiet too.
-- LED always on while webcam in use.
+| Switch | Effect | Latency |
+|---|---|---|
+| `systemctl stop mirror-gesture` | Camera released | <2 s |
+| `input_boolean.mirror_gesture_enable` off | Camera released, LED off | ≤1 s |
+| Unplug USB | Service logs "camera read failed", retries | n/a |
 
-## Privacy
+## Privacy contract
 
-- Face blur default on (`face_blur: true`).
-- Frames never leave the addon; only classified gesture + confidence + ts
-  are published on MQTT.
-- Rolling window is 3 frames, dropped on empty hands.
-- The kiosk only sees `{ gesture, ts, payload }` JSON via REST — no
-  pixels, no landmarks.
-
-## Notes & limits
-
-- `resize_grow` / `resize_shrink` are received and surfaced as a toast
-  but are intentionally not wired to a layout patch in this build —
-  layouts are bundled into the frontend bundle (no `patch_layout`
-  service). Restore the service and the gesture handler picks them up
-  unchanged.
-- Stale events older than 30 s (e.g. left in the helper after a
-  reboot) are dropped on the first poll; the first tick is treated as
-  the baseline so a page reload can't replay an old gesture.
+- Pixels never cross the kiosk's localhost boundary.
+- Default face blur is a structural choice, not a setting people
+  remember to turn on.
+- The webcam LED is the visible contract: LED on ⇒ frames being read.
+  When the gating boolean is off, the camera is *released*, not just
+  "muted in software" — the LED actually goes dark.
+- Bearer-authed POST to `/api/gesture` so a stray curl on the LAN
+  can't fake gestures into the UI.
