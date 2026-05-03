@@ -102,7 +102,11 @@ ls -1 /dev/video* 2>/dev/null | head -3 \
   || echo "(no /dev/video* enumerated — webcam not plugged in? Continuing anyway.)"
 
 echo "[remote] pull branch ${BRANCH}"
+# Repair ownership in case a prior op left root-owned files in /opt/mirror
+# (otherwise mirror-user git fetch can silently fail on .git/FETCH_HEAD).
+sudo chown -R mirror:mirror /opt/mirror
 sudo -u mirror -H bash -lc "
+  set -euo pipefail
   cd /opt/mirror
   if ! git diff-index --quiet HEAD --; then
     echo 'ERROR: local changes in /opt/mirror; aborting' >&2
@@ -116,7 +120,10 @@ sudo -u mirror -H bash -lc "
 "
 
 echo "[remote] rebuild frontend"
-sudo -u mirror -H bash -lc "
+# CI=true makes pnpm non-interactive (auto-confirms node_modules purge
+# when pnpm detects a lockfile/node_modules mismatch).
+sudo -u mirror -H CI=true bash -lc "
+  set -euo pipefail
   cd /opt/mirror/frontend
   pnpm install --frozen-lockfile
   pnpm build
