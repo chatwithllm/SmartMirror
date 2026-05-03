@@ -9,6 +9,13 @@
 #   bash installer/remote-deploy.sh <user>@<host>
 #
 # Idempotent — safe to re-run.
+#
+# Notes:
+#   - The remote payload is uploaded as a file and executed under
+#     `ssh -t`, so sudo on the kiosk gets a real TTY for its
+#     password prompt.
+#   - SSH connection multiplexing means you only enter the password
+#     (or get prompted by your key agent) once.
 
 set -euo pipefail
 
@@ -60,20 +67,32 @@ INFO
 read -rp "proceed? [y/N] " ans
 [[ "$ans" =~ ^[Yy]$ ]] || { echo "aborted"; exit 1; }
 
-echo "==> ssh smoke test"
-ssh "$TARGET" 'echo "remote: $(whoami)@$(hostname) ok"' || {
+# SSH connection multiplexing: type the password once, reuse the
+# socket for scp + ssh exec.
+SSH_CTRL="$(mktemp -u "${TMPDIR:-/tmp}/mirror-ssh-ctrl.XXXXXX")"
+SSH_OPTS=(
+  -o "ControlMaster=auto"
+  -o "ControlPath=$SSH_CTRL"
+  -o "ControlPersist=10m"
+)
+cleanup() {
+  ssh "${SSH_OPTS[@]}" -O exit "$TARGET" >/dev/null 2>&1 || true
+  rm -f "$SSH_CTRL" "${LOCAL_PAYLOAD:-}"
+}
+trap cleanup EXIT
+
+echo "==> ssh smoke test (you'll be prompted for the password once)"
+ssh "${SSH_OPTS[@]}" "$TARGET" 'echo "remote: $(whoami)@$(hostname) ok"' || {
   echo "ssh failed; check connectivity and credentials"
   exit 1
 }
 
-echo "==> driving remote deploy"
-# -t allocates a TTY so sudo's password prompt works.
-# Single-quoted heredoc so $vars expand on remote, not local;
-# BRANCH is passed via env to bash -s.
-ssh -t "$TARGET" "BRANCH=\"$BRANCH\" bash -s" <<'REMOTE'
-set -euo pipefail
-export BRANCH
-
+# Build the remote payload locally. BRANCH is baked in via printf %q
+# so we don't have to wrestle with heredoc-quoting rules.
+LOCAL_PAYLOAD="$(mktemp "${TMPDIR:-/tmp}/mirror-deploy.XXXXXX.sh")"
+{
+  printf '#!/usr/bin/env bash\nset -euo pipefail\nBRANCH=%q\n\n' "$BRANCH"
+  cat <<'REMOTE'
 echo "[remote] hostname=$(hostname) user=$(whoami)"
 
 echo "[remote] pre-checks"
@@ -132,6 +151,15 @@ systemctl is-active mirror-frontend.service \
   && echo "✓ mirror-frontend active" \
   || { echo "✗ mirror-frontend not active"; exit 1; }
 REMOTE
+} > "$LOCAL_PAYLOAD"
+
+REMOTE_PAYLOAD="/tmp/mirror-deploy.$$.$(date +%s).sh"
+
+echo "==> uploading deploy script to $TARGET:$REMOTE_PAYLOAD"
+scp "${SSH_OPTS[@]}" -q "$LOCAL_PAYLOAD" "$TARGET:$REMOTE_PAYLOAD"
+
+echo "==> driving remote deploy (sudo will prompt on the kiosk)"
+ssh -t "${SSH_OPTS[@]}" "$TARGET" "bash '$REMOTE_PAYLOAD'; rm -f '$REMOTE_PAYLOAD'"
 
 cat <<NEXT
 
