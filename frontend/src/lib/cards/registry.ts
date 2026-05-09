@@ -75,3 +75,11 @@ registerCard({
   refreshIntervalMs: 10 * 60 * 1000,
   emptyState: 'News brief unavailable'
 });
+
+import ImmichPhotoCard from '$lib/tiles/ImmichPhotoCard.svelte';
+registerCard({
+  id: 'immich_photo',
+  component: ImmichPhotoCard as never,
+  refreshIntervalMs: 60 * 60 * 1000,
+  emptyState: 'From the archive'
+});
