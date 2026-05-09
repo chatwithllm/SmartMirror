@@ -14,6 +14,14 @@
   import { coerceTheme } from '$lib/themes/compat.js';
   import { resolveLayout } from '$lib/layout/resolver.js';
   import type { Orientation } from '$lib/layout/schema.js';
+  import PlexNowPlayingCard from '$lib/tiles/PlexNowPlayingCard.svelte';
+  import { plexActive, startPlexPreempt } from '$lib/plex/preempt.js';
+
+  // Plex media_player entity that drives the full-takeover pre-empt.
+  // Sourced from BACKEND_SPEC.md §"01_mirror_plex_focus.yaml" — the
+  // canonical living-room Plex client. When state=='playing' we bypass
+  // the section grid entirely and render the Plex now-playing card.
+  const PLEX_ENTITY_ID = 'media_player.plex_livingroom';
 
   // React to theme changes on the active layout.
   $effect(() => {
@@ -229,6 +237,10 @@
     stopGestureHandlers = registerDefaultHandlers();
     stopGestures = wireGestures();
 
+    // Plex pre-empt watcher — toggles plexActive based on the Plex
+    // media_player state. Idempotent; runs in browser only.
+    startPlexPreempt(PLEX_ENTITY_ID);
+
     if (!hassUrl || !hassToken) {
       connection.set({ kind: 'down', reason: 'no-ha-config' });
 
@@ -317,7 +329,11 @@
   class="stage"
   style="--os-top:{overscan.top}vh; --os-right:{overscan.right}vw; --os-bottom:{overscan.bottom}vh; --os-left:{overscan.left}vw; padding: var(--os-top) var(--os-right) var(--os-bottom) var(--os-left);"
 >
-  {#if $currentLayout}
+  {#if $plexActive}
+    <div class="plex-takeover">
+      <PlexNowPlayingCard id="plex_now_playing" />
+    </div>
+  {:else if $currentLayout}
     <Grid layout={$currentLayout} />
   {:else}
     <div class="boot-splash" data-testid="boot-splash">waiting for Home Assistant…</div>
@@ -398,5 +414,10 @@
   .toast.t-error {
     border-color: var(--bad);
     color: var(--bad);
+  }
+  .plex-takeover {
+    width: 100%;
+    height: 100%;
+    display: flex;
   }
 </style>
