@@ -11,6 +11,7 @@
    * editions.
    */
   import { onDestroy, onMount } from 'svelte';
+  import { fade } from 'svelte/transition';
   import BaseTile from './BaseTile.svelte';
   import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
   import { currentPhase, type Phase } from '$lib/phase/clock.js';
@@ -114,26 +115,40 @@
   };
 
   let flipIdx = $state(0); // 0 = sanskrit, 1 = english
-  let flipTimer: ReturnType<typeof setInterval> | null = null;
   let reducedMotion = $state(false);
 
-  onMount(() => {
+  $effect(() => {
+    // Browser-only: window.matchMedia + setInterval are unsafe in SSR.
+    if (typeof window === 'undefined') return;
+
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
     reducedMotion = mq.matches;
-    const onChange = (e: MediaQueryListEvent) => (reducedMotion = e.matches);
-    mq.addEventListener('change', onChange);
+    let timer: ReturnType<typeof setInterval> | null = null;
 
-    if (!reducedMotion) {
-      flipTimer = setInterval(() => (flipIdx = flipIdx === 0 ? 1 : 0), 8000);
+    function startFlip() {
+      if (timer) return;
+      timer = setInterval(() => (flipIdx = flipIdx === 0 ? 1 : 0), 8000);
     }
+    function stopFlip() {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+    }
+
+    if (!reducedMotion) startFlip();
+
+    const onChange = (e: MediaQueryListEvent) => {
+      reducedMotion = e.matches;
+      if (e.matches) stopFlip();
+      else startFlip();
+    };
+    mq.addEventListener('change', onChange);
 
     return () => {
       mq.removeEventListener('change', onChange);
+      stopFlip();
     };
-  });
-
-  onDestroy(() => {
-    if (flipTimer) clearInterval(flipTimer);
   });
 
   const edition = $derived.by(() => {
@@ -196,7 +211,9 @@
     <div class="masthead">
       <div class="left">
         <div class="kicker">
-          <span class="flip" data-idx={flipIdx}>— {edition} —</span>
+          {#key edition}
+            <span class="flip" in:fade={{ duration: 400 }} out:fade={{ duration: 400 }}>— {edition} —</span>
+          {/key}
         </div>
         <h1 class="brand">
           <span class="lead">{split.lead}</span>{#if split.tail}<span class="tail"> {split.tail}</span>{/if}
@@ -279,10 +296,12 @@
     color: var(--dim);
     margin-bottom: 0.4rem;
     font-feature-settings: 'tnum';
+    /* Allow stacked in/out transition spans to overlap during the fade */
+    position: relative;
+    white-space: nowrap;
   }
   .kicker .flip {
     display: inline-block;
-    transition: opacity 400ms ease;
   }
 
   .brand {
