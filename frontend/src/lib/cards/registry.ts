@@ -51,3 +51,11 @@ registerCard({
   refreshIntervalMs: 5 * 60 * 1000,
   emptyState: 'Forecast unavailable'
 });
+
+import GroceryListCard from '$lib/tiles/GroceryListCard.svelte';
+registerCard({
+  id: 'grocery',
+  component: GroceryListCard as never,
+  refreshIntervalMs: 30_000,
+  emptyState: "Pantry's stocked"
+});
