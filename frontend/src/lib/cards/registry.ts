@@ -27,3 +27,11 @@ registerCard({
   refreshIntervalMs: 60_000,
   emptyState: 'No events today — clear day ahead'
 });
+
+import CalendarNextCard from '$lib/tiles/CalendarNextCard.svelte';
+registerCard({
+  id: 'calendar_next',
+  component: CalendarNextCard as never,
+  refreshIntervalMs: 60_000,
+  emptyState: 'Nothing scheduled'
+});
