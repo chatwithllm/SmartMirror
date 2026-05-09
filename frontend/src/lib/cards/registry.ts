@@ -59,3 +59,11 @@ registerCard({
   refreshIntervalMs: 30_000,
   emptyState: "Pantry's stocked"
 });
+
+import NotificationsCard from '$lib/tiles/NotificationsCard.svelte';
+registerCard({
+  id: 'ha_notifications',
+  component: NotificationsCard as never,
+  refreshIntervalMs: 15_000,
+  emptyState: 'All quiet'
+});
