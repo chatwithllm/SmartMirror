@@ -11,18 +11,8 @@ async function loadThemeCss(name: ThemeName): Promise<string> {
       css = mod.default;
       break;
     }
-    case 'ops-cyberpunk': {
-      const mod = await import('./ops-cyberpunk.css?inline');
-      css = mod.default;
-      break;
-    }
     case 'editorial': {
       const mod = await import('./editorial.css?inline');
-      css = mod.default;
-      break;
-    }
-    case 'security': {
-      const mod = await import('./security.css?inline');
       css = mod.default;
       break;
     }

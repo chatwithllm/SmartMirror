@@ -118,11 +118,7 @@ views:
             show_header_toggle: false
             entities:
               - entity: input_select.mirror_preset
-                name: Preset (bundle)
-              - entity: input_select.mirror_mode
-                name: Mode
-              - entity: input_select.mirror_theme
-                name: Theme
+                name: Preset
               - entity: input_select.mirror_orientation
                 name: Orientation
               - entity: input_select.mirror_resolution

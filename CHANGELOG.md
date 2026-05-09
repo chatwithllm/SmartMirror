@@ -6,6 +6,79 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Theme cleanup — drop ops-cyberpunk, light-mode covers dark/light
+- Dropped `ops-cyberpunk` theme entirely. No active preset uses it
+  (work landscape was the last reference and migrated to
+  minimal-dark). `input_boolean.mirror_light_mode` already flips the
+  palette dark→light across every preset, so a separate "theme"
+  picker is redundant.
+- `frontend/src/lib/themes/ops-cyberpunk.css`: deleted.
+- `frontend/src/lib/layout/schema.ts`: `ThemeName` enum cut from 3
+  → 2 (`minimal-dark`, `editorial`).
+- `frontend/src/lib/themes/loader.ts`: dropped `ops-cyberpunk` switch
+  arm.
+- `frontend/src/lib/themes/compat.ts`: dropped ops-cyberpunk from
+  `ALLOWED.work`.
+- `frontend/src/lib/styles/root.css`: dropped
+  `[data-theme='ops-cyberpunk'][data-mode='light']` accent block.
+- `frontend/src/lib/layout/bundled/work.landscape.json`: theme
+  field updated `ops-cyberpunk` → `minimal-dark` (resolver overrode
+  it anyway, but the JSON now passes schema validation directly).
+- `frontend/src/routes/+page.svelte`: URL-param switcher dropped
+  the `?mode=` and `?theme=` overrides — preset is the single knob
+  now. `?preset=…&orientation=…` only.
+
+### Picker consolidation — Preset is the single knob
+- Dropped `input_select.mirror_mode` + `input_select.mirror_theme`
+  from `ha/packages/mirror.yaml`. Each preset already encodes its
+  mode + theme, so two of the three pickers were redundant.
+- Dashboard (`ha/dashboards/mirror.yaml`) now shows 3 selects
+  (Preset · Orientation · Resolution) instead of 5.
+- `applyHa()` in `+page.svelte` no longer fetches mirror_mode /
+  mirror_theme states; it polls preset + orientation + overscan only.
+- Gesture router (`05_mirror_gesture_router.yaml`) `mode_next` /
+  `mode_prev` now cycle `input_select.mirror_preset` instead of the
+  removed `mirror_mode`.
+- Local-dev URL switcher (`?preset=…&orientation=…`) still accepts
+  `mode` / `theme` overrides for designers, but HA only drives preset.
+
+### Preset cull — 3 curated scenes
+- HA `input_select.mirror_preset` trimmed from 9 → 4 options
+  (`auto` + `editorial-daily`, `work`, `morning-editorial`).
+  Day-glance + work-day cover daytime; morning-editorial covers dawn.
+- HA `input_select.mirror_mode` trimmed from 11 → 5 options
+  (`auto` + `morning`, `work`, `night`, `editorial`). `night` mode
+  kept for time-based fallback (pre-6am / post-10pm) but no longer
+  bound to a preset.
+- HA `input_select.mirror_theme` trimmed from 5 → 4 options —
+  `security` theme dropped.
+- `frontend/src/lib/layout/schema.ts`: `ModeName` enum cut from 14
+  → 4 modes (`morning`, `work`, `night`, `editorial`); `ThemeName`
+  cut from 4 → 3 (`security` removed).
+- `frontend/src/lib/themes/compat.ts` `ALLOWED` map shrunk to the
+  four kept modes; security row + ops/relax/shopping/showcase/etc
+  rows all gone.
+- `frontend/src/lib/themes/loader.ts`: dropped `security` switch arm.
+- `frontend/src/lib/themes/security.css`: deleted.
+- `frontend/src/lib/styles/root.css`: dropped
+  `[data-theme='security'][data-mode='light']` accent block.
+- `frontend/src/lib/layout/resolver.ts` `PRESETS` map shrunk to three
+  entries. Time-based fallback now picks `night` / `morning` / `work`
+  (no more `relax`).
+- `frontend/src/lib/layout/bundled/`: deleted 16 unused layout JSONs
+  (console, glass, guest×2, minimal, ops×2, relax×2, retro,
+  security×2, shopping×2, showcase×2). 24 → 8 files.
+- `frontend/src/lib/layout/demo.ts` offline DEMO_LAYOUT switched from
+  `mode: 'ops'` to `mode: 'work'` so it round-trips through the
+  trimmed schema.
+- `frontend/src/routes/+page.svelte`: added local-dev URL-param
+  preset switcher (`?preset=…&orientation=…`) so designers can flip
+  presets in the browser without HA.
+- Tests: `compat.test.ts` reworked off the dropped `ops`/`security`
+  modes onto `work`/`night`. All 19 files / 96 tests still pass.
+- `ha/README.md` preset example updated; layout JSON count corrected
+  from "20" to "8 (4 modes × 2 orientations)".
+
 ### Phase 13.2 — gesture subsystem · kiosk-local camera path
 - Pivoted from HA addon (camera on HA box, MQTT bridge) to a
   kiosk-local systemd service: USB webcam plugged into the mirror PC,

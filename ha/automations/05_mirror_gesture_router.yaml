@@ -7,7 +7,7 @@
 #   2. {HA_URL}/api/events/mirror_gesture      — global state via HA bus
 #
 # This automation owns (2). It only acts on the gestures that change
-# global HA state: mode_next/prev cycle input_select.mirror_mode,
+# global HA state: mode_next/prev cycle input_select.mirror_preset,
 # and lock toggles input_boolean.mirror_gesture_enable off for 5
 # minutes (the kiosk service polls the boolean and releases the
 # camera so the LED actually goes dark).
@@ -32,13 +32,13 @@
             - "{{ trigger.event.data.gesture == 'mode_next' }}"
           sequence:
             - service: input_select.select_next
-              target: { entity_id: input_select.mirror_mode }
+              target: { entity_id: input_select.mirror_preset }
               data: { cycle: true }
         - conditions:
             - "{{ trigger.event.data.gesture == 'mode_prev' }}"
           sequence:
             - service: input_select.select_previous
-              target: { entity_id: input_select.mirror_mode }
+              target: { entity_id: input_select.mirror_preset }
               data: { cycle: true }
         - conditions:
             - "{{ trigger.event.data.gesture == 'lock' }}"

@@ -3,15 +3,15 @@ import { ALLOWED, coerceTheme } from './compat.js';
 
 describe('theme compat', () => {
   it('leaves legal combos alone', () => {
-    const r = coerceTheme('ops', 'ops-cyberpunk');
-    expect(r).toEqual({ theme: 'ops-cyberpunk', coerced: false });
+    const r = coerceTheme('work', 'minimal-dark');
+    expect(r).toEqual({ theme: 'minimal-dark', coerced: false });
   });
 
   it('coerces illegal combos to first allowed', () => {
-    const r = coerceTheme('ops', 'editorial');
+    const r = coerceTheme('editorial', 'minimal-dark');
     expect(r.coerced).toBe(true);
-    expect(r.theme).toBe('ops-cyberpunk');
-    expect(r.from).toBe('editorial');
+    expect(r.theme).toBe('editorial');
+    expect(r.from).toBe('minimal-dark');
   });
 
   it('every mode has at least one allowed theme', () => {
@@ -20,8 +20,8 @@ describe('theme compat', () => {
     }
   });
 
-  it('security mode accepts security theme', () => {
-    expect(ALLOWED.security).toContain('security');
+  it('night mode allows minimal-dark theme', () => {
+    expect(ALLOWED.night).toContain('minimal-dark');
   });
 
   it('editorial mode only allows editorial theme', () => {

@@ -2,7 +2,7 @@
   "version": 1,
   "mode": "work",
   "orientation": "landscape",
-  "theme": "ops-cyberpunk",
+  "theme": "minimal-dark",
   "resolution": "1080p",
   "transition": "flip",
   "grid": { "cols": 12, "rows": 8, "gap": 14 },

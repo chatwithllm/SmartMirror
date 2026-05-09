@@ -7,7 +7,7 @@ import type { Layout } from './schema.js';
  */
 export const DEMO_LAYOUT: Layout = {
   version: 1,
-  mode: 'ops',
+  mode: 'work',
   orientation: 'portrait',
   theme: 'minimal-dark',
   resolution: '1080p',

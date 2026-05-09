@@ -1,20 +1,10 @@
 import type { ModeName, ThemeName } from '$lib/layout/schema.js';
 
 export const ALLOWED: Record<ModeName, ThemeName[]> = {
-  morning: ['minimal-dark', 'editorial', 'ops-cyberpunk'],
-  work: ['ops-cyberpunk', 'minimal-dark', 'editorial'],
-  relax: ['minimal-dark', 'editorial'],
-  shopping: ['minimal-dark', 'ops-cyberpunk', 'editorial'],
-  security: ['security', 'ops-cyberpunk'],
-  night: ['minimal-dark', 'security'],
-  ops: ['ops-cyberpunk', 'security'],
-  guest: ['editorial', 'minimal-dark'],
-  showcase: ['editorial', 'minimal-dark'],
-  editorial: ['editorial'],
-  minimal: ['minimal-dark'],
-  glass: ['minimal-dark'],
-  retro: ['minimal-dark'],
-  console: ['minimal-dark']
+  morning: ['minimal-dark', 'editorial'],
+  work: ['minimal-dark', 'editorial'],
+  night: ['minimal-dark'],
+  editorial: ['editorial']
 };
 
 export interface CoerceResult {
