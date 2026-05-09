@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
+  import { isStale } from '$lib/cards/stale.js';
 
   interface Props {
     id: string;
@@ -12,6 +13,7 @@
   interface PhotoOfDay { photoUrl: string; dateTaken?: string; location?: string; caption?: string }
   let photo = $state<PhotoOfDay | null>(null);
   let failed = $state(false);
+  let lastSuccessTs = $state(0);
   let timer: ReturnType<typeof setInterval> | null = null;
 
   async function load() {
@@ -19,6 +21,7 @@
       const r = await fetch(endpoint, { cache: 'no-store' });
       if (!r.ok) { failed = true; return; }
       photo = (await r.json()) as PhotoOfDay;
+      lastSuccessTs = Date.now();
       failed = false;
     } catch {
       failed = true;
@@ -34,15 +37,19 @@
 
   const fmtDate = (iso?: string) =>
     iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
+  const stale = $derived(isStale(lastSuccessTs, 60 * 60 * 1000));
 </script>
 
-<section class="photo">
-  {#if failed || !photo}
+<section class="photo" data-stale={stale ? 'true' : undefined}>
+  {#if failed}
     <div class="ph-fallback">
       <header class="kicker">— From the Archive —</header>
-      <p class="empty">{failed ? '— card unavailable —' : 'Photo loading…'}</p>
+      <p class="empty">— card unavailable —</p>
     </div>
-  {:else}
+  {:else if !photo && lastSuccessTs === 0}
+    <div class="skel-photo"></div>
+  {:else if photo}
     <img src={photo.photoUrl} alt={photo.caption ?? 'Photo of the day'} />
     <div class="overlay">
       <header class="kicker">— From the Archive —</header>
@@ -52,6 +59,11 @@
           {fmtDate(photo.dateTaken)}{photo.dateTaken && photo.location ? ' · ' : ''}{photo.location ?? ''}
         </p>
       {/if}
+    </div>
+  {:else}
+    <div class="ph-fallback">
+      <header class="kicker">— From the Archive —</header>
+      <p class="empty">Photo loading…</p>
     </div>
   {/if}
 </section>
@@ -77,4 +89,16 @@
   .empty { font-style: italic; color: var(--dim); font-size: 1.05rem; }
   .cap { font-style: italic; font-size: 0.95rem; margin: 0; }
   .meta { font-style: italic; font-size: 0.75rem; color: rgba(255,255,255,0.65); margin: 0.25rem 0 0; letter-spacing: 0.05em; }
+  .skel-photo {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #15120e 0%, #221e18 50%, #15120e 100%);
+    background-size: 200% 100%;
+    animation: skel-shimmer 2s ease-in-out infinite;
+  }
+  @keyframes skel-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .photo[data-stale='true'] { opacity: 0.6; transition: opacity 400ms ease; }
 </style>
