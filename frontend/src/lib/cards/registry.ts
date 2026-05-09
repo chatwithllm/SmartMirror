@@ -43,3 +43,11 @@ registerCard({
   refreshIntervalMs: 60_000,
   emptyState: "Tomorrow's clear"
 });
+
+import WeatherHourlyCard from '$lib/tiles/WeatherHourlyCard.svelte';
+registerCard({
+  id: 'weather_hourly',
+  component: WeatherHourlyCard as never,
+  refreshIntervalMs: 5 * 60 * 1000,
+  emptyState: 'Forecast unavailable'
+});
