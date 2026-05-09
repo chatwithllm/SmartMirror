@@ -83,3 +83,11 @@ registerCard({
   refreshIntervalMs: 60 * 60 * 1000,
   emptyState: 'From the archive'
 });
+
+import CameraGridCard from '$lib/tiles/CameraGridCard.svelte';
+registerCard({
+  id: 'camera_grid',
+  component: CameraGridCard as never,
+  refreshIntervalMs: 60_000, // entity poll cadence; cell-level frame refresh is faster
+  emptyState: 'Cameras offline'
+});

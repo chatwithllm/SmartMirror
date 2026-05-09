@@ -26,11 +26,11 @@ export const CHANNELS: Record<SectionId, ChannelConfig> = {
     }
   },
   'section-4': {
-    pool: ['weather_hourly', 'ha_notifications', 'immich_photo'],
+    pool: ['weather_hourly', 'ha_notifications', 'camera_grid', 'immich_photo'],
     phaseDefaults: {
       pratah: 'weather_hourly',
-      madhyahna: 'ha_notifications',
-      sandhya: 'immich_photo',
+      madhyahna: 'camera_grid',
+      sandhya: 'camera_grid',
       ratri: 'ha_notifications'
     }
   }
