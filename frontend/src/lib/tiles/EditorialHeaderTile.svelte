@@ -13,6 +13,7 @@
   import { onDestroy, onMount } from 'svelte';
   import BaseTile from './BaseTile.svelte';
   import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
+  import { currentPhase, type Phase } from '$lib/phase/clock.js';
 
   interface Props {
     id: string;
@@ -102,14 +103,43 @@
       .toUpperCase()
   );
 
-  // Edition kicker — rotates by hour. The single most distinctive
-  // detail in the masthead. Don't change without thinking.
+  // Sanskrit (with IAST diacritics) and English labels per phase. Flip
+  // every 8s so both halves get airtime; respects prefers-reduced-motion
+  // by pinning to side-by-side static.
+  const PHASE_LABELS: Record<Phase, { sa: string; en: string }> = {
+    pratah:    { sa: 'Prātaḥ Edition',    en: 'Morning Edition' },
+    madhyahna: { sa: 'Madhyāhna Edition', en: 'Midday Edition' },
+    sandhya:   { sa: 'Sandhyā Edition',   en: 'Evening Edition' },
+    ratri:     { sa: 'Rātri Edition',     en: 'Late Edition' }
+  };
+
+  let flipIdx = $state(0); // 0 = sanskrit, 1 = english
+  let flipTimer: ReturnType<typeof setInterval> | null = null;
+  let reducedMotion = $state(false);
+
+  onMount(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    reducedMotion = mq.matches;
+    const onChange = (e: MediaQueryListEvent) => (reducedMotion = e.matches);
+    mq.addEventListener('change', onChange);
+
+    if (!reducedMotion) {
+      flipTimer = setInterval(() => (flipIdx = flipIdx === 0 ? 1 : 0), 8000);
+    }
+
+    return () => {
+      mq.removeEventListener('change', onChange);
+    };
+  });
+
+  onDestroy(() => {
+    if (flipTimer) clearInterval(flipTimer);
+  });
+
   const edition = $derived.by(() => {
-    const h = now.getHours();
-    if (h < 11) return 'Morning Edition';
-    if (h < 17) return 'Afternoon Edition';
-    if (h < 22) return 'Evening Edition';
-    return 'Late Edition';
+    const labels = PHASE_LABELS[$currentPhase];
+    if (reducedMotion) return `${labels.sa} · ${labels.en}`;
+    return flipIdx === 0 ? labels.sa : labels.en;
   });
 
   const conditionShort = $derived(
@@ -165,7 +195,9 @@
   <header class="eh">
     <div class="masthead">
       <div class="left">
-        <div class="kicker">— {edition} —</div>
+        <div class="kicker">
+          <span class="flip" data-idx={flipIdx}>— {edition} —</span>
+        </div>
         <h1 class="brand">
           <span class="lead">{split.lead}</span>{#if split.tail}<span class="tail"> {split.tail}</span>{/if}
         </h1>
@@ -247,6 +279,10 @@
     color: var(--dim);
     margin-bottom: 0.4rem;
     font-feature-settings: 'tnum';
+  }
+  .kicker .flip {
+    display: inline-block;
+    transition: opacity 400ms ease;
   }
 
   .brand {
