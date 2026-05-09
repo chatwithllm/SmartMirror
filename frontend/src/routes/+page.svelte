@@ -9,7 +9,6 @@
   import { connection, toasts } from '$lib/stores/connection.js';
   import { wireGestures } from '$lib/gesture/sse.js';
   import { registerDefaultHandlers } from '$lib/gesture/handlers.js';
-  import { DEMO_LAYOUT } from '$lib/layout/demo.js';
   import { applyTheme } from '$lib/themes/loader.js';
   import { coerceTheme } from '$lib/themes/compat.js';
   import { resolveLayout } from '$lib/layout/resolver.js';
@@ -217,7 +216,12 @@
   }
 
   onMount(() => {
-    layoutStore.setLayout(DEMO_LAYOUT, 0);
+    // Default initial paint: editorial-daily preset. HA driver (when
+    // present) and the ?preset= URL switcher both override this below.
+    const defaultLayout = resolveLayout({ preset: 'editorial-daily', orientation: 'portrait' });
+    if (defaultLayout) {
+      layoutStore.setLayout(defaultLayout.layout, 0);
+    }
 
     // Read directly from +layout.server.ts data — parent layout's onMount
     // hasn't fired yet at this point (child mounts first), so window
@@ -267,8 +271,8 @@
         toasts.push('warn', `no bundled layout for preset ${qPreset}`);
         return;
       }
-      // Demo mode without preset override: also drop the overscan
-      // so the DEMO_LAYOUT renders edge-to-edge in the dev browser.
+      // No preset override: drop the overscan so the default
+      // editorial-daily layout renders edge-to-edge in the dev browser.
       overscan = { top: 0, right: 0, bottom: 0, left: 0 };
       toasts.push('info', 'No HA config — running in demo mode');
       return;
