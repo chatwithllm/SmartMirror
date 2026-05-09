@@ -52,3 +52,26 @@ describe('phaseAt', () => {
     expect(phaseAt(at(5, 0))).toBe('pratah');
   });
 });
+
+import { get } from 'svelte/store';
+import { createPhaseStore } from './clock.js';
+
+describe('createPhaseStore', () => {
+  it('emits the phase derived from the now() function', () => {
+    const fakeNow = () => new Date(2026, 4, 9, 14, 0, 0, 0); // 14:00 → madhyahna
+    const { store, stop } = createPhaseStore(fakeNow, 60_000);
+    expect(get(store)).toBe('madhyahna');
+    stop();
+  });
+
+  it('updates when the underlying time crosses a phase boundary', async () => {
+    let h = 10; // pratah
+    const fakeNow = () => new Date(2026, 4, 9, h, 59, 0, 0);
+    const { store, tick, stop } = createPhaseStore(fakeNow, 60_000);
+    expect(get(store)).toBe('pratah');
+    h = 11;
+    tick();
+    expect(get(store)).toBe('madhyahna');
+    stop();
+  });
+});
