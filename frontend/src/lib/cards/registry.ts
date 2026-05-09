@@ -18,3 +18,12 @@ export function cardFor(id: CardId): CardEntry | undefined {
 export function listRegistered(): CardId[] {
   return Array.from(REGISTRY.keys());
 }
+
+import CalendarDayCard from '$lib/tiles/CalendarDayCard.svelte';
+
+registerCard({
+  id: 'calendar_today',
+  component: CalendarDayCard as never,
+  refreshIntervalMs: 60_000,
+  emptyState: 'No events today — clear day ahead'
+});
