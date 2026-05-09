@@ -1,12 +1,14 @@
 <script lang="ts">
   /**
-   * Today's events from the HA calendar entity. Wraps existing
-   * watchEntity helper. Empty state when no events; quiet failure line
-   * when fetch breaks. Auto-refresh by HaEntity store; no setInterval
-   * needed here.
+   * Today's events from the HA calendar REST endpoint
+   * (`/api/calendars/{entity_id}?start=...&end=...`). The state-attribute
+   * shape is empty in vanilla HA, so we mirror MorningTile and pull the
+   * events array directly. 60s refresh, skeleton + stale wired per
+   * Task 28 conventions.
    */
-  import { onDestroy } from 'svelte';
-  import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
+  import { onDestroy, onMount } from 'svelte';
+  import { browser } from '$app/environment';
+  import { isStale } from '$lib/cards/stale.js';
 
   interface Props {
     id: string;
@@ -17,42 +19,71 @@
 
   const entityId = $derived(props.entityId ?? 'calendar.palakurla4340_gmail_com');
 
-  let entity = $state<HaEntity | null>(null);
-  let stop: (() => void) | null = null;
-  $effect(() => {
-    stop?.();
-    entity = null;
-    if (!isActive) return;
-    const w = watchEntity(entityId, 60_000);
-    const unsub = w.store.subscribe((e) => (entity = e));
-    stop = () => {
-      unsub();
-      w.stop();
-    };
-  });
-  onDestroy(() => stop?.());
-
   interface CalEvent {
     summary: string;
     start: string; // ISO
-    end?: string;
   }
+  type ApiEvent = {
+    start?: { dateTime?: string; date?: string };
+    summary?: string;
+  };
 
-  const events = $derived.by((): CalEvent[] => {
-    if (!entity) return [];
-    const a = entity.attributes as { events?: CalEvent[] };
-    if (!Array.isArray(a.events)) return [];
+  const REFRESH_MS = 60_000;
+  let events = $state<CalEvent[]>([]);
+  let lastSuccessTs = $state(0);
+  let timer: ReturnType<typeof setInterval> | null = null;
+
+  async function load() {
+    if (!browser) return;
+    const w = window as unknown as { __HA_URL__?: string; __HA_TOKEN__?: string };
+    if (!w.__HA_URL__ || !w.__HA_TOKEN__) return;
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const tomorrowStart = new Date(todayStart);
     tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-    return a.events
-      .filter((e) => {
-        const s = new Date(e.start);
-        return s >= todayStart && s < tomorrowStart;
-      })
-      .sort((a, b) => +new Date(a.start) - +new Date(b.start));
+    const startISO = encodeURIComponent(todayStart.toISOString());
+    const endISO = encodeURIComponent(tomorrowStart.toISOString());
+    try {
+      const r = await fetch(
+        `${w.__HA_URL__}/api/calendars/${entityId}?start=${startISO}&end=${endISO}`,
+        { headers: { Authorization: `Bearer ${w.__HA_TOKEN__}` } },
+      );
+      if (!r.ok) return;
+      const arr = (await r.json()) as ApiEvent[];
+      events = arr
+        .map((e) => ({
+          summary: e.summary ?? '',
+          start: e.start?.dateTime ?? e.start?.date ?? '',
+        }))
+        .filter((e) => e.start && !isNaN(new Date(e.start).getTime()))
+        .sort((a, b) => +new Date(a.start) - +new Date(b.start));
+      lastSuccessTs = Date.now();
+    } catch {
+      /* keep previous */
+    }
+  }
+
+  $effect(() => {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+    if (!isActive) return;
+    void load();
+    timer = setInterval(load, REFRESH_MS);
   });
+
+  onMount(() => {
+    if (isActive && !timer) {
+      void load();
+      timer = setInterval(load, REFRESH_MS);
+    }
+  });
+  onDestroy(() => {
+    if (timer) clearInterval(timer);
+  });
+
+  const stale = $derived(isStale(lastSuccessTs, REFRESH_MS));
 
   const fmtTime = (iso: string) => {
     const d = new Date(iso);
@@ -60,9 +91,15 @@
   };
 </script>
 
-<section class="cal-day">
+<section class="cal-day" data-stale={stale ? 'true' : undefined}>
   <header class="kicker">— Today's Calendar —</header>
-  {#if events.length === 0}
+  {#if lastSuccessTs === 0}
+    <ul class="skel">
+      <li><span class="skel-bar w70"></span></li>
+      <li><span class="skel-bar w90"></span></li>
+      <li><span class="skel-bar w60"></span></li>
+    </ul>
+  {:else if events.length === 0}
     <p class="empty">No events today — clear day ahead</p>
   {:else}
     <ul>
@@ -139,5 +176,33 @@
     bottom: 0;
     height: 1px;
     background: var(--line);
+  }
+  .cal-day[data-stale='true'] {
+    opacity: 0.6;
+    transition: opacity 400ms ease;
+  }
+  .skel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .skel li {
+    display: block;
+    padding: 0.2rem 0;
+  }
+  .skel-bar {
+    display: inline-block;
+    height: 0.85rem;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--line) 0%, var(--line-strong) 50%, var(--line) 100%);
+    background-size: 200% 100%;
+    animation: skel-shimmer 1.6s ease-in-out infinite;
+  }
+  .skel-bar.w70 { width: 70%; }
+  .skel-bar.w90 { width: 90%; }
+  .skel-bar.w60 { width: 60%; }
+  @keyframes skel-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 </style>
