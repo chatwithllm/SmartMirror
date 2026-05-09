@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { isStale } from '$lib/cards/stale.js';
+  import { normalizeShopping, type ShopItem as GroceryItem } from '$lib/grocery/normalize.js';
 
   interface Props {
     id: string;
@@ -8,9 +9,8 @@
     props?: { endpoint?: string };
   }
   let { isActive, props = {} }: Props = $props();
-  const endpoint = $derived(props.endpoint ?? '/api/grocery/list');
+  const endpoint = $derived(props.endpoint ?? '/api/admin/grocery/shopping-list');
 
-  interface GroceryItem { name: string; qty?: number; store?: string }
   let items = $state<GroceryItem[]>([]);
   let failed = $state(false);
   let lastSuccessTs = $state(0);
@@ -20,8 +20,17 @@
     try {
       const r = await fetch(endpoint, { cache: 'no-store' });
       if (!r.ok) { failed = true; return; }
-      const j = (await r.json()) as { items?: GroceryItem[] };
-      items = j.items ?? [];
+      const j = (await r.json()) as { configured?: boolean; data?: unknown };
+      if (j.configured === false) {
+        // User hasn't set up the grocery integration — treat as empty,
+        // not failed.
+        items = [];
+        failed = false;
+        lastSuccessTs = Date.now();
+        return;
+      }
+      const all = normalizeShopping(j.data);
+      items = all.filter((it) => !it.done);
       lastSuccessTs = Date.now();
       failed = false;
     } catch {
@@ -56,7 +65,7 @@
       {#each items.slice(0, 6) as it, i (i)}
         <li>
           <span class="n">{it.name}</span>
-          {#if it.store}<span class="st">{it.store}</span>{/if}
+          {#if it.category}<span class="cat">{it.category}</span>{/if}
         </li>
       {/each}
     </ul>
@@ -71,7 +80,7 @@
   .fail { color: var(--dimmer); }
   ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
   li { display: flex; justify-content: space-between; align-items: baseline; font-style: italic; font-size: 0.95rem; }
-  .st { color: var(--accent); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; }
+  .cat { color: var(--accent); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; }
   .rule { position: absolute; left: 0.8rem; right: 0.8rem; bottom: 0; height: 1px; background: var(--line); }
   .grocery[data-stale='true'] {
     opacity: 0.6;
