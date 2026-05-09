@@ -14,7 +14,8 @@
   import { coerceTheme } from '$lib/themes/compat.js';
   import { resolveLayout } from '$lib/layout/resolver.js';
   import type { Orientation } from '$lib/layout/schema.js';
-  import PlexNowPlayingCard from '$lib/tiles/PlexNowPlayingCard.svelte';
+  import EditorialHeaderTile from '$lib/tiles/EditorialHeaderTile.svelte';
+  import PlexNowPlayingTile from '$lib/tiles/PlexNowPlayingTile.svelte';
   import { plexActive, startPlexPreempt } from '$lib/plex/preempt.js';
 
   // Plex media_player entity that drives the full-takeover pre-empt.
@@ -330,8 +331,22 @@
   style="--os-top:{overscan.top}vh; --os-right:{overscan.right}vw; --os-bottom:{overscan.bottom}vh; --os-left:{overscan.left}vw; padding: var(--os-top) var(--os-right) var(--os-bottom) var(--os-left);"
 >
   {#if $plexActive}
-    <div class="plex-takeover">
-      <PlexNowPlayingCard id="plex_now_playing" />
+    <!-- Plex full-takeover. Spec §"01_mirror_plex_focus.yaml": Plex card
+         spans rows 2–14 *beneath the masthead*; sections 2/3/4 unmount.
+         Render the editorial_header tile from the active layout above
+         the takeover so the brand chrome persists. -->
+    <div class="plex-stage">
+      <div class="masthead-only">
+        {#if $currentLayout}
+          {@const headerTile = $currentLayout.tiles.find((t) => t.id === 'header')}
+          {#if headerTile}
+            <EditorialHeaderTile id={headerTile.id} props={headerTile.props as never} />
+          {/if}
+        {/if}
+      </div>
+      <div class="plex-takeover">
+        <PlexNowPlayingTile id="plex_now_playing" props={{ entityId: PLEX_ENTITY_ID }} />
+      </div>
     </div>
   {:else if $currentLayout}
     <Grid layout={$currentLayout} />
@@ -415,9 +430,27 @@
     border-color: var(--bad);
     color: var(--bad);
   }
-  .plex-takeover {
+  /* Plex takeover surface. Mirrors the editorial portrait grid's
+   * 2/14 row split for the masthead — keeps brand chrome visible
+   * while Plex consumes the remaining 12/14 rows. */
+  .plex-stage {
     width: 100%;
     height: 100%;
     display: flex;
+    flex-direction: column;
+  }
+  .masthead-only {
+    width: 100%;
+    height: calc(2 / 14 * 100%);
+    /* Match Grid's tile cell behaviour so the editorial_header layout
+     * doesn't bleed past its allotted band. */
+    overflow: hidden;
+    min-height: 0;
+  }
+  .plex-takeover {
+    width: 100%;
+    height: calc(12 / 14 * 100%);
+    display: flex;
+    min-height: 0;
   }
 </style>

@@ -9,8 +9,7 @@ export type CardId =
   | 'grocery'
   | 'immich_photo'
   | 'weather_hourly'
-  | 'ha_notifications'
-  | 'plex_now_playing';
+  | 'ha_notifications';
 
 export interface CardProps {
   id: string;

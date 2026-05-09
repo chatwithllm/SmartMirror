@@ -83,11 +83,3 @@ registerCard({
   refreshIntervalMs: 60 * 60 * 1000,
   emptyState: 'From the archive'
 });
-
-import PlexNowPlayingCard from '$lib/tiles/PlexNowPlayingCard.svelte';
-registerCard({
-  id: 'plex_now_playing',
-  component: PlexNowPlayingCard as never,
-  refreshIntervalMs: 5_000,
-  emptyState: 'Nothing playing'
-});
