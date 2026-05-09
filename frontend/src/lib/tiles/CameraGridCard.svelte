@@ -1,12 +1,17 @@
 <script lang="ts">
   /**
-   * 2×2 grid of HA camera entities. Each cell either:
+   * Asymmetric camera grid (3 cells row 1, 2 cells row 2 — 5 total).
+   * Each cell either:
    *   - mounts FrigateCameraTile when an entity_id is configured AND
    *     window.__HA_URL__ + token are populated
    *   - falls back to a styled placeholder ("CAM N · OFFLINE") so the
    *     grid still reads as a security feed in dev / no-HA mode.
    * Demo placeholder uses radial-gradient + grain SVG overlay + a
    * tiny live timestamp tick to feel authored, not blank.
+   *
+   * Header has a CAMERAS pill on the left + a scrolling notification
+   * ticker on the right. Notifications can be passed via
+   * props.notifications; falls back to a placeholder loop in dev.
    */
   import { onDestroy, onMount } from 'svelte';
   import { browser } from '$app/environment';
@@ -20,18 +25,33 @@
   interface Props {
     id: string;
     isActive: boolean;
-    props?: { cameras?: CameraSpec[] };
+    props?: { cameras?: CameraSpec[]; notifications?: string[] };
   }
   let { id: _id, isActive, props = {} }: Props = $props();
 
-  // Default to 4 generic slots — the layout JSON can override with
-  // real entity ids per camera position.
+  // Default to 5 generic slots — the layout JSON can override with
+  // real entity ids per camera position. Row 1: 3 cells. Row 2: 2 cells.
   const cameras = $derived(
     props.cameras ?? [
       { label: 'Front' },
       { label: 'Driveway' },
+      { label: 'Garage' },
       { label: 'Backyard' },
-      { label: 'Garage' }
+      { label: 'Side' }
+    ]
+  );
+
+  // Camera notification ticker. Real source TBD (Frigate event feed,
+  // HA persistent_notification with `camera.*` filter, etc.). For now
+  // accept via props or fall back to placeholder strings so the strip
+  // has motion.
+  const notifications = $derived(
+    props.notifications ?? [
+      'Front · motion 14:32',
+      'Driveway · person detected 13:08',
+      'Backyard · package delivered 11:51',
+      'Garage · door open 09:14',
+      'Side · all clear'
     ]
   );
 
@@ -59,7 +79,21 @@
 </script>
 
 <section class="cams" data-testid="camera-grid">
-  <header class="kicker">— Cameras —</header>
+  <header class="head">
+    <div class="tag">Cameras</div>
+    <div class="ticker">
+      <div class="ticker-track">
+        {#each [0, 1] as loop (loop)}
+          <div class="ticker-loop" aria-hidden={loop === 1}>
+            {#each notifications as note, idx (idx)}
+              <span class="t-item">{note}</span>
+              <span class="t-sep" aria-hidden="true">◆</span>
+            {/each}
+          </div>
+        {/each}
+      </div>
+    </div>
+  </header>
   <div class="grid">
     {#each cameras as cam, i (i)}
       {#if haReady && cam.entity_id}
@@ -94,21 +128,98 @@
     font-family: 'Fraunces', Georgia, serif;
     position: relative;
   }
-  .kicker {
-    font-style: italic;
-    font-size: 0.6rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--dim);
+  .head {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: stretch;
+    height: 1.4rem;
     margin-bottom: 0.5rem;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+  }
+  .tag {
+    display: flex;
+    align-items: center;
+    padding: 0 0.9rem;
+    background: var(--accent);
+    color: #000;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 0.55rem) 100%, 0 100%);
+    padding-right: 1.2rem;
+  }
+  .ticker {
+    overflow: hidden;
+    position: relative;
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      black 3%,
+      black 97%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      black 3%,
+      black 97%,
+      transparent 100%
+    );
+  }
+  .ticker-track {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    white-space: nowrap;
+    animation: cam-ticker-scroll 40s linear infinite;
+    will-change: transform;
+  }
+  .ticker-loop {
+    display: inline-flex;
+    align-items: center;
+    padding-left: 1rem;
+  }
+  .t-item {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    color: var(--fg);
+  }
+  .t-sep {
+    margin: 0 1rem;
+    color: var(--accent);
+    font-size: 0.5rem;
+    transform: translateY(-1px);
+  }
+  @keyframes cam-ticker-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
   }
   .grid {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(6, 1fr);
     grid-template-rows: 1fr 1fr;
     gap: 0.4rem;
     min-height: 0;
+  }
+  /* Row 1: 3 cells × col-span 2 = 6 cols. Row 2: 2 cells × col-span 3. */
+  .cell:nth-child(1),
+  .cell:nth-child(2),
+  .cell:nth-child(3) {
+    grid-column: span 2;
+    grid-row: 1;
+  }
+  .cell:nth-child(4),
+  .cell:nth-child(5) {
+    grid-column: span 3;
+    grid-row: 2;
   }
   .cell {
     position: relative;
