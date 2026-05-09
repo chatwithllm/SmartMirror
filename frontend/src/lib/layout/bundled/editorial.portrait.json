@@ -15,8 +15,20 @@
       }
     },
 
-    { "id": "section-2", "type": "placeholder", "x": 0, "y": 2,  "w": 8, "h": 4,
-      "props": { "label": "Section 2", "hint": "feature article" } },
+    { "id": "section-2", "type": "section_host", "x": 0, "y": 2, "w": 8, "h": 4,
+      "props": {
+        "sectionId": "section-2",
+        "channelConfig": {
+          "pool": ["calendar_today", "immich_photo", "news_tech", "calendar_tomorrow", "calendar_next"],
+          "phaseDefaults": {
+            "pratah": "calendar_today",
+            "madhyahna": "calendar_next",
+            "sandhya": "calendar_tomorrow",
+            "ratri": "immich_photo"
+          }
+        }
+      }
+    },
     { "id": "section-3", "type": "placeholder", "x": 0, "y": 6,  "w": 8, "h": 4,
       "props": { "label": "Section 3", "hint": "agenda / calendar" } },
     { "id": "section-4", "type": "placeholder", "x": 0, "y": 10, "w": 8, "h": 4,
