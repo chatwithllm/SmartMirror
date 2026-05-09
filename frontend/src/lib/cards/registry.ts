@@ -67,3 +67,11 @@ registerCard({
   refreshIntervalMs: 15_000,
   emptyState: 'All quiet'
 });
+
+import TechNewsCard from '$lib/tiles/TechNewsCard.svelte';
+registerCard({
+  id: 'news_tech',
+  component: TechNewsCard as never,
+  refreshIntervalMs: 10 * 60 * 1000,
+  emptyState: 'News brief unavailable'
+});
