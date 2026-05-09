@@ -4,6 +4,14 @@ import { gestureRouter, focusedTile, fullscreenTile, type Gesture } from './rout
 import { ytCmd } from '$lib/youtube/controller.js';
 import { currentLayout } from '$lib/layout/store.js';
 import { toasts } from '$lib/stores/connection.js';
+import { sectionHandle } from '$lib/sections/registry.js';
+import type { SectionId } from '$lib/cards/types.js';
+
+function focusedSectionId(): SectionId | null {
+  const f = get(focusedTile);
+  if (f === 'section-2' || f === 'section-3' || f === 'section-4') return f;
+  return null;
+}
 
 /**
  * Default gesture → UI action wiring. HA-side gestures (mode_next/prev,
@@ -77,11 +85,32 @@ export function registerDefaultHandlers(): () => void {
   );
 
   offs.push(gestureRouter.on('focus', () => cycleFocus(1)));
-  // Mode_next/prev are owned by HA, but if HA ever drops them we still
-  // want a sane local fallback that cycles focused tile in absence.
-  // Intentionally NOT registering anything for mode_next/prev so the
-  // router's recent-count metric still records them and HA stays the
-  // single source of truth for mode changes.
+
+  // Focus-aware mode_next/mode_prev: if a section tile is focused,
+  // cycle THAT section's channel locally. Otherwise fall through to
+  // HA — HA still owns global preset cycling when no section is
+  // focused, so we deliberately do nothing in the fallback path
+  // (preserves the prior "no local handler" behavior).
+  offs.push(
+    gestureRouter.on('mode_next', () => {
+      const sid = focusedSectionId();
+      if (sid) {
+        sectionHandle(sid)?.cycleNext();
+        return;
+      }
+      // fall through — HA owns global preset cycling
+    })
+  );
+  offs.push(
+    gestureRouter.on('mode_prev', () => {
+      const sid = focusedSectionId();
+      if (sid) {
+        sectionHandle(sid)?.cyclePrev();
+        return;
+      }
+      // fall through — HA owns global preset cycling
+    })
+  );
 
   offs.push(
     gestureRouter.on('tile_fullscreen', () => {

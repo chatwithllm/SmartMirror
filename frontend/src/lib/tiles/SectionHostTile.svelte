@@ -9,6 +9,7 @@
   import BaseTile from './BaseTile.svelte';
   import type { ChannelConfig, SectionId } from '$lib/cards/types.js';
   import { createChannelStore, type ChannelHandle } from '$lib/sections/channel.js';
+  import { registerSection, unregisterSection } from '$lib/sections/registry.js';
   import { cardFor } from '$lib/cards/registry.js';
   import { currentPhase } from '$lib/phase/clock.js';
 
@@ -27,6 +28,7 @@
   onMount(() => {
     if (!cfg) return;
     handle = createChannelStore(sectionId, cfg, get(currentPhase));
+    registerSection(sectionId, handle);
 
     const unsubPhase = currentPhase.subscribe((p) => handle?.applyPhaseDefault(p));
 
@@ -38,6 +40,7 @@
   });
 
   onDestroy(() => {
+    unregisterSection(sectionId);
     if (sweep) clearInterval(sweep);
   });
 
