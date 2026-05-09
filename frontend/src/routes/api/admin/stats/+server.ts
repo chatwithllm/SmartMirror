@@ -56,12 +56,46 @@ async function uptimeSeconds(): Promise<number> {
   }
 }
 
+// Cached /proc/net/dev snapshot for delta-based bandwidth calc.
+let lastNetSample: { rx: number; tx: number; at: number } | null = null;
+
+async function netKbps(): Promise<{ rx: number; tx: number }> {
+  try {
+    const buf = await readFile('/proc/net/dev', 'utf-8');
+    let totalRx = 0;
+    let totalTx = 0;
+    for (const line of buf.split('\n')) {
+      const m = line.match(/^\s*(\w+):\s+(\d+)(?:\s+\d+){7}\s+(\d+)/);
+      if (!m) continue;
+      const iface = m[1];
+      // Skip loopback. Anything else (eth*, wlan*, eno*, enp*, br-*, docker*) counts.
+      if (iface === 'lo') continue;
+      totalRx += Number(m[2]);
+      totalTx += Number(m[3]);
+    }
+    const now = { rx: totalRx, tx: totalTx, at: Date.now() };
+    if (!lastNetSample) {
+      lastNetSample = now;
+      return { rx: 0, tx: 0 };
+    }
+    const dt = (now.at - lastNetSample.at) / 1000;
+    if (dt <= 0) return { rx: 0, tx: 0 };
+    const rxKbps = Math.max(0, Math.round(((now.rx - lastNetSample.rx) * 8) / 1000 / dt));
+    const txKbps = Math.max(0, Math.round(((now.tx - lastNetSample.tx) * 8) / 1000 / dt));
+    lastNetSample = now;
+    return { rx: rxKbps, tx: txKbps };
+  } catch {
+    return { rx: 0, tx: 0 };
+  }
+}
+
 export const GET: RequestHandler = async () => {
-  const [cpu, ram, disk, uptime] = await Promise.all([
+  const [cpu, ram, disk, uptime, net] = await Promise.all([
     cpuPercent(),
     ramPercent(),
     diskPercent(),
     uptimeSeconds(),
+    netKbps(),
   ]);
   return new Response(
     JSON.stringify({
@@ -69,6 +103,8 @@ export const GET: RequestHandler = async () => {
       ram: Math.round(ram),
       disk: Math.round(disk),
       uptime_seconds: uptime,
+      net_rx_kbps: net.rx,
+      net_tx_kbps: net.tx,
     }),
     { headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } },
   );
