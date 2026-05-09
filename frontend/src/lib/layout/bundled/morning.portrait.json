@@ -5,15 +5,15 @@
   "theme": "minimal-dark",
   "resolution": "1080p",
   "transition": "fade",
-  "grid": { "cols": 8, "rows": 14, "gap": 0 },
+  "grid": { "cols": 8, "rows": 14, "gap": 8 },
   "tiles": [
-    { "id": "morning", "type": "morning", "x": 0, "y": 0, "w": 8, "h": 14,
-      "props": {
-        "palette": "warm",
-        "weatherEntity": "weather.4340",
-        "calendarEntity": "calendar.palakurla4340_gmail_com",
-        "city": "Indianapolis"
-      }
-    }
+    { "id": "section-1", "type": "placeholder", "x": 0, "y": 0,  "w": 8, "h": 2,
+      "props": { "label": "Section 1", "hint": "header — clock / greeting" } },
+    { "id": "section-2", "type": "placeholder", "x": 0, "y": 2,  "w": 8, "h": 4,
+      "props": { "label": "Section 2", "hint": "weather / sky" } },
+    { "id": "section-3", "type": "placeholder", "x": 0, "y": 6,  "w": 8, "h": 4,
+      "props": { "label": "Section 3", "hint": "calendar / agenda" } },
+    { "id": "section-4", "type": "placeholder", "x": 0, "y": 10, "w": 8, "h": 4,
+      "props": { "label": "Section 4", "hint": "tasks / focus" } }
   ]
 }

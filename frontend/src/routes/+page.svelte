@@ -167,10 +167,8 @@
   }
 
   async function applyHa(base: string, token: string) {
-    const [preset, mode, theme, orientation, osT, osR, osB, osL] = await Promise.all([
+    const [preset, orientation, osT, osR, osB, osL] = await Promise.all([
       fetchState(base, token, 'input_select.mirror_preset'),
-      fetchState(base, token, 'input_select.mirror_mode'),
-      fetchState(base, token, 'input_select.mirror_theme'),
       fetchState(base, token, 'input_select.mirror_orientation'),
       fetchState(base, token, 'input_number.mirror_overscan_top'),
       fetchState(base, token, 'input_number.mirror_overscan_right'),
@@ -193,18 +191,16 @@
       };
     }
 
-    const hash = `${preset}|${mode}|${theme}|${orientation}`;
+    const hash = `${preset}|${orientation}`;
     if (hash === lastHash) return;
     lastHash = hash;
 
     const r = resolveLayout({
       preset: preset ?? undefined,
-      mode: (mode as never) ?? undefined,
-      theme: (theme as never) ?? undefined,
       orientation: (orientation as Orientation) ?? 'portrait'
     });
     if (!r) {
-      toasts.push('warn', `no bundled layout for ${mode}.${orientation}`);
+      toasts.push('warn', `no bundled layout for preset ${preset}`);
       return;
     }
     layoutStore.setLayout(r.layout, Date.now());
@@ -235,6 +231,32 @@
 
     if (!hassUrl || !hassToken) {
       connection.set({ kind: 'down', reason: 'no-ha-config' });
+
+      // Local-dev preset switcher: ?preset=editorial-daily&orientation=landscape
+      // Bypasses HA entirely so designers can flip presets in the browser.
+      const q = new URLSearchParams(window.location.search);
+      const qPreset = q.get('preset');
+      const qOrientation = (q.get('orientation') ?? 'portrait') as Orientation;
+      if (qPreset) {
+        const r = resolveLayout({
+          preset: qPreset,
+          orientation: qOrientation
+        });
+        if (r) {
+          // Dev preview: zero the overscan gutter so the tile fills
+          // the viewport edge-to-edge. Real kiosk keeps HA-driven
+          // overscan for the TV bezel.
+          overscan = { top: 0, right: 0, bottom: 0, left: 0 };
+          layoutStore.setLayout(r.layout, Date.now());
+          toasts.push('info', `preset override: ${qPreset}`);
+          return;
+        }
+        toasts.push('warn', `no bundled layout for preset ${qPreset}`);
+        return;
+      }
+      // Demo mode without preset override: also drop the overscan
+      // so the DEMO_LAYOUT renders edge-to-edge in the dev browser.
+      overscan = { top: 0, right: 0, bottom: 0, left: 0 };
       toasts.push('info', 'No HA config — running in demo mode');
       return;
     }
@@ -283,6 +305,9 @@
       case 'reconnecting':
         return `reconnecting · ${Math.round(s.nextRetryMs / 1000)}s`;
       case 'down':
+        // Demo / dev mode is the expected state when no HA env is
+        // wired — don't paint a pill over the masthead for it.
+        if (s.reason === 'no-ha-config') return null;
         return `offline (${s.reason})`;
     }
   });
@@ -333,8 +358,10 @@
   }
   .conn-pill {
     position: absolute;
-    top: 14px;
-    right: 14px;
+    /* Bottom-left, away from masthead + ticker. Real outages still
+     * surface but don't crash into editorial chrome. */
+    bottom: 14px;
+    left: 14px;
     background: var(--panel);
     color: var(--fg);
     border: 1px solid var(--line);
@@ -342,6 +369,8 @@
     padding: 6px 12px;
     font-family: var(--font-mono);
     font-size: 11px;
+    opacity: 0.7;
+    pointer-events: none;
   }
   .toasts {
     position: absolute;

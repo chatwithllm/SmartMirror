@@ -5,13 +5,21 @@
   "theme": "editorial",
   "resolution": "1080p",
   "transition": "fade",
-  "grid": { "cols": 8, "rows": 14, "gap": 0 },
+  "grid": { "cols": 8, "rows": 14, "gap": 8 },
   "tiles": [
-    { "id": "daily", "type": "newspaper", "x": 0, "y": 0, "w": 8, "h": 14,
+    { "id": "header", "type": "editorial_header", "x": 0, "y": 0, "w": 8, "h": 2,
       "props": {
+        "title": "The Mirror Daily",
         "weatherEntity": "weather.4340",
-        "calendarEntity": "calendar.palakurla4340_gmail_com"
+        "units": "imperial"
       }
-    }
+    },
+
+    { "id": "section-2", "type": "placeholder", "x": 0, "y": 2,  "w": 8, "h": 4,
+      "props": { "label": "Section 2", "hint": "feature article" } },
+    { "id": "section-3", "type": "placeholder", "x": 0, "y": 6,  "w": 8, "h": 4,
+      "props": { "label": "Section 3", "hint": "agenda / calendar" } },
+    { "id": "section-4", "type": "placeholder", "x": 0, "y": 10, "w": 8, "h": 4,
+      "props": { "label": "Section 4", "hint": "shopping / pantry" } }
   ]
 }
