@@ -10,6 +10,7 @@
   import { browser } from '$app/environment';
   import { isStale } from '$lib/cards/stale.js';
   import { SECTION_EMPTY_CTX } from '$lib/sections/empty.js';
+  import EditorialTicker from '$lib/EditorialTicker.svelte';
 
   interface Props {
     id: string;
@@ -105,15 +106,104 @@
     if (!markEmpty) return;
     markEmpty(configured && lastSuccessTs > 0 && grandTotal === 0);
   });
+
+  // Per-column visible-item count. Computed by measuring rendered DOM
+  // — render only as many items as fit fully in the column, hide the
+  // rest behind a "+N more" footer. User resizes the section to see
+  // more (no scrollbars, no clipped text).
+  let boardEl: HTMLDivElement | null = $state(null);
+  let visibleCounts = $state<Record<string, number>>({
+    backlog: 9999,
+    today: 9999,
+    in_progress: 9999,
+    done: 9999
+  });
+
+  function recompute() {
+    if (!boardEl) return;
+    const next: Record<string, number> = { ...visibleCounts };
+    let changed = false;
+    for (const col of boardEl.querySelectorAll<HTMLElement>('.col')) {
+      const key = col.dataset.col;
+      if (!key) continue;
+      const ul = col.querySelector<HTMLUListElement>('ul');
+      if (!ul) continue;
+      const items = Array.from(ul.querySelectorAll<HTMLElement>('li.card'));
+      const more = ul.querySelector<HTMLElement>('li.more');
+      const total = byColumn[key as Status]?.length ?? items.length;
+      if (total === 0) {
+        if (next[key] !== 0) { next[key] = 0; changed = true; }
+        continue;
+      }
+      const ulRect = ul.getBoundingClientRect();
+      const moreH = more ? more.offsetHeight + 4 : 22;
+      const itemH =
+        items.length > 0 ? items[0].offsetHeight + 3 /* gap */ : 22;
+      // Count fully-fitting rendered cards.
+      let fitRendered = items.length;
+      for (let i = 0; i < items.length; i++) {
+        const r = items[i].getBoundingClientRect();
+        if (r.bottom > ulRect.bottom + 0.5) {
+          fitRendered = i;
+          break;
+        }
+      }
+      let fit = fitRendered;
+      // If we'd truncate, reserve one row for the "+N more" footer.
+      if (fit < total && fit > 0) {
+        const last = items[fit - 1].getBoundingClientRect();
+        if (last.bottom + moreH > ulRect.bottom + 0.5) fit -= 1;
+      }
+      // If all rendered fit AND there's leftover space, try to grow
+      // up to total. ResizeObserver re-runs after re-render so a
+      // single-step bump is safe — next pass either confirms or trims.
+      if (fitRendered === items.length && fit < total) {
+        const lastShownBottom =
+          items.length > 0
+            ? items[items.length - 1].getBoundingClientRect().bottom
+            : ulRect.top;
+        const remaining = ulRect.bottom - lastShownBottom;
+        const reserve = fit < total ? moreH : 0;
+        const slots = Math.max(0, Math.floor((remaining - reserve) / itemH));
+        fit = Math.min(total, fit + slots);
+      }
+      fit = Math.max(0, Math.min(total, fit));
+      if (next[key] !== fit) { next[key] = fit; changed = true; }
+    }
+    if (changed) visibleCounts = next;
+  }
+
+  $effect(() => {
+    // Re-measure when data changes.
+    void byColumn;
+    if (!browser || !boardEl) return;
+    queueMicrotask(() => requestAnimationFrame(recompute));
+  });
+
+  $effect(() => {
+    if (!browser || !boardEl) return;
+    const ro = new ResizeObserver(() => requestAnimationFrame(recompute));
+    ro.observe(boardEl);
+    return () => ro.disconnect();
+  });
+
+  // Marquee items: counts summary + today + in-progress titles. Done
+  // skipped (not actionable). Backlog skipped (too noisy).
+  const tickerItems = $derived.by(() => {
+    if (lastSuccessTs === 0 || !configured || grandTotal === 0) return [];
+    const out: string[] = [];
+    const today = byColumn.today;
+    const wip = byColumn.in_progress;
+    const counts = `${grandTotal} cards · ${today.length} today · ${wip.length} in progress`;
+    out.push(counts);
+    for (const c of today) out.push(`Today · ${c.title}`);
+    for (const c of wip) out.push(`Doing · ${c.title}`);
+    return out;
+  });
 </script>
 
 <section class="kb" data-stale={stale ? 'true' : undefined}>
-  <header class="kicker">
-    <span>— Kanban Board —</span>
-    {#if lastSuccessTs > 0 && grandTotal > 0}
-      <span class="badge">{grandTotal} cards</span>
-    {/if}
-  </header>
+  <EditorialTicker tag="Kanban" items={tickerItems} />
 
   {#if failed}
     <p class="fail">— card unavailable —</p>
@@ -130,9 +220,11 @@
   {:else if !configured}
     <p class="empty">Kanban not configured</p>
   {:else}
-    <div class="board">
+    <div class="board" bind:this={boardEl}>
       {#each COLUMNS as col (col.key)}
         {@const items = byColumn[col.key]}
+        {@const vis = visibleCounts[col.key] ?? items.length}
+        {@const hidden = Math.max(0, items.length - vis)}
         <div class="col" data-col={col.key}>
           <div class="col-h">
             <span class="col-title">{col.label}</span>
@@ -142,9 +234,12 @@
             <div class="col-empty">—</div>
           {:else}
             <ul>
-              {#each items as c (c.id)}
-                <li>{c.title}</li>
+              {#each items.slice(0, vis) as c (c.id)}
+                <li class="card">{c.title}</li>
               {/each}
+              {#if hidden > 0}
+                <li class="more">+{hidden} more</li>
+              {/if}
             </ul>
           {/if}
         </div>
@@ -164,23 +259,6 @@
     font-family: 'Fraunces', Georgia, serif;
     position: relative;
     min-height: 0;
-  }
-  .kicker {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-style: italic;
-    font-size: 0.6rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--dim);
-    margin-bottom: 0.5rem;
-  }
-  .kicker .badge {
-    color: var(--accent);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    font-feature-settings: 'tnum';
   }
   .empty,
   .fail {
@@ -254,32 +332,41 @@
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
-    overflow-y: auto;
+    overflow: hidden;
     flex: 1;
     min-height: 0;
     padding-right: 0.15rem;
   }
-  li {
+  li.card {
     font-style: italic;
     font-size: 0.78rem;
     line-height: 1.3;
     color: var(--fg);
     padding: 0.18rem 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    /* Two-line clamp so very long titles don't blow up a column. */
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
+    /* Single line — no cramped clipping. Items that don't fit are
+     * folded under "+N more" via measurement. */
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  .col[data-col='done'] li {
+  li.more {
+    font-style: italic;
+    font-size: 0.7rem;
+    color: var(--dim);
+    padding: 0.18rem 0 0;
+    margin-top: 0.1rem;
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    text-align: right;
+    letter-spacing: 0.04em;
+    font-feature-settings: 'tnum';
+  }
+  .col[data-col='done'] li.card {
     color: var(--dim);
     text-decoration: line-through;
     text-decoration-color: var(--dimmer);
   }
-  .col[data-col='in_progress'] li {
+  .col[data-col='in_progress'] li.card {
     color: var(--accent);
   }
 
