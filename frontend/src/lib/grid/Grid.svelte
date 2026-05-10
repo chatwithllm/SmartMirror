@@ -4,10 +4,11 @@
   import type { Layout } from '$lib/layout/schema.js';
   import {
     createHeightStore,
-    effectiveH,
+    effectiveHeights,
     reflowYs,
     type SectionHeights
   } from '$lib/layout/resize.js';
+  import { emptySections } from '$lib/sections/empty.js';
 
   interface Props {
     layout: Layout;
@@ -23,12 +24,16 @@
     return unsub;
   });
 
-  // Reflowed y per tile — re-runs on overrides change.
-  const ys = $derived(reflowYs(layout.tiles, overrides, layout.grid.cols));
+  // Effective h per tile (collapses empties + redistributes rows to
+  // non-empty siblings) and reflowed y based on those effective hs.
+  const effective = $derived(
+    effectiveHeights(layout.tiles, overrides, $emptySections, layout.grid.rows)
+  );
+  const ys = $derived(reflowYs(layout.tiles, effective, layout.grid.cols));
 
-  // Tile geometry honoring overrides.
+  // Tile geometry honoring effective heights.
   function tileStyle(t: { id: string; x: number; y: number; w: number; h: number }) {
-    const eh = effectiveH(t, overrides);
+    const eh = effective[t.id] ?? t.h;
     const ey = ys[t.id] ?? t.y;
     return (
       `grid-column: ${t.x + 1} / span ${t.w};` +
@@ -54,13 +59,16 @@
     rowPx: number;
   } | null>(null);
 
-  // Resizable iff: tile is a section_host (we don't resize header /
-  // editorial_header) AND there's a sibling tile below it.
+  // Resizable iff: tile is a section_host or editorial_header (the
+  // masthead's bottom edge IS section-2's top edge — letting it resize
+  // gives section-2 a draggable top boundary), AND there's a sibling
+  // tile below it.
   function resizableSiblingId(
     tile: { id: string; type: string },
     sortedIds: string[]
   ): string | null {
-    if (tile.type !== 'section_host') return null;
+    const RESIZABLE = new Set(['section_host', 'editorial_header']);
+    if (!RESIZABLE.has(tile.type)) return null;
     const idx = sortedIds.indexOf(tile.id);
     if (idx < 0 || idx === sortedIds.length - 1) return null;
     return sortedIds[idx + 1];
@@ -82,8 +90,11 @@
       activeId: tile.id,
       nextId: sibling.id,
       startY: e.clientY,
-      startH: effectiveH(tile, overrides),
-      nextStartH: effectiveH(sibling, overrides),
+      // Read from the LIVE effective-h map so drag starts from the
+      // displayed size, not the user-override-only size. Matters when
+      // empties have already rescued rows to this tile.
+      startH: effective[tile.id] ?? tile.h,
+      nextStartH: effective[sibling.id] ?? sibling.h,
       rowPx
     };
   }
@@ -216,19 +227,23 @@
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    width: 2.5rem;
+    width: 3rem;
     height: 3px;
     border-radius: 2px;
     background: var(--accent);
-    opacity: 0;
-    transition: opacity 200ms ease;
+    /* Always faintly visible so the affordance is discoverable; ramps
+     * to full intensity on hover / drag. */
+    opacity: 0.25;
+    transition: opacity 200ms ease, width 200ms ease;
   }
   .resize-handle:hover::after,
   .resize-handle:focus-visible::after {
-    opacity: 0.5;
+    opacity: 0.7;
+    width: 4rem;
   }
   .resize-handle:active::after {
     opacity: 1;
+    width: 4.5rem;
   }
   .missing {
     display: flex;

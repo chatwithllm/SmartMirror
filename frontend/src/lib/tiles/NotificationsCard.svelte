@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte';
+  import { getContext, onDestroy, onMount } from 'svelte';
   import { isStale } from '$lib/cards/stale.js';
+  import { SECTION_EMPTY_CTX } from '$lib/sections/empty.js';
 
   interface Props {
     id: string;
@@ -46,6 +47,16 @@
     iso ? new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
 
   const stale = $derived(isStale(lastSuccessTs, 15_000));
+
+  // Tell the host section we're empty so it can collapse to MIN.
+  // Gated on lastSuccessTs so first-mount skeletons don't trigger
+  // a collapse before any data arrives. Also gated on !failed so a
+  // network-fail card stays at its set height.
+  const markEmpty = getContext<(v: boolean) => void>(SECTION_EMPTY_CTX);
+  $effect(() => {
+    if (!markEmpty) return;
+    markEmpty(lastSuccessTs > 0 && items.length === 0 && !failed);
+  });
 </script>
 
 <section class="notif" data-stale={stale ? 'true' : undefined}>
