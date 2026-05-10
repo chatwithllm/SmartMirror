@@ -138,6 +138,49 @@
     if (!isActive) return;
     timer = setInterval(() => (now = new Date()), 1000);
   });
+
+  // In-cell camera picker. Fetches the full camera.* roster once when
+  // this card becomes active, so each cell can offer a native <select>
+  // override without round-tripping HA per render. Resolution order
+  // becomes: localStorage override → HA helper → layout JSON → QR.
+  interface CameraOption {
+    entity_id: string;
+    friendly_name: string;
+  }
+  let availableCams = $state<CameraOption[]>([]);
+
+  onMount(() => {
+    if (!isActive) return;
+    void (async () => {
+      try {
+        const r = await fetch('/api/setup/cameras', { cache: 'no-store' });
+        if (!r.ok) return;
+        const j = (await r.json()) as { cameras: CameraOption[] };
+        availableCams = j.cameras;
+      } catch {
+        /* swallow — picker just won't have options */
+      }
+    })();
+  });
+
+  const STORAGE_KEY = (i: number) => `mirror.cameraSlot.${i}`;
+  let localOverrides = $state<string[]>(['', '', '', '', '']);
+
+  onMount(() => {
+    if (!browser) return;
+    for (let i = 0; i < 5; i++) {
+      const v = localStorage.getItem(STORAGE_KEY(i));
+      if (v) localOverrides[i] = v;
+    }
+  });
+
+  function setSlot(i: number, entityId: string) {
+    localOverrides[i] = entityId;
+    if (browser) {
+      if (entityId) localStorage.setItem(STORAGE_KEY(i), entityId);
+      else localStorage.removeItem(STORAGE_KEY(i));
+    }
+  }
   onDestroy(() => {
     if (timer) clearInterval(timer);
     for (let i = 0; i < 5; i++) {
@@ -165,13 +208,29 @@
   </header>
   <div class="grid">
     {#each cameras as cam, i (i)}
-      {#if haReady && bindings[i]}
+      {@const liveId = localOverrides[i] || bindings[i] || cam.entity_id || ''}
+      {#if haReady && liveId}
         <div class="cell">
           <FrigateCameraTile
             id={`cam-${i}`}
-            props={{ entity_id: bindings[i], refreshMs: 2000, fit: 'cover' }}
+            props={{ entity_id: liveId, refreshMs: 2000, fit: 'cover' }}
           />
           <div class="cell-label">{cam.label ?? `CAM ${i + 1}`}</div>
+          {#if availableCams.length > 0}
+            <div class="picker">
+              <select
+                value={liveId}
+                onchange={(e) =>
+                  setSlot(i, (e.currentTarget as HTMLSelectElement).value)}
+                title="Pick camera for slot {i + 1}"
+              >
+                <option value="">— unset —</option>
+                {#each availableCams as opt (opt.entity_id)}
+                  <option value={opt.entity_id}>{opt.friendly_name}</option>
+                {/each}
+              </select>
+            </div>
+          {/if}
         </div>
       {:else}
         <div
@@ -185,6 +244,21 @@
           {/if}
           <div class="bind-hint">Scan to bind</div>
           <div class="cell-label">SLOT {i + 1} · UNBOUND</div>
+          {#if availableCams.length > 0}
+            <div class="picker">
+              <select
+                value={liveId}
+                onchange={(e) =>
+                  setSlot(i, (e.currentTarget as HTMLSelectElement).value)}
+                title="Pick camera for slot {i + 1}"
+              >
+                <option value="">— unset —</option>
+                {#each availableCams as opt (opt.entity_id)}
+                  <option value={opt.entity_id}>{opt.friendly_name}</option>
+                {/each}
+              </select>
+            </div>
+          {/if}
         </div>
       {/if}
     {/each}
@@ -357,5 +431,31 @@
     bottom: 0;
     height: 1px;
     background: var(--line);
+  }
+  .picker {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    z-index: 3;
+    opacity: 0.65;
+    transition: opacity 200ms ease;
+  }
+  .cell:hover .picker {
+    opacity: 1;
+  }
+  .picker select {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.08em;
+    padding: 2px 4px;
+    background: rgba(0, 0, 0, 0.7);
+    color: var(--fg);
+    border: 1px solid var(--line-strong);
+    border-radius: 2px;
+    max-width: 6.5rem;
+    cursor: pointer;
+  }
+  .picker select:focus {
+    outline: 1px solid var(--accent);
   }
 </style>
