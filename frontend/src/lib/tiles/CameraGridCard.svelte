@@ -75,15 +75,18 @@
   // Per-slot HA helper watch — input_text.mirror_camera_slot_N. Empty
   // state means no binding → render QR. Non-empty means the user
   // chose a camera entity; mount FrigateCameraTile with that id.
+  //
+  // Set up in onMount (NOT $effect) — synchronous subscribe writes to
+  // `bindings`, which would re-trigger an effect that read `isActive`,
+  // recreating watchers in a tight loop → ERR_INSUFFICIENT_RESOURCES.
   let bindings = $state<string[]>(['', '', '', '', '']);
   const bindingStops: Array<(() => void) | null> = [null, null, null, null, null];
 
-  $effect(() => {
+  onMount(() => {
     if (!isActive) return;
     for (let i = 0; i < 5; i++) {
-      bindingStops[i]?.();
-      const w = watchEntity(`input_text.mirror_camera_slot_${i}`, 5_000);
       const slotIdx = i;
+      const w = watchEntity(`input_text.mirror_camera_slot_${i}`, 5_000);
       const unsub = w.store.subscribe((e: HaEntity | null) => {
         const v = (e?.state ?? '').trim();
         bindings[slotIdx] =
@@ -94,12 +97,6 @@
         w.stop();
       };
     }
-    return () => {
-      for (let i = 0; i < 5; i++) {
-        bindingStops[i]?.();
-        bindingStops[i] = null;
-      }
-    };
   });
 
   // QR url + dataURL generation. Phone scans a per-slot URL pointing
