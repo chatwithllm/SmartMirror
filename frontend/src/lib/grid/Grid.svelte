@@ -67,7 +67,7 @@
     tile: { id: string; type: string },
     sortedIds: string[]
   ): string | null {
-    const RESIZABLE = new Set(['section_host', 'editorial_header']);
+    const RESIZABLE = new Set(['section_host', 'editorial_header', 'kpi_strip']);
     if (!RESIZABLE.has(tile.type)) return null;
     const idx = sortedIds.indexOf(tile.id);
     if (idx < 0 || idx === sortedIds.length - 1) return null;

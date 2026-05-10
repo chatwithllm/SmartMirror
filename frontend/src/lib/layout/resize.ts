@@ -5,8 +5,13 @@ export interface SectionHeights {
   [tileId: string]: number;
 }
 
+// Bump the version when the layout shape changes (tile count, base
+// heights, etc) so stale overrides from a prior shape don't haunt the
+// new one. v2: header expanded to h=3 (kpi row inline), kpi_strip
+// tile dropped.
+const STORAGE_VERSION = 2;
 const STORAGE_KEY = (mode: string, orientation: string) =>
-  `mirror.layout.${mode}.${orientation}.heights`;
+  `mirror.layout.v${STORAGE_VERSION}.${mode}.${orientation}.heights`;
 
 function loadInitial(mode: string, orientation: string): SectionHeights {
   if (!browser) return {};
