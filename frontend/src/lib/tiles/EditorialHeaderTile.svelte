@@ -10,11 +10,23 @@
    * authored, not static. Like a real daily that prints multiple
    * editions.
    */
-  import { onDestroy, onMount } from 'svelte';
+  import { onDestroy, onMount, untrack } from 'svelte';
   import { fade } from 'svelte/transition';
   import BaseTile from './BaseTile.svelte';
   import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
   import { currentPhase, type Phase } from '$lib/phase/clock.js';
+  import { weatherIcon } from '$lib/weather/icons.js';
+
+  type ValueFormat = 'number' | 'relative' | 'percent_pace';
+  interface KpiSpec {
+    entityId: string;
+    label: string;
+    suffix?: string;
+    valueFormat?: ValueFormat;
+    /** When true, value text colored by 25% bucket of numeric state.
+     *  0-25 ok / 25-50 accent / 50-75 warn / 75-100 bad. */
+    bucketize?: boolean;
+  }
 
   interface Props {
     id: string;
@@ -23,6 +35,7 @@
       weatherEntity?: string;
       units?: 'metric' | 'imperial';
       locale?: string;
+      kpis?: KpiSpec[];
     };
   }
 
@@ -31,6 +44,73 @@
   const title = $derived(props.title ?? 'The Mirror Daily');
   const units = $derived(props.units ?? 'imperial');
   const locale = $derived(props.locale ?? 'en-GB');
+  const kpis = $derived<KpiSpec[]>(props.kpis ?? []);
+
+  // KPI watchers — set up in onMount (NOT $effect) to avoid the same
+  // sync-subscribe-in-reactive-context loop that earlier broke
+  // KpiStripTile / CameraGridCard.
+  let kpiEntities = $state<Record<string, HaEntity | null>>({});
+  let kpiStops: Array<() => void> = [];
+  onMount(() => {
+    const snapshot = untrack(() => kpis);
+    const ids = new Set<string>();
+    for (const k of snapshot) ids.add(k.entityId);
+    for (const id of ids) {
+      const w = watchEntity(id, 60_000);
+      const unsub = w.store.subscribe((e) => {
+        kpiEntities = { ...kpiEntities, [id]: e };
+      });
+      kpiStops.push(() => {
+        unsub();
+        w.stop();
+      });
+    }
+  });
+  onDestroy(() => {
+    for (const stop of kpiStops) stop();
+    kpiStops = [];
+  });
+
+  function fmtKpiRelative(iso: string): string {
+    const t = new Date(iso).getTime();
+    if (!Number.isFinite(t)) return iso;
+    const ms = t - Date.now();
+    if (ms <= 0) return 'now';
+    const min = Math.round(ms / 60_000);
+    if (min < 60) return `${min}m`;
+    const hr = Math.floor(min / 60);
+    const rest = min % 60;
+    if (hr < 24) return rest === 0 ? `${hr}h` : `${hr}h ${rest}m`;
+    return `${Math.floor(hr / 24)}d`;
+  }
+  function kpiBucket(spec: KpiSpec): 'ok' | 'accent' | 'warn' | 'bad' | null {
+    if (!spec.bucketize) return null;
+    const e = kpiEntities[spec.entityId];
+    if (!e) return null;
+    const n = Number(e.state);
+    if (!Number.isFinite(n)) return null;
+    if (n < 25) return 'ok';
+    if (n < 50) return 'accent';
+    if (n < 75) return 'warn';
+    return 'bad';
+  }
+
+  function fmtKpiValue(spec: KpiSpec): string {
+    const e = kpiEntities[spec.entityId];
+    if (!e) return '—';
+    const raw = e.state;
+    if (raw === 'unknown' || raw === 'unavailable' || raw == null) return '—';
+    if (spec.valueFormat === 'relative') return fmtKpiRelative(raw);
+    if (spec.valueFormat === 'percent_pace') {
+      const n = Number(raw);
+      if (!Number.isFinite(n)) return raw;
+      return `${n >= 0 ? '+' : ''}${Math.round(n)}%`;
+    }
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return raw;
+    const rounded = Math.abs(n) >= 100 ? Math.round(n) : Math.round(n * 10) / 10;
+    return `${rounded}${spec.suffix ?? ''}`;
+  }
 
   // Time tick — 1s. Cheap; this tile is mounted once.
   let now = $state(new Date());
@@ -168,27 +248,84 @@
   // weather strip via priority queue. For now: weather only.
   type TickerItem = { kind: 'weather' | 'alert' | 'event'; text: string };
 
-  const weatherForecast = $derived.by((): { day: string; tempC: number; cond: string }[] => {
-    if (!haEntity) {
-      // Synthesize a 7-day demo so the ticker has motion in dev.
-      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      const conds = ['Sunny', 'Partly Cloudy', 'Cloudy', 'Light Rain', 'Sunny', 'Sunny', 'Cloudy'];
-      const temps = [18, 20, 17, 14, 19, 22, 16];
-      return days.map((d, i) => ({ day: d, tempC: temps[i], cond: conds[i] }));
+  // Modern HA weather entities don't expose forecast as a state
+  // attribute anymore — it's fetched via the weather/get_forecasts
+  // service. Poll every 30 min and store the response so the ticker
+  // can render a real 7-day strip instead of "Weekly outlook
+  // unavailable".
+  interface ForecastDay {
+    datetime: string;
+    temperature: number;
+    templow?: number;
+    condition: string;
+    precipitation?: number;
+  }
+  let serviceForecast = $state<ForecastDay[]>([]);
+  let forecastTimer: ReturnType<typeof setInterval> | null = null;
+
+  async function fetchForecast(): Promise<void> {
+    if (!props.weatherEntity) return;
+    try {
+      const r = await fetch(
+        '/api/ha/api/services/weather/get_forecasts?return_response',
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ entity_id: props.weatherEntity, type: 'daily' })
+        }
+      );
+      if (!r.ok) return;
+      const j = (await r.json()) as {
+        service_response?: Record<string, { forecast?: ForecastDay[] }>;
+      };
+      const fc = j.service_response?.[props.weatherEntity]?.forecast ?? [];
+      serviceForecast = fc.slice(0, 7);
+    } catch {
+      /* swallow — keep last known forecast */
     }
-    const a = haEntity.attributes as {
-      forecast?: { datetime: string; temperature: number; condition: string }[];
-      temperature_unit?: string;
-    };
-    const fc = a.forecast ?? [];
-    return fc.slice(0, 7).map((f) => ({
-      day: new Date(f.datetime).toLocaleDateString('en-GB', { weekday: 'short' }),
-      tempC:
-        a.temperature_unit === '°F' ? ((f.temperature - 32) * 5) / 9 : f.temperature,
-      cond: f.condition
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, (c) => c.toUpperCase())
-    }));
+  }
+
+  $effect(() => {
+    forecastTimer && clearInterval(forecastTimer);
+    serviceForecast = [];
+    if (!props.weatherEntity) return;
+    void fetchForecast();
+    // 30 min cadence — daily forecast doesn't change fast.
+    forecastTimer = setInterval(fetchForecast, 30 * 60 * 1000);
+  });
+  onDestroy(() => {
+    if (forecastTimer) clearInterval(forecastTimer);
+  });
+
+  const weatherForecast = $derived.by((): { day: string; tempC: number; cond: string; icon: string }[] => {
+    // 1. Live HA service response (preferred).
+    if (serviceForecast.length > 0) {
+      const isF = (haEntity?.attributes as { temperature_unit?: string } | undefined)?.temperature_unit === '°F';
+      return serviceForecast.map((f) => ({
+        day: new Date(f.datetime).toLocaleDateString('en-GB', { weekday: 'short' }),
+        // forecast temps come back in the entity's native units.
+        // Normalize to Celsius internally; ticker re-formats per `units`.
+        tempC: isF ? ((f.temperature - 32) * 5) / 9 : f.temperature,
+        cond: f.condition
+          .replace(/_/g, ' ')
+          .replace(/\b\w/g, (c) => c.toUpperCase()),
+        icon: weatherIcon(f.condition)
+      }));
+    }
+    // 2. Demo fallback so the ticker has motion before the first
+    //    service call returns (or when HA env isn't wired).
+    if (!haEntity) {
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const conds = ['sunny', 'partlycloudy', 'cloudy', 'rainy', 'sunny', 'sunny', 'cloudy'];
+      const temps = [18, 20, 17, 14, 19, 22, 16];
+      return days.map((d, i) => ({
+        day: d,
+        tempC: temps[i],
+        cond: conds[i].replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+        icon: weatherIcon(conds[i])
+      }));
+    }
+    return [];
   });
 
   const tickerItems = $derived.by((): TickerItem[] => {
@@ -198,7 +335,7 @@
       units === 'imperial' ? Math.round((c * 9) / 5 + 32) : Math.round(c);
     const items: TickerItem[] = weatherForecast.map((f) => ({
       kind: 'weather',
-      text: `${f.day.toUpperCase()} ${fmtT(f.tempC)}${wkLabel} ${f.cond}`
+      text: `${f.icon}  ${f.day.toUpperCase()} ${fmtT(f.tempC)}${wkLabel} ${f.cond}`
     }));
     return items.length
       ? items
@@ -248,6 +385,18 @@
         </div>
       </div>
     </div>
+
+    {#if kpis.length > 0}
+      <div class="kpi-row">
+        {#each kpis as k (k.entityId)}
+          {@const bucket = kpiBucket(k)}
+          <div class="kpi">
+            <div class="kpi-lbl">{k.label}</div>
+            <div class="kpi-val" data-bucket={bucket ?? undefined}>{fmtKpiValue(k)}</div>
+          </div>
+        {/each}
+      </div>
+    {/if}
   </header>
 </BaseTile>
 
@@ -492,4 +641,52 @@
   .ticker-strip:hover .ticker-track {
     animation-play-state: paused;
   }
+
+  /* KPI row — sits directly under the Weekly Outlook ticker as a
+   * fixed strip inside the masthead tile. Not a separate tile, not
+   * resizable. */
+  .kpi-row {
+    flex: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.35rem 0.7rem 0.4rem;
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+  }
+  .kpi {
+    display: grid;
+    grid-template-columns: auto auto;
+    column-gap: 0.5rem;
+    align-items: baseline;
+    min-width: 0;
+  }
+  .kpi-lbl {
+    font-style: italic;
+    font-size: 0.55rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    /* Anthropic Claude brand orange — labels read as the "Claude
+     * channel" without the brighter values having to inherit it. */
+    color: #cc785c;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .kpi-val {
+    font-style: italic;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent);
+    font-feature-settings: 'tnum';
+    line-height: 1;
+    white-space: nowrap;
+    transition: color 400ms ease;
+  }
+  /* Bucketized values per 25% slice — only applied when KpiSpec.bucketize
+   * is true (default value stays --accent gold). */
+  .kpi-val[data-bucket='ok']     { color: var(--ok,    #87a876); }
+  .kpi-val[data-bucket='accent'] { color: var(--accent,#d8b36b); }
+  .kpi-val[data-bucket='warn']   { color: var(--warn,  #c89854); }
+  .kpi-val[data-bucket='bad']    { color: var(--bad,   #c95a4a); }
 </style>
