@@ -15,13 +15,9 @@
   let timer: ReturnType<typeof setInterval> | null = null;
 
   async function load() {
-    const w = window as unknown as { __HA_URL__?: string; __HA_TOKEN__?: string };
-    if (!w.__HA_URL__ || !w.__HA_TOKEN__) return;
     try {
-      const r = await fetch(`${w.__HA_URL__}/api/states`, {
-        headers: { Authorization: `Bearer ${w.__HA_TOKEN__}` },
-        cache: 'no-store'
-      });
+      // Same-origin proxy: server adds bearer auth, dodges Cloudflare CORS.
+      const r = await fetch('/api/ha/api/states', { cache: 'no-store' });
       if (!r.ok) { failed = true; return; }
       const all = (await r.json()) as Notif[];
       items = all

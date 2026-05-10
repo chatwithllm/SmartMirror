@@ -9,8 +9,9 @@ export interface HaEntity {
 }
 
 interface RuntimeCfg {
-  baseUrl: string;
-  token: string;
+  baseUrl: string;     // kept for compat; unused for fetches now
+  token: string;       // kept for compat; unused for fetches now
+  haReady: boolean;
 }
 
 function getRuntime(): RuntimeCfg | null {
@@ -18,17 +19,19 @@ function getRuntime(): RuntimeCfg | null {
   const w = window as unknown as { __HA_URL__?: string; __HA_TOKEN__?: string };
   // +layout.svelte publishes these via onMount, but poll-based entity
   // watchers can also read straight from +layout.server.ts data if
-  // window hasn't been populated yet.
+  // window hasn't been populated yet. The values are kept for back-compat
+  // — actual fetches go through the same-origin /api/ha/ proxy so we
+  // dodge Cloudflare CORS preflight blocking.
   if (w.__HA_URL__ && w.__HA_TOKEN__) {
-    return { baseUrl: w.__HA_URL__, token: w.__HA_TOKEN__ };
+    return { baseUrl: w.__HA_URL__, token: w.__HA_TOKEN__, haReady: true };
   }
   return null;
 }
 
-async function fetchEntity(cfg: RuntimeCfg, id: string): Promise<HaEntity | null> {
+async function fetchEntity(_cfg: RuntimeCfg, id: string): Promise<HaEntity | null> {
   try {
-    const r = await fetch(`${cfg.baseUrl}/api/states/${id}`, {
-      headers: { Authorization: `Bearer ${cfg.token}` },
+    // Proxy path — same-origin, no CORS, server adds bearer auth.
+    const r = await fetch(`/api/ha/api/states/${encodeURIComponent(id)}`, {
       cache: 'no-store'
     });
     if (!r.ok) return null;

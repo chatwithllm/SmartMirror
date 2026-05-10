@@ -30,8 +30,10 @@ export const GET: RequestHandler = async () => {
     .map((e) => ({
       entity_id: e.entity_id,
       friendly_name: e.attributes?.friendly_name ?? e.entity_id,
+      // Route via same-origin /api/ha/ proxy so the phone setup page
+      // doesn't trip Cloudflare CORS preflight on direct HA fetches.
       snapshot_url: e.attributes?.entity_picture
-        ? `${base}${e.attributes.entity_picture}`
+        ? `/api/ha/${e.attributes.entity_picture.replace(/^\//, '')}`
         : null
     }))
     .sort((a, b) => a.friendly_name.localeCompare(b.friendly_name));
