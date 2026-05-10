@@ -10,7 +10,8 @@ export type CardId =
   | 'immich_photo'
   | 'weather_hourly'
   | 'ha_notifications'
-  | 'camera_grid';
+  | 'camera_grid'
+  | 'kanban_active';
 
 export interface CardProps {
   id: string;

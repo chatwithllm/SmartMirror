@@ -91,3 +91,11 @@ registerCard({
   refreshIntervalMs: 60_000, // entity poll cadence; cell-level frame refresh is faster
   emptyState: 'Cameras offline'
 });
+
+import KanbanActiveCard from '$lib/tiles/KanbanActiveCard.svelte';
+registerCard({
+  id: 'kanban_active',
+  component: KanbanActiveCard as never,
+  refreshIntervalMs: 30_000,
+  emptyState: 'Inbox zero — nothing in flight'
+});

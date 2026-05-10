@@ -260,14 +260,12 @@
     padding-right: 0.15rem;
   }
   li {
-    font-family: 'JetBrains Mono', ui-monospace, 'Menlo', monospace;
-    font-style: normal;
-    font-size: 0.7rem;
-    line-height: 1.35;
+    font-style: italic;
+    font-size: 0.78rem;
+    line-height: 1.3;
     color: var(--fg);
-    padding: 0.22rem 0;
+    padding: 0.18rem 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    letter-spacing: 0.01em;
     /* Two-line clamp so very long titles don't blow up a column. */
     display: -webkit-box;
     -webkit-line-clamp: 2;
