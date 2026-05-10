@@ -11,17 +11,22 @@
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { env } from '$env/dynamic/private';
 
-const BASE = (process.env.GROCERY_URL ?? '').replace(/\/$/, '');
-const ENV_KEY = process.env.GROCERY_KEY ?? '';
-const EMAIL = process.env.GROCERY_EMAIL ?? '';
-const PASSWORD = process.env.GROCERY_PASSWORD ?? '';
+// SvelteKit dev (vite) doesn't populate process.env from .env.local —
+// it surfaces them via $env/dynamic/private instead. Read through that
+// so dev + prod (where process.env is also populated by systemd's
+// EnvironmentFile=/etc/mirror/config.env) both work.
+const BASE = (env.GROCERY_URL ?? '').replace(/\/$/, '');
+const ENV_KEY = env.GROCERY_KEY ?? '';
+const EMAIL = env.GROCERY_EMAIL ?? '';
+const PASSWORD = env.GROCERY_PASSWORD ?? '';
 
 // Default path lives under mirror's home so the systemd service (User=mirror)
 // can write it without sudo. Override with GROCERY_KEY_FILE if you want
 // something else (e.g. systemd StateDirectory at /var/lib/mirror).
 export const KEY_FILE =
-  process.env.GROCERY_KEY_FILE ?? '/home/mirror/.config/mirror/grocery.key';
+  env.GROCERY_KEY_FILE ?? '/home/mirror/.config/mirror/grocery.key';
 
 // Runtime state.
 let fileKey: string | null = null;

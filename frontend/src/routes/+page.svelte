@@ -7,11 +7,21 @@
   import { ytCmd, ytLoadVideo, type YTAction } from '$lib/youtube/controller.js';
   import { layoutStore, currentLayout } from '$lib/layout/store.js';
   import { connection, toasts } from '$lib/stores/connection.js';
-  import { DEMO_LAYOUT } from '$lib/layout/demo.js';
+  import { wireGestures } from '$lib/gesture/sse.js';
+  import { registerDefaultHandlers } from '$lib/gesture/handlers.js';
   import { applyTheme } from '$lib/themes/loader.js';
   import { coerceTheme } from '$lib/themes/compat.js';
   import { resolveLayout } from '$lib/layout/resolver.js';
   import type { Orientation } from '$lib/layout/schema.js';
+  import EditorialHeaderTile from '$lib/tiles/EditorialHeaderTile.svelte';
+  import PlexNowPlayingTile from '$lib/tiles/PlexNowPlayingTile.svelte';
+  import { plexActive, startPlexPreempt } from '$lib/plex/preempt.js';
+
+  // Plex media_player entity that drives the full-takeover pre-empt.
+  // Sourced from BACKEND_SPEC.md §"01_mirror_plex_focus.yaml" — the
+  // canonical living-room Plex client. When state=='playing' we bypass
+  // the section grid entirely and render the Plex now-playing card.
+  const PLEX_ENTITY_ID = 'media_player.plex_livingroom';
 
   // React to theme changes on the active layout.
   $effect(() => {
@@ -33,6 +43,8 @@
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let localTimer: ReturnType<typeof setInterval> | null = null;
+  let stopGestures: (() => void) | null = null;
+  let stopGestureHandlers: (() => void) | null = null;
   let lastHash = '';
   let overscan = $state({ top: 2, right: 2, bottom: 2, left: 2 });
 
@@ -163,10 +175,8 @@
   }
 
   async function applyHa(base: string, token: string) {
-    const [preset, mode, theme, orientation, osT, osR, osB, osL] = await Promise.all([
+    const [preset, orientation, osT, osR, osB, osL] = await Promise.all([
       fetchState(base, token, 'input_select.mirror_preset'),
-      fetchState(base, token, 'input_select.mirror_mode'),
-      fetchState(base, token, 'input_select.mirror_theme'),
       fetchState(base, token, 'input_select.mirror_orientation'),
       fetchState(base, token, 'input_number.mirror_overscan_top'),
       fetchState(base, token, 'input_number.mirror_overscan_right'),
@@ -189,18 +199,25 @@
       };
     }
 
-    const hash = `${preset}|${mode}|${theme}|${orientation}`;
+    // Coerce HA's preset to one we ship. v1 only carries 3 presets
+    // (editorial-daily, work, morning-editorial); anything else from
+    // HA — including 'auto', null, or a stale value like 'work-focus'
+    // — collapses to editorial-daily so the kiosk lands on the
+    // intended scene instead of the time-of-day fallback.
+    const KNOWN_PRESETS = ['editorial-daily', 'work', 'morning-editorial'];
+    const effectivePreset =
+      preset && KNOWN_PRESETS.includes(preset) ? preset : 'editorial-daily';
+
+    const hash = `${effectivePreset}|${orientation}`;
     if (hash === lastHash) return;
     lastHash = hash;
 
     const r = resolveLayout({
-      preset: preset ?? undefined,
-      mode: (mode as never) ?? undefined,
-      theme: (theme as never) ?? undefined,
+      preset: effectivePreset,
       orientation: (orientation as Orientation) ?? 'portrait'
     });
     if (!r) {
-      toasts.push('warn', `no bundled layout for ${mode}.${orientation}`);
+      toasts.push('warn', `no bundled layout for preset ${effectivePreset}`);
       return;
     }
     layoutStore.setLayout(r.layout, Date.now());
@@ -208,7 +225,12 @@
   }
 
   onMount(() => {
-    layoutStore.setLayout(DEMO_LAYOUT, 0);
+    // Default initial paint: editorial-daily preset. HA driver (when
+    // present) and the ?preset= URL switcher both override this below.
+    const defaultLayout = resolveLayout({ preset: 'editorial-daily', orientation: 'portrait' });
+    if (defaultLayout) {
+      layoutStore.setLayout(defaultLayout.layout, 0);
+    }
 
     // Read directly from +layout.server.ts data — parent layout's onMount
     // hasn't fired yet at this point (child mounts first), so window
@@ -222,8 +244,45 @@
     void pollYtLocal();
     localTimer = setInterval(() => void pollYtLocal(), 2000);
 
+    // Gesture subsystem: handlers register against the singleton router
+    // unconditionally (they're cheap and safe in demo mode). The
+    // poll-side wireGestures only does anything when HA creds are
+    // present — it short-circuits otherwise.
+    stopGestureHandlers = registerDefaultHandlers();
+    stopGestures = wireGestures();
+
+    // Plex pre-empt watcher — toggles plexActive based on the Plex
+    // media_player state. Idempotent; runs in browser only.
+    startPlexPreempt(PLEX_ENTITY_ID);
+
     if (!hassUrl || !hassToken) {
       connection.set({ kind: 'down', reason: 'no-ha-config' });
+
+      // Local-dev preset switcher: ?preset=editorial-daily&orientation=landscape
+      // Bypasses HA entirely so designers can flip presets in the browser.
+      const q = new URLSearchParams(window.location.search);
+      const qPreset = q.get('preset');
+      const qOrientation = (q.get('orientation') ?? 'portrait') as Orientation;
+      if (qPreset) {
+        const r = resolveLayout({
+          preset: qPreset,
+          orientation: qOrientation
+        });
+        if (r) {
+          // Dev preview: zero the overscan gutter so the tile fills
+          // the viewport edge-to-edge. Real kiosk keeps HA-driven
+          // overscan for the TV bezel.
+          overscan = { top: 0, right: 0, bottom: 0, left: 0 };
+          layoutStore.setLayout(r.layout, Date.now());
+          toasts.push('info', `preset override: ${qPreset}`);
+          return;
+        }
+        toasts.push('warn', `no bundled layout for preset ${qPreset}`);
+        return;
+      }
+      // No preset override: drop the overscan so the default
+      // editorial-daily layout renders edge-to-edge in the dev browser.
+      overscan = { top: 0, right: 0, bottom: 0, left: 0 };
       toasts.push('info', 'No HA config — running in demo mode');
       return;
     }
@@ -250,6 +309,14 @@
       clearInterval(localTimer);
       localTimer = null;
     }
+    if (stopGestures) {
+      stopGestures();
+      stopGestures = null;
+    }
+    if (stopGestureHandlers) {
+      stopGestureHandlers();
+      stopGestureHandlers = null;
+    }
   });
 
   let connLabel = $derived.by(() => {
@@ -264,6 +331,9 @@
       case 'reconnecting':
         return `reconnecting · ${Math.round(s.nextRetryMs / 1000)}s`;
       case 'down':
+        // Demo / dev mode is the expected state when no HA env is
+        // wired — don't paint a pill over the masthead for it.
+        if (s.reason === 'no-ha-config') return null;
         return `offline (${s.reason})`;
     }
   });
@@ -273,7 +343,25 @@
   class="stage"
   style="--os-top:{overscan.top}vh; --os-right:{overscan.right}vw; --os-bottom:{overscan.bottom}vh; --os-left:{overscan.left}vw; padding: var(--os-top) var(--os-right) var(--os-bottom) var(--os-left);"
 >
-  {#if $currentLayout}
+  {#if $plexActive}
+    <!-- Plex full-takeover. Spec §"01_mirror_plex_focus.yaml": Plex card
+         spans rows 2–14 *beneath the masthead*; sections 2/3/4 unmount.
+         Render the editorial_header tile from the active layout above
+         the takeover so the brand chrome persists. -->
+    <div class="plex-stage">
+      <div class="masthead-only">
+        {#if $currentLayout}
+          {@const headerTile = $currentLayout.tiles.find((t) => t.id === 'header')}
+          {#if headerTile}
+            <EditorialHeaderTile id={headerTile.id} props={headerTile.props as never} />
+          {/if}
+        {/if}
+      </div>
+      <div class="plex-takeover">
+        <PlexNowPlayingTile id="plex_now_playing" props={{ entityId: PLEX_ENTITY_ID }} />
+      </div>
+    </div>
+  {:else if $currentLayout}
     <Grid layout={$currentLayout} />
   {:else}
     <div class="boot-splash" data-testid="boot-splash">waiting for Home Assistant…</div>
@@ -314,8 +402,10 @@
   }
   .conn-pill {
     position: absolute;
-    top: 14px;
-    right: 14px;
+    /* Bottom-left, away from masthead + ticker. Real outages still
+     * surface but don't crash into editorial chrome. */
+    bottom: 14px;
+    left: 14px;
     background: var(--panel);
     color: var(--fg);
     border: 1px solid var(--line);
@@ -323,6 +413,8 @@
     padding: 6px 12px;
     font-family: var(--font-mono);
     font-size: 11px;
+    opacity: 0.7;
+    pointer-events: none;
   }
   .toasts {
     position: absolute;
@@ -350,5 +442,28 @@
   .toast.t-error {
     border-color: var(--bad);
     color: var(--bad);
+  }
+  /* Plex takeover surface. Mirrors the editorial portrait grid's
+   * 2/14 row split for the masthead — keeps brand chrome visible
+   * while Plex consumes the remaining 12/14 rows. */
+  .plex-stage {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  .masthead-only {
+    width: 100%;
+    height: calc(2 / 14 * 100%);
+    /* Match Grid's tile cell behaviour so the editorial_header layout
+     * doesn't bleed past its allotted band. */
+    overflow: hidden;
+    min-height: 0;
+  }
+  .plex-takeover {
+    width: 100%;
+    height: calc(12 / 14 * 100%);
+    display: flex;
+    min-height: 0;
   }
 </style>

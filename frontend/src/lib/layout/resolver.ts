@@ -11,24 +11,9 @@ const BUNDLED = import.meta.glob('./bundled/*.json', {
 }) as Record<string, unknown>;
 
 const PRESETS: Record<string, { mode: ModeName; theme: ThemeName }> = {
-  'morning-editorial':  { mode: 'morning',  theme: 'editorial' },
-  'work-ops':           { mode: 'work',     theme: 'ops-cyberpunk' },
-  'work-minimal':       { mode: 'work',     theme: 'minimal-dark' },
-  'relax-minimal':      { mode: 'relax',    theme: 'minimal-dark' },
-  'relax-editorial':    { mode: 'relax',    theme: 'editorial' },
-  'shopping-minimal':   { mode: 'shopping', theme: 'minimal-dark' },
-  'shopping-ops':       { mode: 'shopping', theme: 'ops-cyberpunk' },
-  'security-ops':       { mode: 'security', theme: 'ops-cyberpunk' },
-  'night-security':     { mode: 'night',    theme: 'security' },
-  'ops-ops':            { mode: 'ops',      theme: 'ops-cyberpunk' },
-  'guest-editorial':    { mode: 'guest',    theme: 'editorial' },
-  'showcase-editorial': { mode: 'showcase', theme: 'editorial' },
-  'editorial-daily':    { mode: 'editorial', theme: 'editorial' },
-  'minimal':            { mode: 'minimal', theme: 'minimal-dark' },
-  'glass':              { mode: 'glass', theme: 'minimal-dark' },
-  'work':               { mode: 'work', theme: 'minimal-dark' },
-  'retro':              { mode: 'retro', theme: 'minimal-dark' },
-  'console':            { mode: 'console', theme: 'minimal-dark' }
+  'editorial-daily':   { mode: 'editorial', theme: 'editorial'    },
+  'work':              { mode: 'work',      theme: 'minimal-dark' },
+  'morning-editorial': { mode: 'morning',   theme: 'editorial'    }
 };
 
 export interface ResolveInput {
@@ -64,8 +49,7 @@ function defaultModeAndTheme(
     const h = new Date().getHours();
     if (h < 6 || h >= 22) mode = 'night';
     else if (h < 10) mode = 'morning';
-    else if (h < 17) mode = 'work';
-    else mode = 'relax';
+    else mode = 'work';
   }
 
   if (!theme) theme = coerceTheme(mode, 'minimal-dark').theme;

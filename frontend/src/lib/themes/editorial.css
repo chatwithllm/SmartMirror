@@ -1,10 +1,13 @@
 :root[data-theme='editorial'] {
   /* Dark-paper palette matching the 04-editorial mockup. Swapped from
    * the old cream-and-white palette so the NewspaperTile's overscan
-   * gutter reads as dark paper, not a white frame around the content. */
-  --bg: #12100e;
-  --panel: #1a1714;
-  --panel-2: #221e18;
+   * gutter reads as dark paper, not a white frame around the content.
+   * --bg pinned to pure #000 so the gutter merges into the kiosk
+   * mirror's reflective black (matches PR #123 fix for the other
+   * dark themes). */
+  --bg: #000000;
+  --panel: #0a0908;
+  --panel-2: #15120e;
   --fg: #f4ece0;
   --dim: #b5a99a;
   --dimmer: #6e6458;

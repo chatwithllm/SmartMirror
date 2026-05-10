@@ -56,17 +56,28 @@
 
   const url = $derived.by(() => {
     if (!browser) return '';
-    const w = window as unknown as { __HA_URL__?: string; __HA_TOKEN__?: string };
-    const base = w.__HA_URL__;
-    if (!base || !props.entity_id) return '';
+    if (!props.entity_id) return '';
+    // Route through same-origin /api/ha/ proxy — direct fetches to HA
+    // get blocked by Cloudflare CORS preflight (OPTIONS → 403).
+    // Prefer the camera_proxy JPEG snapshot endpoint over
+    // camera_proxy_stream — modern browsers don't fire onload reliably
+    // on multipart MJPEG <img>, so the tile sticks in 'connecting'
+    // state forever even when frames are decoding. Snapshot with a
+    // frame-counter cache-buster gives a real onload tick per refresh.
+    const ep = (haEntity?.attributes as { entity_picture?: string } | undefined)?.entity_picture;
+    if (ep) {
+      // entity_picture is `/api/camera_proxy/{id}?token=...`. Strip
+      // leading slash, then route through /api/ha/<path>. The token
+      // query param stays intact so HA still authenticates the request.
+      const epPath = ep.replace(/^\//, '');
+      const sep = epPath.includes('?') ? '&' : '?';
+      return `/api/ha/${epPath}${sep}s=${frameSeq}`;
+    }
+    // Last-resort fallback: live stream when no entity_picture.
     const tok = (haEntity?.attributes as { access_token?: string } | undefined)?.access_token;
     if (tok) {
-      return `${base}/api/camera_proxy_stream/${encodeURIComponent(props.entity_id)}?token=${tok}`;
+      return `/api/ha/api/camera_proxy_stream/${encodeURIComponent(props.entity_id)}?token=${tok}`;
     }
-    // Fallback to snapshot with auth header not possible on <img>; use
-    // entity_picture which already embeds a signed short-lived token.
-    const ep = (haEntity?.attributes as { entity_picture?: string } | undefined)?.entity_picture;
-    if (ep) return `${base}${ep}&s=${frameSeq}`;
     return '';
   });
 

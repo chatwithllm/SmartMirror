@@ -5,12 +5,74 @@
   "theme": "editorial",
   "resolution": "1080p",
   "transition": "fade",
-  "grid": { "cols": 8, "rows": 14, "gap": 0 },
+  "grid": { "cols": 8, "rows": 14, "gap": 8 },
   "tiles": [
-    { "id": "daily", "type": "newspaper", "x": 0, "y": 0, "w": 8, "h": 14,
+    { "id": "header", "type": "editorial_header", "x": 0, "y": 0, "w": 8, "h": 3,
       "props": {
+        "title": "The Mirror Daily",
         "weatherEntity": "weather.4340",
-        "calendarEntity": "calendar.palakurla4340_gmail_com"
+        "units": "imperial",
+        "kpis": [
+          { "entityId": "sensor.claude_usage_nik_endhuk_max_session_usage",       "label": "Session",       "suffix": "%", "bucketize": true },
+          { "entityId": "sensor.claude_usage_nik_endhuk_max_session_reset_time",  "label": "Session Reset", "valueFormat": "relative" },
+          { "entityId": "sensor.claude_usage_nik_endhuk_max_week_usage",          "label": "Week",          "suffix": "%", "bucketize": true },
+          { "entityId": "sensor.claude_usage_nik_endhuk_max_week_usage_pace",     "label": "Week Pace",     "valueFormat": "percent_pace" },
+          { "entityId": "sensor.claude_usage_nik_endhuk_max_weekly_reset_time",   "label": "Weekly Reset",  "valueFormat": "relative" }
+        ]
+      }
+    },
+
+    { "id": "section-2", "type": "section_host", "x": 0, "y": 3, "w": 8, "h": 4,
+      "props": {
+        "sectionId": "section-2",
+        "channelConfig": {
+          "pool": ["kanban_active", "calendar_today", "immich_photo", "news_tech", "calendar_tomorrow", "calendar_next"],
+          "phaseDefaults": {
+            "pratah": "kanban_active",
+            "madhyahna": "kanban_active",
+            "sandhya": "kanban_active",
+            "ratri": "kanban_active"
+          }
+        }
+      }
+    },
+    { "id": "section-3", "type": "section_host", "x": 0, "y": 7, "w": 8, "h": 4,
+      "props": {
+        "sectionId": "section-3",
+        "channelConfig": {
+          "pool": ["news_tech", "grocery", "calendar_today", "calendar_tomorrow"],
+          "phaseDefaults": {
+            "pratah": "news_tech",
+            "madhyahna": "grocery",
+            "sandhya": "grocery",
+            "ratri": "grocery"
+          }
+        }
+      }
+    },
+    { "id": "section-4", "type": "section_host", "x": 0, "y": 11, "w": 8, "h": 3,
+      "props": {
+        "sectionId": "section-4",
+        "channelConfig": {
+          "pool": ["weather_hourly", "ha_notifications", "camera_grid", "immich_photo"],
+          "phaseDefaults": {
+            "pratah": "weather_hourly",
+            "madhyahna": "camera_grid",
+            "sandhya": "camera_grid",
+            "ratri": "camera_grid"
+          }
+        },
+        "cardProps": {
+          "camera_grid": {
+            "cameras": [
+              { "entity_id": "camera.porch", "label": "Porch" },
+              { "entity_id": "camera.garage_enterance_camera", "label": "Garage Entry" },
+              { "entity_id": "camera.gic", "label": "GiC" },
+              { "entity_id": "camera.basement", "label": "Basement" },
+              { "entity_id": "camera.living_room", "label": "Living Room" }
+            ]
+          }
+        }
       }
     }
   ]

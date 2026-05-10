@@ -1,0 +1,42 @@
+[Unit]
+Description=Smart Mirror Gesture Service (MediaPipe + HTTP fan-out)
+After=network-online.target mirror-frontend.service
+Wants=network-online.target
+# We don't *require* mirror-frontend — the gesture service can run and
+# log warnings if /api/gesture isn't up yet — but starting after it
+# avoids a noisy log on cold boot.
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/mirror/config.env
+WorkingDirectory=/opt/mirror/gesture
+ExecStart=/opt/mirror/gesture/.venv/bin/python -m mirror_gesture
+Restart=on-failure
+RestartSec=3
+User=mirror
+Group=mirror
+# /dev/video* nodes belong to the `video` group on Ubuntu; the kiosk
+# user needs that group to open the webcam.
+SupplementaryGroups=video
+
+# systemd-managed log dir
+LogsDirectory=mirror-gesture
+LogsDirectoryMode=0755
+
+# Hardening — the gesture service is read-only on disk and only
+# touches the camera + outbound HTTP. Tighter than mirror-frontend
+# because we don't shell out to sudo here.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+# /dev/video* must remain reachable; we narrow rather than block.
+DeviceAllow=char-video4linux rw
+DevicePolicy=closed
+
+[Install]
+WantedBy=multi-user.target

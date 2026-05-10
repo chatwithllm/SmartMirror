@@ -6,6 +6,148 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Theme cleanup — drop ops-cyberpunk, light-mode covers dark/light
+- Dropped `ops-cyberpunk` theme entirely. No active preset uses it
+  (work landscape was the last reference and migrated to
+  minimal-dark). `input_boolean.mirror_light_mode` already flips the
+  palette dark→light across every preset, so a separate "theme"
+  picker is redundant.
+- `frontend/src/lib/themes/ops-cyberpunk.css`: deleted.
+- `frontend/src/lib/layout/schema.ts`: `ThemeName` enum cut from 3
+  → 2 (`minimal-dark`, `editorial`).
+- `frontend/src/lib/themes/loader.ts`: dropped `ops-cyberpunk` switch
+  arm.
+- `frontend/src/lib/themes/compat.ts`: dropped ops-cyberpunk from
+  `ALLOWED.work`.
+- `frontend/src/lib/styles/root.css`: dropped
+  `[data-theme='ops-cyberpunk'][data-mode='light']` accent block.
+- `frontend/src/lib/layout/bundled/work.landscape.json`: theme
+  field updated `ops-cyberpunk` → `minimal-dark` (resolver overrode
+  it anyway, but the JSON now passes schema validation directly).
+- `frontend/src/routes/+page.svelte`: URL-param switcher dropped
+  the `?mode=` and `?theme=` overrides — preset is the single knob
+  now. `?preset=…&orientation=…` only.
+
+### Picker consolidation — Preset is the single knob
+- Dropped `input_select.mirror_mode` + `input_select.mirror_theme`
+  from `ha/packages/mirror.yaml`. Each preset already encodes its
+  mode + theme, so two of the three pickers were redundant.
+- Dashboard (`ha/dashboards/mirror.yaml`) now shows 3 selects
+  (Preset · Orientation · Resolution) instead of 5.
+- `applyHa()` in `+page.svelte` no longer fetches mirror_mode /
+  mirror_theme states; it polls preset + orientation + overscan only.
+- Gesture router (`05_mirror_gesture_router.yaml`) `mode_next` /
+  `mode_prev` now cycle `input_select.mirror_preset` instead of the
+  removed `mirror_mode`.
+- Local-dev URL switcher (`?preset=…&orientation=…`) still accepts
+  `mode` / `theme` overrides for designers, but HA only drives preset.
+
+### Preset cull — 3 curated scenes
+- HA `input_select.mirror_preset` trimmed from 9 → 4 options
+  (`auto` + `editorial-daily`, `work`, `morning-editorial`).
+  Day-glance + work-day cover daytime; morning-editorial covers dawn.
+- HA `input_select.mirror_mode` trimmed from 11 → 5 options
+  (`auto` + `morning`, `work`, `night`, `editorial`). `night` mode
+  kept for time-based fallback (pre-6am / post-10pm) but no longer
+  bound to a preset.
+- HA `input_select.mirror_theme` trimmed from 5 → 4 options —
+  `security` theme dropped.
+- `frontend/src/lib/layout/schema.ts`: `ModeName` enum cut from 14
+  → 4 modes (`morning`, `work`, `night`, `editorial`); `ThemeName`
+  cut from 4 → 3 (`security` removed).
+- `frontend/src/lib/themes/compat.ts` `ALLOWED` map shrunk to the
+  four kept modes; security row + ops/relax/shopping/showcase/etc
+  rows all gone.
+- `frontend/src/lib/themes/loader.ts`: dropped `security` switch arm.
+- `frontend/src/lib/themes/security.css`: deleted.
+- `frontend/src/lib/styles/root.css`: dropped
+  `[data-theme='security'][data-mode='light']` accent block.
+- `frontend/src/lib/layout/resolver.ts` `PRESETS` map shrunk to three
+  entries. Time-based fallback now picks `night` / `morning` / `work`
+  (no more `relax`).
+- `frontend/src/lib/layout/bundled/`: deleted 16 unused layout JSONs
+  (console, glass, guest×2, minimal, ops×2, relax×2, retro,
+  security×2, shopping×2, showcase×2). 24 → 8 files.
+- `frontend/src/lib/layout/demo.ts` offline DEMO_LAYOUT switched from
+  `mode: 'ops'` to `mode: 'work'` so it round-trips through the
+  trimmed schema.
+- `frontend/src/routes/+page.svelte`: added local-dev URL-param
+  preset switcher (`?preset=…&orientation=…`) so designers can flip
+  presets in the browser without HA.
+- Tests: `compat.test.ts` reworked off the dropped `ops`/`security`
+  modes onto `work`/`night`. All 19 files / 96 tests still pass.
+- `ha/README.md` preset example updated; layout JSON count corrected
+  from "20" to "8 (4 modes × 2 orientations)".
+
+### Phase 13.2 — gesture subsystem · kiosk-local camera path
+- Pivoted from HA addon (camera on HA box, MQTT bridge) to a
+  kiosk-local systemd service: USB webcam plugged into the mirror PC,
+  Python service runs MediaPipe on the kiosk, POSTs classified
+  gestures to `http://localhost:3000/api/gesture` (Bearer-auth).
+- `addons/mirror-gesture/src/`: new `config.py`, `camera_pick.py`
+  (v4l2 capability probe), `http_publisher.py`. Rewrote `main.py` to
+  release/reacquire the camera around the HA enable boolean (LED
+  actually goes dark when paused). Extended `gestures.py` classifier:
+  added `focus` (point), `tile_fullscreen`/`tile_minimize` (pinch
+  open/close), `media_pause` (palm held still); added per-gesture
+  `Cooldown` to stop held poses re-firing every frame.
+- Removed HA addon shell: `Dockerfile`, `config.yaml`, `run.sh`,
+  `requirements.txt`. Added `pyproject.toml` for venv install.
+- `installer/install-gesture.sh` (new): idempotent installer — venv at
+  `/opt/mirror/gesture`, generates `MIRROR_GESTURE_TOKEN` in
+  `/etc/mirror/config.env`, drops the systemd unit.
+- `installer/systemd/mirror-gesture.service` (new): hardened unit
+  with `User=mirror`, `SupplementaryGroups=video`,
+  `DeviceAllow=char-video4linux rw`.
+- `frontend/src/lib/server/gestureBus.ts` (new): in-process
+  EventEmitter; gestureBus.emit on POST → SSE fan-out.
+- `frontend/src/routes/api/gesture/+server.ts` (new): bearer-authed
+  POST endpoint with strict gesture-name + confidence + ts validation.
+- `frontend/src/routes/api/gesture/stream/+server.ts` (new): SSE
+  endpoint with 15 s heartbeat and `x-accel-buffering: no`.
+- `frontend/src/lib/gesture/sse.ts` (new) replaces the deleted
+  `events.ts` REST-poll: `EventSource('/api/gesture/stream')`,
+  drops events older than 30 s. Same `wireGestures()` signature so
+  `+page.svelte` only changed the import path.
+- `ha/packages/mirror.yaml`: dropped `input_text.mirror_last_gesture`
+  helper (no longer the bridge).
+- `ha/automations/05_mirror_gesture_router.yaml`: dropped MQTT
+  bridge; only handles HA-owned gestures (mode_next/prev cycles
+  `input_select.mirror_mode`; `lock` toggles
+  `input_boolean.mirror_gesture_enable` off for 5 min).
+- `docs/gesture-setup.md` rewritten as kiosk-local install runbook.
+  `docs/gesture-demo.md` updated with the new architecture diagram
+  and the eight-gesture vocabulary table.
+- Tests: `frontend/src/lib/gesture/sse.test.ts` (7 cases) replaces
+  the deleted `events.test.ts`. Existing `handlers.test.ts` and
+  `router.test.ts` unchanged.
+
+### Phase 13.1 — gesture subsystem · runtime wiring
+- `frontend/src/lib/gesture/events.ts` no longer a stub — REST-polls
+  `input_text.mirror_last_gesture` every 1 s, baselines the first tick,
+  drops events older than 30 s, dispatches into the in-browser router.
+- `frontend/src/lib/gesture/handlers.ts` registers default handlers:
+  `wake` toast, `focus` cycles tiles via the `focusedTile` store,
+  `tile_fullscreen` / `tile_minimize` drive a new `fullscreenTile`
+  store, `media_pause` proxies to `ytCmd('yt_toggle')`, `alert_ack`
+  dispatches a `mirror:alert_ack` window event.
+- `frontend/src/lib/tiles/BaseTile.svelte` now reads `focusedTile` /
+  `fullscreenTile` and projects them as `data-focused` /
+  `data-fullscreen` (CSS already styled the focused state).
+- `frontend/src/routes/+page.svelte` mounts `wireGestures()` +
+  `registerDefaultHandlers()` on mount and tears them down on destroy.
+- `ha/packages/mirror.yaml` adds `input_text.mirror_last_gesture`
+  helper bridging MQTT → REST-poll for the kiosk.
+- `ha/automations/05_mirror_gesture_router.yaml` (new) — MQTT-to-event
+  bridge + helper mirror + mode/lock fanout.
+- `docs/gesture-demo.md` updated to describe the actual REST-poll
+  bridge, handler set, and current limits (resize_* are no-ops in this
+  build because layouts are bundled).
+- Tests: `frontend/src/lib/gesture/events.test.ts` (9 cases covering
+  parsing, baselining, ts replay, freshness window) and
+  `handlers.test.ts` (5 cases covering focus cycling, fullscreen
+  toggle, alert event, teardown).
+
 ### Added
 - Initial specs: `DESIGN_SPEC.md`, `FRONTEND_SPEC.md`, `BACKEND_SPEC.md`
 - Phase plan: `PHASES.md`, `AGENT_INSTRUCTIONS.md`, `BUILD_PROMPT.md`

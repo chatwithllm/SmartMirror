@@ -12,53 +12,27 @@
 # in the HA UI and the kiosk reacts within ~2s.
 
 input_select:
-  # Curated preset list — only the ones actually tuned for this box.
-  # Stock layouts (work-*, relax-*, shopping-*, guest-*, ops-ops,
-  # *-editorial variants that never got the real HA entities wired)
-  # live on disk under frontend/src/lib/layout/bundled/ so they can be
-  # re-enabled by listing them here again.
+  # Curated preset list — three scenes actually tuned for this box.
+  # editorial-daily + work cover day-glance / work-day; morning-
+  # editorial covers dawn. Bundled layouts for legacy modes were
+  # dropped — to re-add a preset, restore the bundled JSON, list the
+  # mode in ModeName, and add an entry here + in
+  # frontend/src/lib/layout/resolver.ts PRESETS.
   mirror_preset:
     name: Mirror Preset (bundle)
     icon: mdi:monitor-dashboard
     options:
       - auto
-      - showcase-editorial
       - editorial-daily
-      - shopping-minimal
-      - minimal
-      - glass
       - work
-      - retro
-      - console
+      - morning-editorial
     initial: auto
 
-  mirror_mode:
-    name: Mirror Mode
-    icon: mdi:view-dashboard-variant
-    options:
-      - auto
-      - morning
-      - night
-      - security
-      - showcase
-      - editorial
-      - shopping
-      - minimal
-      - glass
-      - retro
-      - console
-    initial: auto
-
-  mirror_theme:
-    name: Mirror Theme
-    icon: mdi:palette
-    options:
-      - auto
-      - minimal-dark
-      - ops-cyberpunk
-      - editorial
-      - security
-    initial: auto
+  # Note: input_select.mirror_mode + mirror_theme were collapsed into
+  # mirror_preset above. Each preset already encodes its mode + theme
+  # (see frontend/src/lib/layout/resolver.ts PRESETS). The frontend
+  # still accepts mode/theme overrides via URL params for local dev,
+  # but HA only drives preset.
 
   mirror_orientation:
     name: Mirror Orientation
@@ -148,6 +122,36 @@ input_text:
     # watch URL with params is ~110.
     max: 255
     initial: ""
+  # QR-bind camera slots. CameraGridCard watches these helpers; empty
+  # state = render a QR placeholder pointing at /setup/camera/N on the
+  # mirror's LAN URL. Phone scans → user picks a camera.* entity → the
+  # frontend POSTs to /api/setup/camera-binding which calls
+  # input_text/set_value here, and the card swaps to FrigateCameraTile.
+  mirror_camera_slot_0:
+    name: Mirror Camera Slot 0
+    icon: mdi:cctv
+    initial: ""
+    max: 64
+  mirror_camera_slot_1:
+    name: Mirror Camera Slot 1
+    icon: mdi:cctv
+    initial: ""
+    max: 64
+  mirror_camera_slot_2:
+    name: Mirror Camera Slot 2
+    icon: mdi:cctv
+    initial: ""
+    max: 64
+  mirror_camera_slot_3:
+    name: Mirror Camera Slot 3
+    icon: mdi:cctv
+    initial: ""
+    max: 64
+  mirror_camera_slot_4:
+    name: Mirror Camera Slot 4
+    icon: mdi:cctv
+    initial: ""
+    max: 64
 
 input_number:
   mirror_override_minutes:

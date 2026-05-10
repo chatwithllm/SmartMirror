@@ -51,17 +51,18 @@ the mirror_* helpers:
    *Raw configuration editor*.
 3. Paste the contents of `ha/dashboards/mirror.yaml` → *Save*.
 
-Three cards: Preset (5 selects) · Behavior (toggles + focused tile +
+Three cards: Preset (3 selects) · Behavior (toggles + focused tile +
 override timeout) · Overscan (4 bezel insets).
 
 ## Flipping the mirror
 
-- `input_select.mirror_preset` — pick a bundle (e.g. `ops-ops`,
-  `morning-minimal`). Frontend polls every 2s and swaps layout + theme.
-- `input_select.mirror_mode` — optional forced mode. Leave on `auto`
-  for preset to drive.
-- `input_select.mirror_theme` — optional forced theme. Leave on `auto`.
+- `input_select.mirror_preset` — pick a bundle (`editorial-daily`,
+  `work`, `morning-editorial`). Each preset already encodes its mode
+  and theme. Frontend polls every 2s and swaps layout + theme.
 - `input_select.mirror_orientation` — `portrait` or `landscape`.
+- `input_select.mirror_resolution` — `4k` / `1440p` / `1080p`.
+- `input_boolean.mirror_light_mode` — flip dark/light palette across
+  every preset.
 - `input_boolean.mirror_edit_mode`, `mirror_gesture_enable`,
   `mirror_dnd` — future phase hooks.
 
@@ -72,8 +73,8 @@ Original backend spec (`BACKEND_SPEC.md §3-§6`) wired a
 and bumped a revision sensor. Real HA python_script sandboxes block
 `import json`, `open()`, `now()`, etc. — the flow didn't survive.
 
-We pivoted to frontend-side layout resolution: the 20 layout JSONs
-live in the client bundle and `lib/layout/resolver.ts` does the
-preset → (mode, theme, orientation) → bundled layout match. HA side
+We pivoted to frontend-side layout resolution: 8 layout JSONs (4 modes
+× 2 orientations) live in the client bundle and `lib/layout/resolver.ts`
+does the preset → (mode, theme, orientation) → bundled layout match. HA side
 shrinks to helpers only, which also sidesteps the
 `hass.states.set(...)` silent-reject issue on newer HA installs.

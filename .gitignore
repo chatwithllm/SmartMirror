@@ -30,6 +30,8 @@ Thumbs.db
 .vscode/
 .idea/
 .claude/
+.superpowers/
+.kanban/
 *.swp
 *.swo
 
@@ -40,5 +42,5 @@ test-results/
 
 # Python addon builds
 addons/*/.venv/
-addons/*/__pycache__/
-addons/*/*.pyc
+**/__pycache__/
+**/*.pyc

@@ -5,16 +5,26 @@
   let cpu = $state<number | null>(null);
   let ram = $state<number | null>(null);
   let disk = $state<number | null>(null);
+  let netRx = $state<number | null>(null);
+  let netTx = $state<number | null>(null);
   let timer: ReturnType<typeof setInterval> | null = null;
 
   async function tick() {
     try {
       const r = await fetch('/api/admin/stats', { cache: 'no-store' });
       if (!r.ok) return;
-      const j = (await r.json()) as { cpu: number; ram: number; disk: number };
+      const j = (await r.json()) as {
+        cpu: number;
+        ram: number;
+        disk: number;
+        net_rx_kbps?: number;
+        net_tx_kbps?: number;
+      };
       cpu = j.cpu;
       ram = j.ram;
       disk = j.disk;
+      netRx = j.net_rx_kbps ?? null;
+      netTx = j.net_tx_kbps ?? null;
     } catch {
       /* swallow — footer is best effort */
     }
@@ -31,10 +41,16 @@
   });
 
   const fmt = (v: number | null) => (v == null ? '--' : `${v}%`);
+
+  const fmtNet = (kbps: number | null): string => {
+    if (kbps == null) return '--';
+    if (kbps >= 1000) return `${(kbps / 1000).toFixed(1)}M`;
+    return `${kbps}k`;
+  };
 </script>
 
 <div class="stats-footer mono" aria-hidden="true">
-  CPU {fmt(cpu)} · RAM {fmt(ram)} · DISK {fmt(disk)}
+  CPU {fmt(cpu)} · RAM {fmt(ram)} · DISK {fmt(disk)} · NET ↓{fmtNet(netRx)} ↑{fmtNet(netTx)}
 </div>
 
 <style>

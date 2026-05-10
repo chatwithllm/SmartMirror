@@ -1,0 +1,54 @@
+# Smart Mirror · gesture router (Phase 13.2)
+#
+# The gesture service runs on the kiosk PC (USB webcam plugged into
+# the kiosk) and POSTs each classified gesture to:
+#
+#   1. http://kiosk:3000/api/gesture           — UI fan-out via SSE
+#   2. {HA_URL}/api/events/mirror_gesture      — global state via HA bus
+#
+# This automation owns (2). It only acts on the gestures that change
+# global HA state: mode_next/prev cycle input_select.mirror_preset,
+# and lock toggles input_boolean.mirror_gesture_enable off for 5
+# minutes (the kiosk service polls the boolean and releases the
+# camera so the LED actually goes dark).
+#
+# UI-only gestures (focus, tile_fullscreen, tile_minimize, alert_ack,
+# media_pause, wake) flow through (1) — HA never sees them.
+
+- alias: "Mirror · gesture · action fanout"
+  id: mirror_gesture_action_fanout
+  mode: queued
+  max: 16
+  trigger:
+    - platform: event
+      event_type: mirror_gesture
+  condition:
+    - condition: state
+      entity_id: input_boolean.mirror_gesture_enable
+      state: "on"
+  action:
+    - choose:
+        - conditions:
+            - "{{ trigger.event.data.gesture == 'mode_next' }}"
+          sequence:
+            - service: input_select.select_next
+              target: { entity_id: input_select.mirror_preset }
+              data: { cycle: true }
+        - conditions:
+            - "{{ trigger.event.data.gesture == 'mode_prev' }}"
+          sequence:
+            - service: input_select.select_previous
+              target: { entity_id: input_select.mirror_preset }
+              data: { cycle: true }
+        - conditions:
+            - "{{ trigger.event.data.gesture == 'lock' }}"
+          sequence:
+            # Closed-fist hold == "stop watching me". Disable the
+            # gesture service for 5 min — it polls this boolean once a
+            # second and releases the camera so the LED goes dark.
+            - service: input_boolean.turn_off
+              target: { entity_id: input_boolean.mirror_gesture_enable }
+            - delay: { minutes: 5 }
+            - service: input_boolean.turn_on
+              target: { entity_id: input_boolean.mirror_gesture_enable }
+      default: []
