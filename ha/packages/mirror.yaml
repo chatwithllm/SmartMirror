@@ -122,6 +122,36 @@ input_text:
     # watch URL with params is ~110.
     max: 255
     initial: ""
+  # QR-bind camera slots. CameraGridCard watches these helpers; empty
+  # state = render a QR placeholder pointing at /setup/camera/N on the
+  # mirror's LAN URL. Phone scans → user picks a camera.* entity → the
+  # frontend POSTs to /api/setup/camera-binding which calls
+  # input_text/set_value here, and the card swaps to FrigateCameraTile.
+  mirror_camera_slot_0:
+    name: Mirror Camera Slot 0
+    icon: mdi:cctv
+    initial: ""
+    max: 64
+  mirror_camera_slot_1:
+    name: Mirror Camera Slot 1
+    icon: mdi:cctv
+    initial: ""
+    max: 64
+  mirror_camera_slot_2:
+    name: Mirror Camera Slot 2
+    icon: mdi:cctv
+    initial: ""
+    max: 64
+  mirror_camera_slot_3:
+    name: Mirror Camera Slot 3
+    icon: mdi:cctv
+    initial: ""
+    max: 64
+  mirror_camera_slot_4:
+    name: Mirror Camera Slot 4
+    icon: mdi:cctv
+    initial: ""
+    max: 64
 
 input_number:
   mirror_override_minutes:

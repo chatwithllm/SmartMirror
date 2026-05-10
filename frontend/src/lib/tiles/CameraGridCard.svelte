@@ -2,12 +2,13 @@
   /**
    * Asymmetric camera grid (3 cells row 1, 2 cells row 2 — 5 total).
    * Each cell either:
-   *   - mounts FrigateCameraTile when an entity_id is configured AND
-   *     window.__HA_URL__ + token are populated
-   *   - falls back to a styled placeholder ("CAM N · OFFLINE") so the
-   *     grid still reads as a security feed in dev / no-HA mode.
-   * Demo placeholder uses radial-gradient + grain SVG overlay + a
-   * tiny live timestamp tick to feel authored, not blank.
+   *   - mounts FrigateCameraTile when input_text.mirror_camera_slot_N
+   *     resolves to a non-empty entity id (the user has bound it via
+   *     the QR setup flow)
+   *   - falls back to a QR-bind placeholder pointing at
+   *     /setup/camera/N on the mirror's LAN URL. Phone scans → picks
+   *     a camera entity → server writes the helper → this card swaps
+   *     to a live feed within ~5–10s.
    *
    * Header has a CAMERAS pill on the left + a scrolling notification
    * ticker on the right. Notifications can be passed via
@@ -15,9 +16,16 @@
    */
   import { onDestroy, onMount } from 'svelte';
   import { browser } from '$app/environment';
+  import { page } from '$app/stores';
+  import { get } from 'svelte/store';
+  import QRCode from 'qrcode';
   import FrigateCameraTile from './FrigateCameraTile.svelte';
+  import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
 
   interface CameraSpec {
+    // entity_id is no longer the source of truth — bindings come from
+    // input_text.mirror_camera_slot_N. Kept for back-compat with any
+    // layout JSON that still passes it; ignored at render time.
     entity_id?: string;
     label?: string;
   }
@@ -29,8 +37,8 @@
   }
   let { id: _id, isActive, props = {} }: Props = $props();
 
-  // Default to 5 generic slots — the layout JSON can override with
-  // real entity ids per camera position. Row 1: 3 cells. Row 2: 2 cells.
+  // Default to 5 generic slots — labels only. Real binding lives in
+  // input_text helpers and is read via watchEntity below.
   const cameras = $derived(
     props.cameras ?? [
       { label: 'Front' },
@@ -64,18 +72,79 @@
     haReady = Boolean(w.__HA_URL__ && w.__HA_TOKEN__);
   });
 
+  // Per-slot HA helper watch — input_text.mirror_camera_slot_N. Empty
+  // state means no binding → render QR. Non-empty means the user
+  // chose a camera entity; mount FrigateCameraTile with that id.
+  let bindings = $state<string[]>(['', '', '', '', '']);
+  const bindingStops: Array<(() => void) | null> = [null, null, null, null, null];
+
+  $effect(() => {
+    if (!isActive) return;
+    for (let i = 0; i < 5; i++) {
+      bindingStops[i]?.();
+      const w = watchEntity(`input_text.mirror_camera_slot_${i}`, 5_000);
+      const slotIdx = i;
+      const unsub = w.store.subscribe((e: HaEntity | null) => {
+        const v = (e?.state ?? '').trim();
+        bindings[slotIdx] =
+          v && v !== 'unknown' && v !== 'unavailable' ? v : '';
+      });
+      bindingStops[i] = () => {
+        unsub();
+        w.stop();
+      };
+    }
+    return () => {
+      for (let i = 0; i < 5; i++) {
+        bindingStops[i]?.();
+        bindingStops[i] = null;
+      }
+    };
+  });
+
+  // QR url + dataURL generation. Phone scans a per-slot URL pointing
+  // at /setup/camera/N on the mirror's LAN host (provided by
+  // +layout.server.ts; falls back to window.origin if dev/no override).
+  const lanUrl = $derived.by((): string => {
+    const data = get(page).data as { mirrorLanUrl?: string };
+    if (data?.mirrorLanUrl) return data.mirrorLanUrl;
+    if (browser) return window.location.origin;
+    return '';
+  });
+
+  let qrDataUrls = $state<string[]>(['', '', '', '', '']);
+
+  $effect(() => {
+    if (!browser || !lanUrl) return;
+    for (let i = 0; i < 5; i++) {
+      const url = `${lanUrl}/setup/camera/${i}`;
+      const slotIdx = i;
+      void QRCode.toDataURL(url, {
+        width: 240,
+        margin: 1,
+        color: { dark: '#f4ece0', light: '#0a0a0a00' }
+      }).then((d) => {
+        qrDataUrls[slotIdx] = d;
+      });
+    }
+  });
+
   // Live HH:MM:SS for placeholder timestamps. Cheap setInterval —
-  // shared across all 4 cells.
+  // shared across all 4 cells. Currently unused in the QR variant but
+  // kept for any future hybrid placeholder.
   let now = $state(new Date());
   let timer: ReturnType<typeof setInterval> | null = null;
   onMount(() => {
     if (!isActive) return;
     timer = setInterval(() => (now = new Date()), 1000);
   });
-  onDestroy(() => { if (timer) clearInterval(timer); });
-
-  const fmtTs = (d: Date) =>
-    d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  onDestroy(() => {
+    if (timer) clearInterval(timer);
+    for (let i = 0; i < 5; i++) {
+      bindingStops[i]?.();
+      bindingStops[i] = null;
+    }
+  });
 </script>
 
 <section class="cams" data-testid="camera-grid">
@@ -96,20 +165,26 @@
   </header>
   <div class="grid">
     {#each cameras as cam, i (i)}
-      {#if haReady && cam.entity_id}
+      {#if haReady && bindings[i]}
         <div class="cell">
           <FrigateCameraTile
             id={`cam-${i}`}
-            props={{ entity_id: cam.entity_id, refreshMs: 2000, fit: 'cover' }}
+            props={{ entity_id: bindings[i], refreshMs: 2000, fit: 'cover' }}
           />
           <div class="cell-label">{cam.label ?? `CAM ${i + 1}`}</div>
         </div>
       {:else}
-        <div class="cell offline" aria-label="{cam.label ?? `Camera ${i + 1}`} offline">
-          <div class="grain"></div>
-          <div class="rec-dot"></div>
-          <div class="ts mono">{fmtTs(now)}</div>
-          <div class="cell-label">{cam.label ?? `CAM ${i + 1}`} · OFFLINE</div>
+        <div
+          class="cell qr-bind"
+          aria-label="{cam.label ?? `Camera ${i + 1}`} unbound"
+        >
+          {#if qrDataUrls[i]}
+            <img class="qr" src={qrDataUrls[i]} alt="QR to bind slot {i}" />
+          {:else}
+            <div class="grain"></div>
+          {/if}
+          <div class="bind-hint">Scan to bind</div>
+          <div class="cell-label">SLOT {i + 1} · UNBOUND</div>
         </div>
       {/if}
     {/each}
@@ -247,50 +322,32 @@
     text-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
     pointer-events: none;
   }
-  .cell.offline {
-    background:
-      radial-gradient(ellipse at 30% 30%, #1a1a1a 0%, #050505 60%);
+  .cell.qr-bind {
+    background: radial-gradient(ellipse at 30% 30%, #1a1714 0%, #050505 60%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
   }
-  /* SVG grain overlay — gives the placeholder noise like real low-light camera feed */
-  .cell.offline .grain {
+  .cell.qr-bind .qr {
+    width: 60%;
+    max-width: 7rem;
+    aspect-ratio: 1 / 1;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.6));
+  }
+  .cell.qr-bind .bind-hint {
     position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-    background-size: 160px 160px;
-    opacity: 0.5;
-    pointer-events: none;
-    animation: grain-shift 1.8s steps(8) infinite;
-  }
-  @keyframes grain-shift {
-    0%   { transform: translate(0, 0); }
-    25%  { transform: translate(-3px, 2px); }
-    50%  { transform: translate(2px, -2px); }
-    75%  { transform: translate(-1px, 3px); }
-    100% { transform: translate(0, 0); }
-  }
-  .cell.offline .rec-dot {
-    position: absolute;
-    top: 0.4rem;
-    right: 0.4rem;
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: 50%;
-    background: var(--bad, #c95a4a);
-    box-shadow: 0 0 6px var(--bad, #c95a4a);
-    animation: rec-pulse 1.4s ease-in-out infinite;
-  }
-  @keyframes rec-pulse {
-    0%, 100% { opacity: 0.3; }
-    50%      { opacity: 1; }
-  }
-  .cell.offline .ts {
-    position: absolute;
-    top: 0.3rem;
-    left: 0.4rem;
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.08em;
-    color: rgba(255, 255, 255, 0.65);
+    bottom: 1rem;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.6rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
     pointer-events: none;
   }
   .rule {
