@@ -8,29 +8,12 @@ export interface HaEntity {
   last_changed?: string;
 }
 
-interface RuntimeCfg {
-  baseUrl: string;     // kept for compat; unused for fetches now
-  token: string;       // kept for compat; unused for fetches now
-  haReady: boolean;
-}
-
-function getRuntime(): RuntimeCfg | null {
-  if (!browser) return null;
-  const w = window as unknown as { __HA_URL__?: string; __HA_TOKEN__?: string };
-  // +layout.svelte publishes these via onMount, but poll-based entity
-  // watchers can also read straight from +layout.server.ts data if
-  // window hasn't been populated yet. The values are kept for back-compat
-  // — actual fetches go through the same-origin /api/ha/ proxy so we
-  // dodge Cloudflare CORS preflight blocking.
-  if (w.__HA_URL__ && w.__HA_TOKEN__) {
-    return { baseUrl: w.__HA_URL__, token: w.__HA_TOKEN__, haReady: true };
-  }
-  return null;
-}
-
-async function fetchEntity(_cfg: RuntimeCfg, id: string): Promise<HaEntity | null> {
+async function fetchEntity(id: string): Promise<HaEntity | null> {
   try {
     // Proxy path — same-origin, no CORS, server adds bearer auth.
+    // Doesn't need window.__HA_URL__/__HA_TOKEN__ to be populated yet,
+    // so we avoid the race where child watchers fire before +layout.svelte
+    // onMount has seeded the globals.
     const r = await fetch(`/api/ha/api/states/${encodeURIComponent(id)}`, {
       cache: 'no-store'
     });
@@ -55,9 +38,7 @@ export function watchEntity(
   let stopped = false;
 
   const tick = async () => {
-    const cfg = getRuntime();
-    if (!cfg) return;
-    const e = await fetchEntity(cfg, id);
+    const e = await fetchEntity(id);
     if (!stopped) set(e);
   };
 
@@ -77,7 +58,5 @@ export function watchEntity(
 
 /** One-shot fetch — for tiles that only need initial data. */
 export async function getEntity(id: string): Promise<HaEntity | null> {
-  const cfg = getRuntime();
-  if (!cfg) return null;
-  return fetchEntity(cfg, id);
+  return fetchEntity(id);
 }

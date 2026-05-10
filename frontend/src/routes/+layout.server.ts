@@ -1,5 +1,6 @@
 import type { LayoutServerLoad } from './$types';
 import os from 'node:os';
+import { env } from '$env/dynamic/private';
 
 // Detect a LAN-routable IPv4 on the mirror host. The kiosk browser
 // always talks to http://localhost:3000, but the QR code in the
@@ -7,9 +8,9 @@ import os from 'node:os';
 // reach. Honor MIRROR_LAN_URL override when set; otherwise pick the
 // first non-internal IPv4 interface.
 function detectLanUrl(): string {
-  const override = process.env.MIRROR_LAN_URL?.trim();
+  const override = env.MIRROR_LAN_URL?.trim();
   if (override) return override.replace(/\/$/, '');
-  const port = process.env.PORT ?? '3000';
+  const port = env.PORT ?? '3000';
   const ifs = os.networkInterfaces();
   for (const name of Object.keys(ifs)) {
     for (const addr of ifs[name] ?? []) {
@@ -27,8 +28,8 @@ function detectLanUrl(): string {
 // a deliberate tradeoff — it avoids another round-trip.
 export const load: LayoutServerLoad = () => {
   return {
-    haUrl: process.env.HA_URL ?? '',
-    haToken: process.env.HA_TOKEN ?? '',
+    haUrl: env.HA_URL ?? '',
+    haToken: env.HA_TOKEN ?? '',
     mirrorLanUrl: detectLanUrl()
   };
 };
