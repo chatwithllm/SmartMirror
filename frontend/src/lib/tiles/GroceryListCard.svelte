@@ -12,6 +12,7 @@
   import { browser } from '$app/environment';
   import { isStale } from '$lib/cards/stale.js';
   import { SECTION_EMPTY_CTX } from '$lib/sections/empty.js';
+  import EditorialTicker from '$lib/EditorialTicker.svelte';
 
   interface Props {
     id: string;
@@ -167,15 +168,28 @@
     if (!markEmpty) return;
     markEmpty(configured && lastSuccessTs > 0 && groups.length === 0);
   });
+
+  // Marquee items: total summary + per-store (store · count · total),
+  // followed by individual item names. Lets the eye catch what's on
+  // the list without scrolling the card body.
+  const tickerItems = $derived.by(() => {
+    if (lastSuccessTs === 0 || !configured || groups.length === 0) return [];
+    const out: string[] = [];
+    out.push(`${totalOpen} open · ${money(grandTotal)}`);
+    for (const g of groups) {
+      out.push(`${g.store} · ${g.count} · ${money(g.total)}`);
+    }
+    for (const g of groups) {
+      for (const r of g.rows) {
+        out.push(r.qty ? `${r.name} · ${r.qty}` : r.name);
+      }
+    }
+    return out;
+  });
 </script>
 
 <section class="grocery" data-stale={stale ? 'true' : undefined}>
-  <header class="kicker">
-    <span>— Pantry —</span>
-    {#if lastSuccessTs > 0 && totalOpen > 0}
-      <span class="badge">{totalOpen} open · {money(grandTotal)}</span>
-    {/if}
-  </header>
+  <EditorialTicker tag="Pantry" items={tickerItems} />
 
   {#if failed}
     <p class="fail">— card unavailable —</p>
@@ -224,23 +238,6 @@
     font-family: 'Fraunces', Georgia, serif;
     position: relative;
     min-height: 0;
-  }
-  .kicker {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-style: italic;
-    font-size: 0.6rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--dim);
-    margin-bottom: 0.5rem;
-  }
-  .kicker .badge {
-    color: var(--accent);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    font-feature-settings: 'tnum';
   }
   .empty,
   .fail {
