@@ -83,15 +83,46 @@
     if (hr < 24) return rest === 0 ? `${hr}h` : `${hr}h ${rest}m`;
     return `${Math.floor(hr / 24)}d`;
   }
-  function kpiBucket(spec: KpiSpec): 'ok' | 'accent' | 'warn' | 'bad' | null {
-    if (!spec.bucketize) return null;
+  // Bar fill fraction in [0, 1]. Maps each value type to a 0-100% scale:
+  //   bucketize/percent → raw percent
+  //   percent_pace      → |pace| / 100 (closer to budget = bigger bar)
+  //   relative          → time remaining vs a sensible window (5h for
+  //                       session, 7d for weekly — sniffed from label)
+  function kpiFraction(spec: KpiSpec): number {
     const e = kpiEntities[spec.entityId];
-    if (!e) return null;
-    const n = Number(e.state);
-    if (!Number.isFinite(n)) return null;
-    if (n < 25) return 'ok';
-    if (n < 50) return 'accent';
-    if (n < 75) return 'warn';
+    if (!e) return 0;
+    const raw = e.state;
+    if (raw == null || raw === 'unknown' || raw === 'unavailable') return 0;
+    if (spec.valueFormat === 'relative') {
+      const t = Date.parse(raw);
+      if (!Number.isFinite(t)) return 0;
+      const minLeft = Math.max(0, (t - Date.now()) / 60_000);
+      const isWeekly = /week/i.test(spec.label ?? '');
+      const windowMin = isWeekly ? 7 * 24 * 60 : 5 * 60;
+      return Math.min(1, minLeft / windowMin);
+    }
+    if (spec.valueFormat === 'percent_pace') {
+      const n = Number(raw);
+      if (!Number.isFinite(n)) return 0;
+      return Math.min(1, Math.abs(n) / 100);
+    }
+    const n = Number(raw);
+    if (!Number.isFinite(n)) return 0;
+    return Math.min(1, Math.max(0, n / 100));
+  }
+
+  // 4-bucket color band. For % values: bigger = worse (more usage).
+  // For "time remaining" / "pace" the semantics flip — bucket inverts.
+  function kpiBucket(spec: KpiSpec): 'ok' | 'accent' | 'warn' | 'bad' {
+    const f = kpiFraction(spec);
+    // For relative-time / pace, more headroom = better. Invert so
+    // "lots of time left" = ok, "running out" = bad.
+    const inverted =
+      spec.valueFormat === 'relative' || spec.valueFormat === 'percent_pace';
+    const score = inverted ? 1 - f : f;
+    if (score < 0.25) return 'ok';
+    if (score < 0.5) return 'accent';
+    if (score < 0.75) return 'warn';
     return 'bad';
   }
 
@@ -390,9 +421,17 @@
       <div class="kpi-row">
         {#each kpis as k (k.entityId)}
           {@const bucket = kpiBucket(k)}
-          <div class="kpi">
-            <div class="kpi-lbl">{k.label}</div>
-            <div class="kpi-val" data-bucket={bucket ?? undefined}>{fmtKpiValue(k)}</div>
+          {@const frac = kpiFraction(k)}
+          <div
+            class="kpi"
+            data-bucket={bucket}
+            style="--kpi-pct: {(frac * 100).toFixed(1)}%"
+          >
+            <div class="kpi-fill" aria-hidden="true"></div>
+            <div class="kpi-content">
+              <div class="kpi-lbl">{k.label}</div>
+              <div class="kpi-val">{fmtKpiValue(k)}</div>
+            </div>
           </div>
         {/each}
       </div>
@@ -644,23 +683,59 @@
 
   /* KPI row — sits directly under the Weekly Outlook ticker as a
    * fixed strip inside the masthead tile. Not a separate tile, not
-   * resizable. */
+   * resizable. Each KPI is now a progress bar: a faint bucket-tinted
+   * fill behind the label/value showing where the value lands on its
+   * 0-100% scale. */
   .kpi-row {
     flex: none;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: 0.7rem;
+    align-items: stretch;
+    gap: 0.5rem;
     padding: 0.35rem 0.7rem 0.4rem;
     border-bottom: 1px solid var(--line);
     overflow: hidden;
   }
   .kpi {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.25rem 0.55rem;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--panel, transparent);
+    overflow: hidden;
+    /* Bucket color resolved per pill — drives fill + value text. */
+    --kpi-color: var(--accent, #d8b36b);
+  }
+  .kpi[data-bucket='ok']     { --kpi-color: var(--ok,    #87a876); }
+  .kpi[data-bucket='accent'] { --kpi-color: var(--accent,#d8b36b); }
+  .kpi[data-bucket='warn']   { --kpi-color: var(--warn,  #c89854); }
+  .kpi[data-bucket='bad']    { --kpi-color: var(--bad,   #c95a4a); }
+
+  /* Faint bucket-colored fill — alpha low enough that text stays
+   * legible across the boundary. A 2px solid right edge marks the
+   * progress endpoint crisply. */
+  .kpi-fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--kpi-pct, 0%);
+    background: var(--kpi-color);
+    opacity: 0.22;
+    border-right: 2px solid var(--kpi-color);
+    transition: width 400ms ease, opacity 400ms ease;
+    pointer-events: none;
+  }
+
+  .kpi-content {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: auto auto;
     column-gap: 0.5rem;
     align-items: baseline;
-    min-width: 0;
   }
   .kpi-lbl {
     font-style: italic;
@@ -672,21 +747,20 @@
     color: #cc785c;
     line-height: 1;
     white-space: nowrap;
+    /* Subtle shadow so the label reads over any fill color. */
+    text-shadow: 0 0 6px var(--bg, transparent);
   }
   .kpi-val {
     font-style: italic;
     font-weight: 700;
     font-size: 1rem;
-    color: var(--accent);
+    color: var(--kpi-color);
     font-feature-settings: 'tnum';
     line-height: 1;
     white-space: nowrap;
     transition: color 400ms ease;
+    /* Same shadow keeps the saturated bucket text legible where it
+     * crosses the bucket-tinted fill. */
+    text-shadow: 0 0 6px var(--bg, transparent);
   }
-  /* Bucketized values per 25% slice — only applied when KpiSpec.bucketize
-   * is true (default value stays --accent gold). */
-  .kpi-val[data-bucket='ok']     { color: var(--ok,    #87a876); }
-  .kpi-val[data-bucket='accent'] { color: var(--accent,#d8b36b); }
-  .kpi-val[data-bucket='warn']   { color: var(--warn,  #c89854); }
-  .kpi-val[data-bucket='bad']    { color: var(--bad,   #c95a4a); }
 </style>
