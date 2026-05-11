@@ -76,12 +76,32 @@
   let lastScreenState: string | null = null;
   let screenBaselined = false;
 
+  // Actions that tear down their own response (the request kills the
+  // browser or the Node server before the reply lands). For these we
+  // toast optimistically and swallow the inevitable fetch error —
+  // the action did fire, the connection just died first.
+  const SELF_TERMINATING = new Set(['reload_browser', 'restart_frontend', 'reboot']);
+
   async function dispatchAction(action: string) {
     // YouTube actions run entirely in the browser against the IFrame
     // Player — no round-trip through the admin endpoint.
     if (action.startsWith('yt_')) {
       const ok = ytCmd(action as YTAction);
       if (!ok) toasts.push('warn', `yt · player not ready`);
+      return;
+    }
+    if (SELF_TERMINATING.has(action)) {
+      toasts.push('info', `mirror · ${action.replace('_', ' ')}`);
+      try {
+        await fetch('/api/admin/command', {
+          method: 'POST',
+          keepalive: true,
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ action })
+        });
+      } catch {
+        /* expected — kiosk reload / process exit kills the socket */
+      }
       return;
     }
     try {
@@ -91,7 +111,7 @@
         body: JSON.stringify({ action })
       });
       toasts.push('info', `mirror · ${action.replace('_', ' ')}`);
-    } catch (e) {
+    } catch {
       toasts.push('error', `admin ${action} failed`);
     }
   }
