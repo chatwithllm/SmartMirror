@@ -348,7 +348,7 @@
     line-height: 1.3;
     color: var(--fg);
     padding: 0.18rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid var(--line);
     /* Single line — no cramped clipping. Items that don't fit are
      * folded under "+N more" via measurement. */
     white-space: nowrap;
@@ -361,7 +361,7 @@
     color: var(--dim);
     padding: 0.18rem 0 0;
     margin-top: 0.1rem;
-    border-top: 1px dashed rgba(255, 255, 255, 0.08);
+    border-top: 1px dashed var(--line-strong);
     text-align: right;
     letter-spacing: 0.04em;
     font-feature-settings: 'tnum';

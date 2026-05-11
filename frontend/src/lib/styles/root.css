@@ -79,18 +79,24 @@
   --line: #d5cdbc;
   --line-strong: #b5ad9c;
 }
-/* Per-theme accent tweaks for readability on light bg. */
+/* Per-theme accent tweaks for readability on light bg.
+ *
+ * Editorial light mode = "newsprint" — neutral warm paper, deep ink,
+ * burnished gold accent. Previous palette was too cream/yellow and
+ * the gold accent washed out on yellow paper. This palette pushes
+ * the bg toward neutral off-white and the fg toward true black-brown
+ * so ink-on-paper contrast meets WCAG AAA at body sizes. */
 :root[data-theme='editorial'][data-mode='light'] {
-  --bg: #f4ecdc;
+  --bg: #f6f2e9;
   --panel: #ffffff;
-  --panel-2: #ede1c6;
-  --fg: #2c2013;
-  --dim: #6b5c47;
-  --dimmer: #9a8c75;
-  --line: #d8ccae;
-  --line-strong: #b8a97f;
-  --accent: #9a6a18;
-  --accent-2: #7d540d;
+  --panel-2: #ece5d3;
+  --fg: #16110a;
+  --dim: #4a3f2d;
+  --dimmer: #847864;
+  --line: #c9bfa6;
+  --line-strong: #a99b78;
+  --accent: #a35c0e;       /* burnt sienna / gold-leaf — readable on cream */
+  --accent-2: #864a05;
 }
 
 * {
