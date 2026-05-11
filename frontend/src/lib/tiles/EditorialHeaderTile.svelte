@@ -16,7 +16,7 @@
   import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
   import { currentPhase, type Phase } from '$lib/phase/clock.js';
   import { weatherIcon } from '$lib/weather/icons.js';
-  import { wordForHour } from '$lib/words/index.js';
+  import { wordForHour, quoteForHour } from '$lib/words/index.js';
 
   type ValueFormat = 'number' | 'relative' | 'percent_pace';
   interface KpiSpec {
@@ -154,12 +154,49 @@
     if (timer) clearInterval(timer);
   });
 
-  // Word of the hour. Derived against the hour bucket only — value
-  // reference stays stable across the 3,599 intra-hour ticks so the
-  // {#key} block doesn't replay the fade every second.
-  const word = $derived(
-    wordForHour(new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000))
+  // Word + quote of the hour. Derived against the hour bucket only —
+  // value reference stays stable across the 3,599 intra-hour ticks so
+  // the {#key} block doesn't replay the fade every second.
+  const hourBucket = $derived(
+    new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000)
   );
+  const word = $derived(wordForHour(hourBucket));
+  const quote = $derived(quoteForHour(hourBucket));
+
+  // Word row overflow detector — when word + quote can't fit, drop
+  // the "WORD OF THE HOUR" kicker label so the actual content reads.
+  let wordRowEl: HTMLDivElement | null = $state(null);
+  let wordCramped = $state(false);
+
+  $effect(() => {
+    // Re-measure on content rotation.
+    void word.word;
+    void quote.q;
+    if (!wordRowEl) return;
+    wordCramped = false; // show kicker, then measure
+    requestAnimationFrame(() => {
+      if (!wordRowEl) return;
+      wordCramped = wordRowEl.scrollWidth > wordRowEl.clientWidth + 1;
+    });
+  });
+
+  $effect(() => {
+    if (!wordRowEl) return;
+    const el = wordRowEl;
+    const ro = new ResizeObserver(() => {
+      requestAnimationFrame(() => {
+        if (!wordRowEl) return;
+        // Always retry with kicker shown — if it now fits, restore it.
+        wordCramped = false;
+        requestAnimationFrame(() => {
+          if (!wordRowEl) return;
+          wordCramped = wordRowEl.scrollWidth > wordRowEl.clientWidth + 1;
+        });
+      });
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  });
 
   // Weather watch — only if entity_id provided.
   let haEntity = $state<HaEntity | null>(null);
@@ -445,7 +482,7 @@
       </div>
     {/if}
 
-    <div class="word-row">
+    <div class="word-row" bind:this={wordRowEl} data-cramped={wordCramped ? 'true' : undefined}>
       <span class="word-kicker">Word of the Hour</span>
       {#key word.word}
         <span class="word-block" in:fade={{ duration: 600 }}>
@@ -455,6 +492,17 @@
           <span class="word-def">{word.def}</span>
         </span>
       {/key}
+      {#if quote.q}
+        <span class="quote-divider" aria-hidden="true">◆</span>
+        {#key quote.q}
+          <span class="quote-block" in:fade={{ duration: 600 }}>
+            <span class="quote-mark" aria-hidden="true">“</span>
+            <span class="quote-text">{quote.q}</span>
+            <span class="quote-mark" aria-hidden="true">”</span>
+            <span class="quote-by">— {quote.by}</span>
+          </span>
+        {/key}
+      {/if}
     </div>
   </header>
 </BaseTile>
@@ -840,5 +888,51 @@
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+  }
+  /* Quote half — fades alongside the word every hour. Truncates with
+   * ellipsis when it can't fit; if the whole row still doesn't fit,
+   * the kicker is dropped via [data-cramped]. */
+  .word-row[data-cramped='true'] .word-kicker {
+    display: none;
+  }
+  .quote-divider {
+    color: var(--dimmer);
+    font-size: 0.55rem;
+    flex: 0 0 auto;
+  }
+  .quote-block {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .quote-mark {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--accent);
+    line-height: 0.6;
+  }
+  .quote-text {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.75rem;
+    color: var(--fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .quote-by {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.65rem;
+    color: var(--dim);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    flex: 0 0 auto;
   }
 </style>
