@@ -163,40 +163,7 @@
   const word = $derived(wordForHour(hourBucket));
   const quote = $derived(quoteForHour(hourBucket));
 
-  // Word row overflow detector — when word + quote can't fit, drop
-  // the "WORD OF THE HOUR" kicker label so the actual content reads.
   let wordRowEl: HTMLDivElement | null = $state(null);
-  let wordCramped = $state(false);
-
-  $effect(() => {
-    // Re-measure on content rotation.
-    void word.word;
-    void quote.q;
-    if (!wordRowEl) return;
-    wordCramped = false; // show kicker, then measure
-    requestAnimationFrame(() => {
-      if (!wordRowEl) return;
-      wordCramped = wordRowEl.scrollWidth > wordRowEl.clientWidth + 1;
-    });
-  });
-
-  $effect(() => {
-    if (!wordRowEl) return;
-    const el = wordRowEl;
-    const ro = new ResizeObserver(() => {
-      requestAnimationFrame(() => {
-        if (!wordRowEl) return;
-        // Always retry with kicker shown — if it now fits, restore it.
-        wordCramped = false;
-        requestAnimationFrame(() => {
-          if (!wordRowEl) return;
-          wordCramped = wordRowEl.scrollWidth > wordRowEl.clientWidth + 1;
-        });
-      });
-    });
-    ro.observe(el);
-    return () => ro.disconnect();
-  });
 
   // Weather watch — only if entity_id provided.
   let haEntity = $state<HaEntity | null>(null);
@@ -482,8 +449,7 @@
       </div>
     {/if}
 
-    <div class="word-row" bind:this={wordRowEl} data-cramped={wordCramped ? 'true' : undefined}>
-      <span class="word-kicker">Word of the Hour</span>
+    <div class="word-row" bind:this={wordRowEl}>
       {#key word.word}
         <span class="word-block" in:fade={{ duration: 600 }}>
           <span class="word-term">{word.word}</span>
@@ -844,14 +810,6 @@
     border-bottom: 1px solid var(--line);
     white-space: nowrap;
   }
-  .word-kicker {
-    font-style: italic;
-    font-size: 0.55rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--dim);
-    flex: 0 0 auto;
-  }
   .word-block {
     display: inline-flex;
     align-items: baseline;
@@ -890,11 +848,7 @@
     min-width: 0;
   }
   /* Quote half — fades alongside the word every hour. Truncates with
-   * ellipsis when it can't fit; if the whole row still doesn't fit,
-   * the kicker is dropped via [data-cramped]. */
-  .word-row[data-cramped='true'] .word-kicker {
-    display: none;
-  }
+   * ellipsis when it can't fit. */
   .quote-divider {
     color: var(--dimmer);
     font-size: 0.55rem;
