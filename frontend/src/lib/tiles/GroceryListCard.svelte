@@ -245,7 +245,7 @@
 </script>
 
 <section class="grocery" data-stale={stale ? 'true' : undefined}>
-  <EditorialTicker tag="Pantry" items={tickerItems} />
+  <EditorialTicker tag="Pantry" items={tickerItems} durationSec={80} />
 
   {#if failed}
     <p class="fail">— card unavailable —</p>
