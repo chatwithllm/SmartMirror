@@ -54,6 +54,19 @@
   let lastSuccessTs = $state(0);
   let timer: ReturnType<typeof setInterval> | null = null;
 
+  // Monthly spending-by-category from extended.npalakurla.com /analytics
+  // proxy. Drives the marquee (replaces the per-item scroll). Refreshed
+  // on a slower cadence — the data only changes when receipts post.
+  type CategoryRow = {
+    category: string;
+    amount: number;
+    share_pct?: number;
+    delta_pct?: number;
+    prev_amount?: number;
+  };
+  let spending = $state<{ month: string; total: number; categories: CategoryRow[] } | null>(null);
+  let spendingTimer: ReturnType<typeof setInterval> | null = null;
+
   function priceOf(it: ApiItem): number {
     if (typeof it.actual_price === 'number') return it.actual_price;
     if (typeof it.manual_estimated_price === 'number') return it.manual_estimated_price;
@@ -147,13 +160,33 @@
     }
   }
 
+  async function loadSpending() {
+    try {
+      const r = await fetch('/api/admin/grocery/spending-by-category?limit=20', {
+        cache: 'no-store'
+      });
+      if (!r.ok) return;
+      const j = (await r.json()) as {
+        configured?: boolean;
+        data?: { month: string; total: number; categories: CategoryRow[] } | null;
+      };
+      if (j?.configured && j.data) spending = j.data;
+    } catch {
+      /* transient — keep last value */
+    }
+  }
+
   onMount(() => {
     if (!browser || !isActive) return;
     void load();
     timer = setInterval(load, Math.max(30_000, props.pollMs ?? 30_000));
+    void loadSpending();
+    // Spending changes when transactions post — refresh every 15 min.
+    spendingTimer = setInterval(loadSpending, 15 * 60_000);
   });
   onDestroy(() => {
     if (timer) clearInterval(timer);
+    if (spendingTimer) clearInterval(spendingTimer);
   });
 
   const stale = $derived(isStale(lastSuccessTs, 30_000));
@@ -169,27 +202,55 @@
     markEmpty(configured && lastSuccessTs > 0 && groups.length === 0);
   });
 
-  // Marquee items: total summary + per-store (store · count · total),
-  // followed by individual item names. Lets the eye catch what's on
-  // the list without scrolling the card body.
+  function titleCase(s: string): string {
+    return s
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  function deltaArrow(d: number | undefined): string {
+    if (typeof d !== 'number' || d === 0) return '';
+    return d < 0 ? `↓${Math.abs(d)}%` : `↑${d}%`;
+  }
+
+  function monthName(ym: string): string {
+    // "2026-05" → "May"
+    const [y, m] = ym.split('-').map((x) => parseInt(x, 10));
+    if (!y || !m) return ym;
+    const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return names[m - 1] ?? ym;
+  }
+
+  // Marquee items: monthly spending-by-category from /analytics. Lets
+  // the eye scan budget at a glance instead of reading individual
+  // shopping rows. Falls back to a minimal pantry summary when the
+  // spending endpoint hasn't responded yet.
   const tickerItems = $derived.by(() => {
-    if (lastSuccessTs === 0 || !configured || groups.length === 0) return [];
-    const out: string[] = [];
-    out.push(`${totalOpen} open · ${money(grandTotal)}`);
-    for (const g of groups) {
-      out.push(`${g.store} · ${g.count} · ${money(g.total)}`);
-    }
-    for (const g of groups) {
-      for (const r of g.rows) {
-        out.push(r.qty ? `${r.name} · ${r.qty}` : r.name);
+    if (spending && spending.categories.length > 0) {
+      const out: string[] = [];
+      out.push(`${monthName(spending.month)} · ${money(spending.total)} total`);
+      for (const c of spending.categories) {
+        const name = titleCase(c.category);
+        const amt = money(c.amount);
+        const share = typeof c.share_pct === 'number' ? ` · ${c.share_pct}%` : '';
+        const delta = deltaArrow(c.delta_pct);
+        out.push(`${name} · ${amt}${share}${delta ? ' · ' + delta : ''}`);
       }
+      return out;
     }
-    return out;
+    // Fallback while spending loads or if it's unavailable.
+    if (lastSuccessTs === 0 || !configured || groups.length === 0) return [];
+    return [`${totalOpen} open · ${money(grandTotal)}`];
   });
 </script>
 
 <section class="grocery" data-stale={stale ? 'true' : undefined}>
-  <EditorialTicker tag="Pantry" items={tickerItems} />
+  <EditorialTicker
+    tag="Pantry"
+    items={tickerItems}
+    durationSec={80}
+    fontFamily="'Rubik', system-ui, sans-serif"
+  />
 
   {#if failed}
     <p class="fail">— card unavailable —</p>
@@ -249,15 +310,24 @@
   }
   .fail { color: var(--dimmer); }
   .groups {
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
+    column-count: 2;
+    column-gap: 1.2rem;
+    column-rule: 1px solid var(--line);
     overflow-y: auto;
     flex: 1;
     min-height: 0;
     padding-right: 0.2rem;
   }
-  .group { display: flex; flex-direction: column; gap: 0.18rem; }
+  .group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    /* Keep store-group intact within a column instead of fragmenting
+     * the header onto one column and rows onto the next. */
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 0.55rem;
+  }
   .gh {
     display: flex;
     justify-content: space-between;

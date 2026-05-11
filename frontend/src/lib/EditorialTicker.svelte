@@ -13,12 +13,20 @@
     durationSec?: number;
     /** Optional accent override (defaults to var(--accent)). */
     accent?: string;
+    /** Optional font-family override for the running text. */
+    fontFamily?: string;
   }
-  let { tag, items, durationSec = 40, accent }: Props = $props();
+  let { tag, items, durationSec = 40, accent, fontFamily }: Props = $props();
 
   const safeItems = $derived(items.length > 0 ? items : ['—']);
   const styleVar = $derived(
-    `--ticker-duration: ${durationSec}s;${accent ? ` --ticker-accent: ${accent};` : ''}`
+    [
+      `--ticker-duration: ${durationSec}s`,
+      accent ? `--ticker-accent: ${accent}` : '',
+      fontFamily ? `--ticker-font: ${fontFamily}` : ''
+    ]
+      .filter(Boolean)
+      .join('; ') + ';'
   );
 </script>
 
@@ -95,7 +103,7 @@
     padding-left: 1rem;
   }
   .t-item {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--ticker-font, 'Fraunces', Georgia, serif);
     font-style: italic;
     font-size: 0.7rem;
     letter-spacing: 0.06em;

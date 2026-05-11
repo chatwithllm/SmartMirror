@@ -21,6 +21,7 @@
   import QRCode from 'qrcode';
   import FrigateCameraTile from './FrigateCameraTile.svelte';
   import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
+  import EditorialTicker from '$lib/EditorialTicker.svelte';
 
   interface CameraSpec {
     // entity_id is no longer the source of truth — bindings come from
@@ -188,21 +189,12 @@
 </script>
 
 <section class="cams" data-testid="camera-grid">
-  <header class="head">
-    <div class="tag">Cameras</div>
-    <div class="ticker">
-      <div class="ticker-track">
-        {#each [0, 1] as loop (loop)}
-          <div class="ticker-loop" aria-hidden={loop === 1}>
-            {#each notifications as note, idx (idx)}
-              <span class="t-item">{note}</span>
-              <span class="t-sep" aria-hidden="true">◆</span>
-            {/each}
-          </div>
-        {/each}
-      </div>
-    </div>
-  </header>
+  <EditorialTicker
+    tag="Cameras"
+    items={notifications}
+    durationSec={80}
+    fontFamily="'Rubik', system-ui, sans-serif"
+  />
   <div class="grid">
     {#each cameras as cam, i (i)}
       {@const liveId = localOverrides[i] || bindings[i] || cam.entity_id || ''}
@@ -273,79 +265,6 @@
     color: var(--fg);
     font-family: 'Fraunces', Georgia, serif;
     position: relative;
-  }
-  .head {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: stretch;
-    height: 1.4rem;
-    margin-bottom: 0.5rem;
-    overflow: hidden;
-    border-bottom: 1px solid var(--line);
-  }
-  .tag {
-    display: flex;
-    align-items: center;
-    padding: 0 0.9rem;
-    background: var(--accent);
-    color: #000;
-    font-family: 'Fraunces', Georgia, serif;
-    font-style: italic;
-    font-weight: 700;
-    font-size: 0.62rem;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    clip-path: polygon(0 0, 100% 0, calc(100% - 0.55rem) 100%, 0 100%);
-    padding-right: 1.2rem;
-  }
-  .ticker {
-    overflow: hidden;
-    position: relative;
-    -webkit-mask-image: linear-gradient(
-      to right,
-      transparent 0,
-      black 3%,
-      black 97%,
-      transparent 100%
-    );
-    mask-image: linear-gradient(
-      to right,
-      transparent 0,
-      black 3%,
-      black 97%,
-      transparent 100%
-    );
-  }
-  .ticker-track {
-    display: inline-flex;
-    align-items: center;
-    height: 100%;
-    white-space: nowrap;
-    animation: cam-ticker-scroll 40s linear infinite;
-    will-change: transform;
-  }
-  .ticker-loop {
-    display: inline-flex;
-    align-items: center;
-    padding-left: 1rem;
-  }
-  .t-item {
-    font-family: 'Fraunces', Georgia, serif;
-    font-style: italic;
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
-    color: var(--fg);
-  }
-  .t-sep {
-    margin: 0 1rem;
-    color: var(--accent);
-    font-size: 0.5rem;
-    transform: translateY(-1px);
-  }
-  @keyframes cam-ticker-scroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
   }
   .grid {
     flex: 1;

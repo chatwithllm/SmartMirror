@@ -203,7 +203,12 @@
 </script>
 
 <section class="kb" data-stale={stale ? 'true' : undefined}>
-  <EditorialTicker tag="Kanban" items={tickerItems} />
+  <EditorialTicker
+    tag="Kanban"
+    items={tickerItems}
+    durationSec={80}
+    fontFamily="'Rubik', system-ui, sans-serif"
+  />
 
   {#if failed}
     <p class="fail">— card unavailable —</p>
