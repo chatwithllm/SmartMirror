@@ -80,4 +80,48 @@ describe('createChannelStore', () => {
     expect(get(ch.state).override).toBeUndefined();
     expect(get(ch.state).currentCardId).toBe('a');
   });
+
+  describe('HA pin', () => {
+    it('setPin forces currentCardId and overrides phase default', () => {
+      const ch = createChannelStore('section-2', cfg as never, 'pratah');
+      ch.setPin('c' as never, 'pratah');
+      expect(get(ch.state).pinnedCardId).toBe('c');
+      expect(get(ch.state).currentCardId).toBe('c');
+      ch.applyPhaseDefault('madhyahna'); // would normally swap to 'b'
+      expect(get(ch.state).currentCardId).toBe('c');
+    });
+
+    it('setPin(null) clears pin and snaps back to phase default', () => {
+      const ch = createChannelStore('section-2', cfg as never, 'pratah');
+      ch.setPin('c' as never, 'pratah');
+      expect(get(ch.state).currentCardId).toBe('c');
+      ch.setPin(null, 'pratah');
+      expect(get(ch.state).pinnedCardId).toBeNull();
+      expect(get(ch.state).currentCardId).toBe('a');
+    });
+
+    it('gesture override wins over pin until it expires', () => {
+      const ch = createChannelStore('section-2', cfg as never, 'pratah');
+      ch.setPin('c' as never, 'pratah'); // pinned to c
+      ch.cycleNext(); // swipe → override, currentCardId advances from c
+      // 'c' is at idx 2, next is idx 0 → 'a'
+      expect(get(ch.state).currentCardId).toBe('a');
+      expect(get(ch.state).pinnedCardId).toBe('c'); // pin survives
+      vi.advanceTimersByTime(11 * 60 * 1000);
+      ch.tickOverrides('pratah');
+      // Override expired → fall back to pin (not phase default)
+      expect(get(ch.state).currentCardId).toBe('c');
+    });
+
+    it('setting pin during active override does not displace override', () => {
+      const ch = createChannelStore('section-2', cfg as never, 'pratah');
+      ch.cycleNext(); // override = 'b'
+      expect(get(ch.state).currentCardId).toBe('b');
+      ch.setPin('c' as never, 'pratah');
+      expect(get(ch.state).currentCardId).toBe('b'); // override still wins
+      expect(get(ch.state).pinnedCardId).toBe('c');
+      ch.clearOverride('pratah'); // fall back path
+      expect(get(ch.state).currentCardId).toBe('c'); // pin
+    });
+  });
 });

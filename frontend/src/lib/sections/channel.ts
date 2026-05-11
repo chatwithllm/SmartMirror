@@ -8,6 +8,10 @@ export interface ChannelState {
   phaseDefaults: Record<Phase, CardId>;
   currentCardId: CardId;
   override?: { cardId: CardId; expiresAt: number };
+  // HA-driven pin. When set, takes precedence over phase default but
+  // yields to an active gesture override (so a swipe still works for
+  // OVERRIDE_TIMEOUT_MS). null/undefined = "auto" = follow phase.
+  pinnedCardId?: CardId | null;
 }
 
 export interface ChannelHandle {
@@ -17,6 +21,11 @@ export interface ChannelHandle {
   applyPhaseDefault: (p: Phase) => void;
   clearOverride: (p: Phase) => void;
   tickOverrides: (p: Phase) => void;
+  setPin: (cardId: CardId | null, phase: Phase) => void;
+}
+
+function fallbackCardId(s: ChannelState, phase: Phase): CardId {
+  return s.pinnedCardId ?? s.phaseDefaults[phase];
 }
 
 export function createChannelStore(
@@ -50,19 +59,26 @@ export function createChannelStore(
     applyPhaseDefault: (phase) =>
       inner.update((s) => {
         if (s.override && s.override.expiresAt > Date.now()) return s;
-        return { ...s, override: undefined, currentCardId: s.phaseDefaults[phase] };
+        return { ...s, override: undefined, currentCardId: fallbackCardId(s, phase) };
       }),
     clearOverride: (phase) =>
       inner.update((s) => ({
         ...s,
         override: undefined,
-        currentCardId: s.phaseDefaults[phase]
+        currentCardId: fallbackCardId(s, phase)
       })),
     tickOverrides: (phase) =>
       inner.update((s) => {
         if (!s.override) return s;
         if (s.override.expiresAt > Date.now()) return s;
-        return { ...s, override: undefined, currentCardId: s.phaseDefaults[phase] };
+        return { ...s, override: undefined, currentCardId: fallbackCardId(s, phase) };
+      }),
+    setPin: (cardId, phase) =>
+      inner.update((s) => {
+        const next = { ...s, pinnedCardId: cardId };
+        // Gesture override still wins for its TTL.
+        if (s.override && s.override.expiresAt > Date.now()) return next;
+        return { ...next, currentCardId: fallbackCardId(next, phase) };
       })
   };
 }

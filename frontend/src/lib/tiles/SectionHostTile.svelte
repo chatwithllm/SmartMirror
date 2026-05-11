@@ -7,12 +7,13 @@
   import { onDestroy, onMount, setContext } from 'svelte';
   import { get } from 'svelte/store';
   import BaseTile from './BaseTile.svelte';
-  import type { ChannelConfig, SectionId } from '$lib/cards/types.js';
+  import type { CardId, ChannelConfig, SectionId } from '$lib/cards/types.js';
   import { createChannelStore, type ChannelHandle } from '$lib/sections/channel.js';
   import { registerSection, unregisterSection } from '$lib/sections/registry.js';
   import { setSectionEmpty, SECTION_EMPTY_CTX } from '$lib/sections/empty.js';
   import { cardFor } from '$lib/cards/registry.js';
   import { currentPhase } from '$lib/phase/clock.js';
+  import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
 
   interface Props {
     id: string;
@@ -42,6 +43,21 @@
 
   let handle: ChannelHandle | null = $state(null);
   let sweep: ReturnType<typeof setInterval> | null = null;
+  let pinStop: (() => void) | null = null;
+
+  // HA helper id derived from section id, e.g. section-2 → mirror_section_2.
+  function pinEntityId(sid: string): string {
+    const slug = sid.replace(/[^a-z0-9_]+/gi, '_');
+    return `input_select.mirror_${slug}_channel`;
+  }
+
+  function parsePinState(s: string | undefined | null, pool: CardId[]): CardId | null {
+    const v = (s ?? '').trim().toLowerCase();
+    if (!v || v === 'auto' || v === 'unknown' || v === 'unavailable') return null;
+    // Only accept values that exist in the pool — guards against typos
+    // or stale options the layout no longer supports.
+    return (pool as readonly string[]).includes(v) ? (v as CardId) : null;
+  }
 
   onMount(() => {
     if (!cfg) return;
@@ -52,6 +68,20 @@
 
     sweep = setInterval(() => handle?.tickOverrides(get(currentPhase)), 30_000);
 
+    // Watch the per-section HA input_select. State changes flip
+    // pinnedCardId in the channel store — phase rules now act only as
+    // the "auto" fallback.
+    const watcher = watchEntity(pinEntityId(sectionId), 5_000);
+    const unsubPin = watcher.store.subscribe((e: HaEntity | null) => {
+      if (!handle) return;
+      const pinned = parsePinState(e?.state, cfg.pool);
+      handle.setPin(pinned, get(currentPhase));
+    });
+    pinStop = () => {
+      unsubPin();
+      watcher.stop();
+    };
+
     return () => {
       unsubPhase();
     };
@@ -60,6 +90,8 @@
   onDestroy(() => {
     unregisterSection(sectionId);
     if (sweep) clearInterval(sweep);
+    pinStop?.();
+    pinStop = null;
     // Clear stale empty=true so a torn-down section doesn't keep the
     // grid budget over totalRows on remount.
     setSectionEmpty(sectionId, false);
