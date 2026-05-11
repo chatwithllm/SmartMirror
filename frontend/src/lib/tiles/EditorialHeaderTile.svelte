@@ -202,6 +202,37 @@
       : `${Math.round(weather.tempC)}°C`
   );
 
+  // Tail-of-title mood — drives the "Daily" word's color via [data-mood].
+  // Thresholds in imperial: very hot ≥ 90°F, very cold ≤ 32°F, very
+  // windy ≥ 20 mph. Falls back to the editorial gold (accent) otherwise.
+  type WeatherMood = 'hot' | 'cold' | 'windy' | 'normal';
+  const weatherMood = $derived.by((): WeatherMood => {
+    if (!haEntity) return 'normal';
+    const a = haEntity.attributes as {
+      temperature?: number;
+      temperature_unit?: string;
+      wind_speed?: number;
+      wind_speed_unit?: string;
+    };
+    const tempF =
+      typeof a.temperature === 'number'
+        ? a.temperature_unit === '°C'
+          ? (a.temperature * 9) / 5 + 32
+          : a.temperature
+        : null;
+    let windMph: number | null = null;
+    if (typeof a.wind_speed === 'number') {
+      const unit = a.wind_speed_unit ?? 'mph';
+      if (unit === 'km/h') windMph = a.wind_speed * 0.6214;
+      else if (unit === 'm/s') windMph = a.wind_speed * 2.2369;
+      else windMph = a.wind_speed; // mph or unspecified
+    }
+    if (tempF != null && tempF >= 90) return 'hot';
+    if (tempF != null && tempF <= 32) return 'cold';
+    if (windMph != null && windMph >= 20) return 'windy';
+    return 'normal';
+  });
+
   const split = $derived.by(() => {
     const idx = title.lastIndexOf(' ');
     return idx < 0
@@ -395,8 +426,8 @@
             <span class="flip" in:fade={{ duration: 400 }} out:fade={{ duration: 400 }}>— {edition} —</span>
           {/key}
         </div>
-        <h1 class="brand">
-          <span class="lead">{split.lead}</span>{#if split.tail}<span class="tail"> {split.tail}</span>{/if}
+        <h1 class="brand" data-mood={weatherMood}>
+          <span class="lead">{split.lead}</span>{#if split.tail}<span class="tail" title="{weatherMood !== 'normal' ? `Weather: ${weatherMood}` : ''}"> {split.tail}</span>{/if}
         </h1>
       </div>
 
@@ -537,7 +568,20 @@
     text-indent: -0.02em;
   }
   .brand .tail {
-    color: var(--accent);
+    color: var(--tail-color, var(--accent));
+    transition: color 600ms ease;
+  }
+  /* Tail flips color when the weather is extreme. Gives the masthead
+   * a glance-level "today is hot / cold / windy" signal without a
+   * dedicated badge. Subtle text-shadow on the colored states pops
+   * the word on dark bg. */
+  .brand[data-mood='hot']   { --tail-color: #e85a30; }
+  .brand[data-mood='cold']  { --tail-color: #6aa3d4; }
+  .brand[data-mood='windy'] { --tail-color: #87a876; }
+  .brand[data-mood='hot']   .tail,
+  .brand[data-mood='cold']  .tail,
+  .brand[data-mood='windy'] .tail {
+    text-shadow: 0 0 14px color-mix(in srgb, var(--tail-color) 35%, transparent);
   }
 
   .time {
