@@ -7,9 +7,11 @@ export interface SectionHeights {
 
 // Bump the version when the layout shape changes (tile count, base
 // heights, etc) so stale overrides from a prior shape don't haunt the
-// new one. v2: header expanded to h=3 (kpi row inline), kpi_strip
-// tile dropped.
-const STORAGE_VERSION = 2;
+// new one.
+//   v2: header expanded to h=3 (kpi row inline), kpi_strip tile dropped.
+//   v3: header expanded to h=4 (word-of-hour strip inline); grid rows
+//       bumped 14 → 15; all section ys shifted +1.
+const STORAGE_VERSION = 3;
 const STORAGE_KEY = (mode: string, orientation: string) =>
   `mirror.layout.v${STORAGE_VERSION}.${mode}.${orientation}.heights`;
 
