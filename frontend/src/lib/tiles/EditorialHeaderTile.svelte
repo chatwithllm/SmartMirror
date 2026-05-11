@@ -16,7 +16,7 @@
   import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
   import { currentPhase, type Phase } from '$lib/phase/clock.js';
   import { weatherIcon } from '$lib/weather/icons.js';
-  import { wordForHour } from '$lib/words/index.js';
+  import { wordForHour, quoteForHour } from '$lib/words/index.js';
 
   type ValueFormat = 'number' | 'relative' | 'percent_pace';
   interface KpiSpec {
@@ -154,12 +154,16 @@
     if (timer) clearInterval(timer);
   });
 
-  // Word of the hour. Derived against the hour bucket only — value
-  // reference stays stable across the 3,599 intra-hour ticks so the
-  // {#key} block doesn't replay the fade every second.
-  const word = $derived(
-    wordForHour(new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000))
+  // Word + quote of the hour. Derived against the hour bucket only —
+  // value reference stays stable across the 3,599 intra-hour ticks so
+  // the {#key} block doesn't replay the fade every second.
+  const hourBucket = $derived(
+    new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000)
   );
+  const word = $derived(wordForHour(hourBucket));
+  const quote = $derived(quoteForHour(hourBucket));
+
+  let wordRowEl: HTMLDivElement | null = $state(null);
 
   // Weather watch — only if entity_id provided.
   let haEntity = $state<HaEntity | null>(null);
@@ -197,6 +201,37 @@
       ? `${Math.round((weather.tempC * 9) / 5 + 32)}°F`
       : `${Math.round(weather.tempC)}°C`
   );
+
+  // Tail-of-title mood — drives the "Daily" word's color via [data-mood].
+  // Thresholds in imperial: very hot ≥ 90°F, very cold ≤ 32°F, very
+  // windy ≥ 20 mph. Falls back to the editorial gold (accent) otherwise.
+  type WeatherMood = 'hot' | 'cold' | 'windy' | 'normal';
+  const weatherMood = $derived.by((): WeatherMood => {
+    if (!haEntity) return 'normal';
+    const a = haEntity.attributes as {
+      temperature?: number;
+      temperature_unit?: string;
+      wind_speed?: number;
+      wind_speed_unit?: string;
+    };
+    const tempF =
+      typeof a.temperature === 'number'
+        ? a.temperature_unit === '°C'
+          ? (a.temperature * 9) / 5 + 32
+          : a.temperature
+        : null;
+    let windMph: number | null = null;
+    if (typeof a.wind_speed === 'number') {
+      const unit = a.wind_speed_unit ?? 'mph';
+      if (unit === 'km/h') windMph = a.wind_speed * 0.6214;
+      else if (unit === 'm/s') windMph = a.wind_speed * 2.2369;
+      else windMph = a.wind_speed; // mph or unspecified
+    }
+    if (tempF != null && tempF >= 90) return 'hot';
+    if (tempF != null && tempF <= 32) return 'cold';
+    if (windMph != null && windMph >= 20) return 'windy';
+    return 'normal';
+  });
 
   const split = $derived.by(() => {
     const idx = title.lastIndexOf(' ');
@@ -391,8 +426,8 @@
             <span class="flip" in:fade={{ duration: 400 }} out:fade={{ duration: 400 }}>— {edition} —</span>
           {/key}
         </div>
-        <h1 class="brand">
-          <span class="lead">{split.lead}</span>{#if split.tail}<span class="tail"> {split.tail}</span>{/if}
+        <h1 class="brand" data-mood={weatherMood}>
+          <span class="lead">{split.lead}</span>{#if split.tail}<span class="tail" title="{weatherMood !== 'normal' ? `Weather: ${weatherMood}` : ''}"> {split.tail}</span>{/if}
         </h1>
       </div>
 
@@ -445,8 +480,7 @@
       </div>
     {/if}
 
-    <div class="word-row">
-      <span class="word-kicker">Word of the Hour</span>
+    <div class="word-row" bind:this={wordRowEl}>
       {#key word.word}
         <span class="word-block" in:fade={{ duration: 600 }}>
           <span class="word-term">{word.word}</span>
@@ -455,6 +489,17 @@
           <span class="word-def">{word.def}</span>
         </span>
       {/key}
+      {#if quote.q}
+        <span class="quote-divider" aria-hidden="true">◆</span>
+        {#key quote.q}
+          <span class="quote-block" in:fade={{ duration: 600 }}>
+            <span class="quote-mark" aria-hidden="true">“</span>
+            <span class="quote-text">{quote.q}</span>
+            <span class="quote-mark" aria-hidden="true">”</span>
+            <span class="quote-by">— {quote.by}</span>
+          </span>
+        {/key}
+      {/if}
     </div>
   </header>
 </BaseTile>
@@ -523,7 +568,20 @@
     text-indent: -0.02em;
   }
   .brand .tail {
-    color: var(--accent);
+    color: var(--tail-color, var(--accent));
+    transition: color 600ms ease;
+  }
+  /* Tail flips color when the weather is extreme. Gives the masthead
+   * a glance-level "today is hot / cold / windy" signal without a
+   * dedicated badge. Subtle text-shadow on the colored states pops
+   * the word on dark bg. */
+  .brand[data-mood='hot']   { --tail-color: #e85a30; }
+  .brand[data-mood='cold']  { --tail-color: #6aa3d4; }
+  .brand[data-mood='windy'] { --tail-color: #87a876; }
+  .brand[data-mood='hot']   .tail,
+  .brand[data-mood='cold']  .tail,
+  .brand[data-mood='windy'] .tail {
+    text-shadow: 0 0 14px color-mix(in srgb, var(--tail-color) 35%, transparent);
   }
 
   .time {
@@ -796,14 +854,6 @@
     border-bottom: 1px solid var(--line);
     white-space: nowrap;
   }
-  .word-kicker {
-    font-style: italic;
-    font-size: 0.55rem;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: var(--dim);
-    flex: 0 0 auto;
-  }
   .word-block {
     display: inline-flex;
     align-items: baseline;
@@ -840,5 +890,47 @@
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+  }
+  /* Quote half — fades alongside the word every hour. Truncates with
+   * ellipsis when it can't fit. */
+  .quote-divider {
+    color: var(--dimmer);
+    font-size: 0.55rem;
+    flex: 0 0 auto;
+  }
+  .quote-block {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.25rem;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .quote-mark {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--accent);
+    line-height: 0.6;
+  }
+  .quote-text {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.75rem;
+    color: var(--fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .quote-by {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.65rem;
+    color: var(--dim);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    flex: 0 0 auto;
   }
 </style>
