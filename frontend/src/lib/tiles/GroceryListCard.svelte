@@ -249,15 +249,24 @@
   }
   .fail { color: var(--dimmer); }
   .groups {
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
+    column-count: 2;
+    column-gap: 1.2rem;
+    column-rule: 1px solid var(--line);
     overflow-y: auto;
     flex: 1;
     min-height: 0;
     padding-right: 0.2rem;
   }
-  .group { display: flex; flex-direction: column; gap: 0.18rem; }
+  .group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+    /* Keep store-group intact within a column instead of fragmenting
+     * the header onto one column and rows onto the next. */
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 0.55rem;
+  }
   .gh {
     display: flex;
     justify-content: space-between;
