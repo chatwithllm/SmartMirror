@@ -360,6 +360,15 @@ GESTURE_ENABLED=false
 IMMICH_URL=${IMMICH_URL:-https://immich.npalakurla.net}
 IMMICH_API_KEY=${IMMICH_API_KEY:-}
 IMMICH_ALBUM_ID=${IMMICH_ALBUM_ID:-}
+# Grocery — Extended pantry/shopping integration. Set both URL + KEY,
+# or leave blank to disable the Grocery card.
+GROCERY_URL=${GROCERY_URL:-}
+GROCERY_KEY=${GROCERY_KEY:-}
+GROCERY_EMAIL=${GROCERY_EMAIL:-}
+GROCERY_PASSWORD=${GROCERY_PASSWORD:-}
+# Kanban — long-lived "mirror" token issued by SmartKanban admin page.
+KANBAN_URL=${KANBAN_URL:-https://kanban.npalakurla.net}
+KANBAN_MIRROR_TOKEN=${KANBAN_MIRROR_TOKEN:-}
 EOF
 )"
   if [[ "$DRY_RUN" -eq 0 ]]; then
