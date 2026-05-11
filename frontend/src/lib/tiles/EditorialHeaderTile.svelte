@@ -165,6 +165,20 @@
 
   let wordRowEl: HTMLDivElement | null = $state(null);
 
+  // Sweep highlight across the whole masthead row on each word-of-hour
+  // rotation. Visual cue that the "edition" just refreshed. Single
+  // play, ~2.4s, then clears itself.
+  let sweepActive = $state(false);
+  let lastSweepWord = '';
+  $effect(() => {
+    const cur = word.word;
+    if (cur === lastSweepWord) return;
+    lastSweepWord = cur;
+    sweepActive = true;
+    const t = setTimeout(() => (sweepActive = false), 2400);
+    return () => clearTimeout(t);
+  });
+
   // Weather watch — only if entity_id provided.
   let haEntity = $state<HaEntity | null>(null);
   let stopWatch: (() => void) | null = null;
@@ -205,8 +219,32 @@
   // Tail-of-title mood — drives the "Daily" word's color via [data-mood].
   // Thresholds in imperial: very hot ≥ 90°F, very cold ≤ 32°F, very
   // windy ≥ 20 mph. Falls back to the editorial gold (accent) otherwise.
-  type WeatherMood = 'hot' | 'cold' | 'windy' | 'normal';
+  type WeatherMood = 'hot' | 'cold' | 'freezing' | 'windy' | 'normal';
+
+  // Dev-only mood cycler. Visit /?moodCycle=1 to rotate through all
+  // four states every 4s for visual QA. Removed from prod by URL gate.
+  let moodCycleIdx = $state(0);
+  let moodCycleEnabled = $state(false);
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('moodCycle') !== '1') return;
+    moodCycleEnabled = true;
+    const id = setInterval(() => {
+      moodCycleIdx = (moodCycleIdx + 1) % 5;
+    }, 4000);
+    return () => clearInterval(id);
+  });
+
   const weatherMood = $derived.by((): WeatherMood => {
+    if (moodCycleEnabled) {
+      const cycle: WeatherMood[] = ['normal', 'hot', 'cold', 'freezing', 'windy'];
+      return cycle[moodCycleIdx];
+    }
+    return computeWeatherMood();
+  });
+
+  function computeWeatherMood(): WeatherMood {
     if (!haEntity) return 'normal';
     const a = haEntity.attributes as {
       temperature?: number;
@@ -228,10 +266,11 @@
       else windMph = a.wind_speed; // mph or unspecified
     }
     if (tempF != null && tempF >= 90) return 'hot';
-    if (tempF != null && tempF <= 32) return 'cold';
+    if (tempF != null && tempF <= 32) return 'freezing';
+    if (tempF != null && tempF < 65) return 'cold';
     if (windMph != null && windMph >= 20) return 'windy';
     return 'normal';
-  });
+  }
 
   const split = $derived.by(() => {
     const idx = title.lastIndexOf(' ');
@@ -419,7 +458,7 @@
 
 <BaseTile {id} type="editorial_header" chromeless={true} label={title}>
   <header class="eh">
-    <div class="masthead">
+    <div class="masthead" class:sweep={sweepActive}>
       <div class="left">
         <div class="kicker">
           {#key edition}
@@ -515,6 +554,58 @@
     font-family: 'Fraunces', Georgia, serif;
   }
 
+  /* Sweep overlay — scoped to the masthead row (brand + clock) only.
+   * A bright diagonal band travels left → right once when the word-of-
+   * hour rotates. `screen` blend mode lightens whatever's underneath
+   * including text glyphs so 'The Mirror Daily' and the clock visibly
+   * brighten as the band passes. Ticker / KPI / word strips below are
+   * unaffected. */
+  .masthead {
+    position: relative;
+    overflow: hidden;
+  }
+  .masthead::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      transparent 30%,
+      rgba(255, 245, 220, 0.12) 40%,
+      rgba(255, 250, 235, 0.55) 50%,
+      rgba(255, 245, 220, 0.12) 60%,
+      transparent 70%,
+      transparent 100%
+    );
+    transform: translateX(-110%);
+    opacity: 0;
+    mix-blend-mode: screen;
+    z-index: 50;
+    filter: blur(0.6px);
+  }
+  .masthead.sweep::before {
+    animation: mh-sweep 2.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .masthead.sweep {
+    animation: mh-sweep-lift 2.6s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  @keyframes mh-sweep {
+    0%   { transform: translateX(-110%); opacity: 0; }
+    8%   { opacity: 1; }
+    88%  { opacity: 1; }
+    100% { transform: translateX(110%); opacity: 0; }
+  }
+  @keyframes mh-sweep-lift {
+    0%, 100% { filter: brightness(1); }
+    50%      { filter: brightness(1.12); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .masthead.sweep::before,
+    .masthead.sweep { animation: none; }
+  }
+
   /* Masthead is intrinsic-height — does not flex-grow. The rule +
    * ticker hug right beneath it so there's no dead air between the
    * brand and the scrolling strip. */
@@ -575,12 +666,14 @@
    * a glance-level "today is hot / cold / windy" signal without a
    * dedicated badge. Subtle text-shadow on the colored states pops
    * the word on dark bg. */
-  .brand[data-mood='hot']   { --tail-color: #e85a30; }
-  .brand[data-mood='cold']  { --tail-color: #6aa3d4; }
-  .brand[data-mood='windy'] { --tail-color: #87a876; }
-  .brand[data-mood='hot']   .tail,
-  .brand[data-mood='cold']  .tail,
-  .brand[data-mood='windy'] .tail {
+  .brand[data-mood='hot']      { --tail-color: #e85a30; }
+  .brand[data-mood='cold']     { --tail-color: #6aa3d4; }
+  .brand[data-mood='freezing'] { --tail-color: #b8d9ec; }
+  .brand[data-mood='windy']    { --tail-color: #87a876; }
+  .brand[data-mood='hot']      .tail,
+  .brand[data-mood='cold']     .tail,
+  .brand[data-mood='freezing'] .tail,
+  .brand[data-mood='windy']    .tail {
     text-shadow: 0 0 14px color-mix(in srgb, var(--tail-color) 35%, transparent);
   }
 
