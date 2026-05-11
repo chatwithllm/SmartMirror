@@ -51,6 +51,49 @@ input_select:
       - 1080p
     initial: 1080p
 
+  # Per-section channel pin. "auto" follows the phase default (see
+  # editorial.portrait.json `phaseDefaults`). Anything else pins the
+  # named card indefinitely — automations can pin/unpin via
+  # `input_select.select_option`. A gesture swipe still wins for
+  # OVERRIDE_TIMEOUT_MS (10 min) then falls back to the pin.
+  #
+  # Options MUST match the section's `pool` in editorial.portrait.json
+  # or the kiosk will reject them and fall back to "auto".
+  mirror_section_2_channel:
+    name: Mirror · Section 2 (top)
+    icon: mdi:view-dashboard
+    options:
+      - auto
+      - kanban_active
+      - calendar_today
+      - immich_photo
+      - news_tech
+      - calendar_tomorrow
+      - calendar_next
+    initial: auto
+
+  mirror_section_3_channel:
+    name: Mirror · Section 3 (middle)
+    icon: mdi:view-dashboard
+    options:
+      - auto
+      - news_tech
+      - grocery
+      - calendar_today
+      - calendar_tomorrow
+    initial: auto
+
+  mirror_section_4_channel:
+    name: Mirror · Section 4 (bottom)
+    icon: mdi:view-dashboard
+    options:
+      - auto
+      - camera_grid
+      - weather_hourly
+      - ha_notifications
+      - immich_photo
+    initial: auto
+
 input_boolean:
   mirror_edit_mode:
     name: Mirror Edit Mode
