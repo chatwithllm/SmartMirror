@@ -16,6 +16,7 @@
   import { watchEntity, type HaEntity } from '$lib/ha/entity.js';
   import { currentPhase, type Phase } from '$lib/phase/clock.js';
   import { weatherIcon } from '$lib/weather/icons.js';
+  import { wordForHour } from '$lib/words/index.js';
 
   type ValueFormat = 'number' | 'relative' | 'percent_pace';
   interface KpiSpec {
@@ -152,6 +153,13 @@
   onDestroy(() => {
     if (timer) clearInterval(timer);
   });
+
+  // Word of the hour. Derived against the hour bucket only — value
+  // reference stays stable across the 3,599 intra-hour ticks so the
+  // {#key} block doesn't replay the fade every second.
+  const word = $derived(
+    wordForHour(new Date(Math.floor(now.getTime() / 3_600_000) * 3_600_000))
+  );
 
   // Weather watch — only if entity_id provided.
   let haEntity = $state<HaEntity | null>(null);
@@ -436,6 +444,18 @@
         {/each}
       </div>
     {/if}
+
+    <div class="word-row">
+      <span class="word-kicker">Word of the Hour</span>
+      {#key word.word}
+        <span class="word-block" in:fade={{ duration: 600 }}>
+          <span class="word-term">{word.word}</span>
+          {#if word.pos}<span class="word-pos">{word.pos}</span>{/if}
+          <span class="word-sep" aria-hidden="true">·</span>
+          <span class="word-def">{word.def}</span>
+        </span>
+      {/key}
+    </div>
   </header>
 </BaseTile>
 
@@ -762,5 +782,63 @@
     /* Same shadow keeps the saturated bucket text legible where it
      * crosses the bucket-tinted fill. */
     text-shadow: 0 0 6px var(--bg, transparent);
+  }
+
+  /* Word of the Hour — sits directly under the KPI row inside the
+   * masthead. Single line, editorial typography. Rotates hourly. */
+  .word-row {
+    flex: none;
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.35rem 0.7rem 0.45rem;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .word-kicker {
+    font-style: italic;
+    font-size: 0.55rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--dim);
+    flex: 0 0 auto;
+  }
+  .word-block {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .word-term {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent);
+    letter-spacing: 0.01em;
+  }
+  .word-pos {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.7rem;
+    color: var(--dimmer);
+    letter-spacing: 0.06em;
+  }
+  .word-sep {
+    color: var(--dimmer);
+    font-size: 0.7rem;
+  }
+  .word-def {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 0.78rem;
+    color: var(--fg);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
   }
 </style>

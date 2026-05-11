@@ -5,9 +5,9 @@
   "theme": "editorial",
   "resolution": "1080p",
   "transition": "fade",
-  "grid": { "cols": 8, "rows": 14, "gap": 8 },
+  "grid": { "cols": 8, "rows": 15, "gap": 8 },
   "tiles": [
-    { "id": "header", "type": "editorial_header", "x": 0, "y": 0, "w": 8, "h": 3,
+    { "id": "header", "type": "editorial_header", "x": 0, "y": 0, "w": 8, "h": 4,
       "props": {
         "title": "The Mirror Daily",
         "weatherEntity": "weather.4340",
@@ -22,7 +22,7 @@
       }
     },
 
-    { "id": "section-2", "type": "section_host", "x": 0, "y": 3, "w": 8, "h": 4,
+    { "id": "section-2", "type": "section_host", "x": 0, "y": 4, "w": 8, "h": 4,
       "props": {
         "sectionId": "section-2",
         "channelConfig": {
@@ -36,7 +36,7 @@
         }
       }
     },
-    { "id": "section-3", "type": "section_host", "x": 0, "y": 7, "w": 8, "h": 4,
+    { "id": "section-3", "type": "section_host", "x": 0, "y": 8, "w": 8, "h": 4,
       "props": {
         "sectionId": "section-3",
         "channelConfig": {
@@ -50,7 +50,7 @@
         }
       }
     },
-    { "id": "section-4", "type": "section_host", "x": 0, "y": 11, "w": 8, "h": 3,
+    { "id": "section-4", "type": "section_host", "x": 0, "y": 12, "w": 8, "h": 3,
       "props": {
         "sectionId": "section-4",
         "channelConfig": {
