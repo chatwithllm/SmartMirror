@@ -11,9 +11,10 @@ const BUNDLED = import.meta.glob('./bundled/*.json', {
 }) as Record<string, unknown>;
 
 const PRESETS: Record<string, { mode: ModeName; theme: ThemeName }> = {
-  'editorial-daily':   { mode: 'editorial', theme: 'editorial'    },
-  'work':              { mode: 'work',      theme: 'minimal-dark' },
-  'morning-editorial': { mode: 'morning',   theme: 'editorial'    }
+  'editorial-daily':   { mode: 'editorial',    theme: 'editorial'    },
+  'work':              { mode: 'work',         theme: 'minimal-dark' },
+  'morning-editorial': { mode: 'morning',      theme: 'editorial'    },
+  'magic-mirror':      { mode: 'magic-mirror', theme: 'magic-mirror' }
 };
 
 export interface ResolveInput {

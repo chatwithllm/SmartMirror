@@ -3,10 +3,10 @@ import { z } from 'zod';
 export const Orientation = z.enum(['portrait', 'landscape']);
 export type Orientation = z.infer<typeof Orientation>;
 
-export const ThemeName = z.enum(['minimal-dark', 'editorial']);
+export const ThemeName = z.enum(['minimal-dark', 'editorial', 'magic-mirror']);
 export type ThemeName = z.infer<typeof ThemeName>;
 
-export const ModeName = z.enum(['morning', 'work', 'night', 'editorial']);
+export const ModeName = z.enum(['morning', 'work', 'night', 'editorial', 'magic-mirror']);
 export type ModeName = z.infer<typeof ModeName>;
 
 export const GridSchema = z.object({

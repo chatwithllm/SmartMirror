@@ -287,33 +287,28 @@
     // media_player state. Idempotent; runs in browser only.
     startPlexPreempt(PLEX_ENTITY_ID);
 
-    if (!hassUrl || !hassToken) {
-      connection.set({ kind: 'down', reason: 'no-ha-config' });
-
-      // Local-dev preset switcher: ?preset=editorial-daily&orientation=landscape
-      // Bypasses HA entirely so designers can flip presets in the browser.
-      const q = new URLSearchParams(window.location.search);
-      const qPreset = q.get('preset');
-      const qOrientation = (q.get('orientation') ?? 'portrait') as Orientation;
-      if (qPreset) {
-        const r = resolveLayout({
-          preset: qPreset,
-          orientation: qOrientation
-        });
-        if (r) {
-          // Dev preview: zero the overscan gutter so the tile fills
-          // the viewport edge-to-edge. Real kiosk keeps HA-driven
-          // overscan for the TV bezel.
-          overscan = { top: 0, right: 0, bottom: 0, left: 0 };
-          layoutStore.setLayout(r.layout, Date.now());
-          toasts.push('info', `preset override: ${qPreset}`);
-          return;
-        }
-        toasts.push('warn', `no bundled layout for preset ${qPreset}`);
+    // URL preset override — works regardless of HA presence. Lets
+    // designers preview any preset locally without flipping HA.
+    const q = new URLSearchParams(window.location.search);
+    const qPreset = q.get('preset');
+    const qOrientation = (q.get('orientation') ?? 'portrait') as Orientation;
+    if (qPreset) {
+      const r = resolveLayout({
+        preset: qPreset,
+        orientation: qOrientation
+      });
+      if (r) {
+        overscan = { top: 0, right: 0, bottom: 0, left: 0 };
+        layoutStore.setLayout(r.layout, Date.now());
+        toasts.push('info', `preset override: ${qPreset}`);
         return;
       }
-      // No preset override: drop the overscan so the default
-      // editorial-daily layout renders edge-to-edge in the dev browser.
+      toasts.push('warn', `no bundled layout for preset ${qPreset}`);
+      return;
+    }
+
+    if (!hassUrl || !hassToken) {
+      connection.set({ kind: 'down', reason: 'no-ha-config' });
       overscan = { top: 0, right: 0, bottom: 0, left: 0 };
       toasts.push('info', 'No HA config — running in demo mode');
       return;
