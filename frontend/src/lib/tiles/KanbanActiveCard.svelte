@@ -349,11 +349,17 @@
     padding-right: 0.15rem;
   }
   li.card {
-    font-style: italic;
+    /* Inter for body — upright sans scans much faster than Fraunces
+     * italic at this size. Column headers stay Fraunces italic so
+     * the editorial chrome is preserved. */
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-style: normal;
+    font-weight: 450;
     font-size: 0.78rem;
     line-height: 1.3;
+    letter-spacing: -0.005em;
     color: var(--fg);
-    padding: 0.18rem 0;
+    padding: 0.22rem 0;
     border-bottom: 1px solid var(--line);
     /* Single line — no cramped clipping. Items that don't fit are
      * folded under "+N more" via measurement. */
