@@ -1,0 +1,25 @@
+[Unit]
+Description=Smart Mirror Watchdog (liveness + HA control fallback)
+After=network-online.target mirror-frontend.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/mirror/config.env
+ExecStart=/usr/local/bin/mirror-watchdog.sh
+Restart=always
+RestartSec=10
+User=mirror
+Group=mirror
+StateDirectory=mirror-watchdog
+StateDirectoryMode=0750
+
+# Hardening kept off where the watchdog needs to shell out to sudo.
+NoNewPrivileges=false
+PrivateTmp=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+
+[Install]
+WantedBy=multi-user.target
