@@ -220,12 +220,10 @@
       };
     }
 
-    // Coerce HA's preset to one we ship. v1 only carries 3 presets
-    // (editorial-daily, work, morning-editorial); anything else from
-    // HA — including 'auto', null, or a stale value like 'work-focus'
-    // — collapses to editorial-daily so the kiosk lands on the
-    // intended scene instead of the time-of-day fallback.
-    const KNOWN_PRESETS = ['editorial-daily', 'work', 'morning-editorial'];
+    // Coerce HA's preset to one we ship. Anything unknown collapses
+    // to editorial-daily so the kiosk lands on the intended scene
+    // instead of the time-of-day fallback.
+    const KNOWN_PRESETS = ['editorial-daily', 'work', 'morning-editorial', 'magic-mirror'];
     const effectivePreset =
       preset && KNOWN_PRESETS.includes(preset) ? preset : 'editorial-daily';
 
