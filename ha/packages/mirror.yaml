@@ -26,6 +26,7 @@ input_select:
       - editorial-daily
       - work
       - morning-editorial
+      - magic-mirror
     initial: auto
 
   # Note: input_select.mirror_mode + mirror_theme were collapsed into

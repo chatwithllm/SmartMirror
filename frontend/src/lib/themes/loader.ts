@@ -16,6 +16,11 @@ async function loadThemeCss(name: ThemeName): Promise<string> {
       css = mod.default;
       break;
     }
+    case 'magic-mirror': {
+      const mod = await import('./magic-mirror.css?inline');
+      css = mod.default;
+      break;
+    }
   }
   themeCache.set(name, css);
   return css;

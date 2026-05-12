@@ -1,0 +1,200 @@
+/* Magic Mirror² aesthetic — pure-black bg, white sans-serif, no
+ * chrome / no gold accent. Designed to mimic the community
+ * MagicMirror² project visual identity while keeping all our
+ * existing tile content. */
+:root[data-theme='magic-mirror'] {
+  --bg: #000000;
+  --panel: #000000;
+  --panel-2: #050505;
+  --fg: #ffffff;
+  --dim: #999999;
+  --dimmer: #5a5a5a;
+  --line: #1a1a1a;
+  --line-strong: #2c2c2c;
+  --accent: #ffffff;
+  --accent-2: #d0d0d0;
+  --ok: #87a876;
+  --warn: #d8b36b;
+  --bad: #c95a4a;
+  --info: #8fa6c9;
+  --violet: #b7a0d4;
+
+  --font-ui: 'Roboto Condensed', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Menlo', monospace;
+  --font-display: 'Roboto Condensed', system-ui, sans-serif;
+
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --gap-sm: 6px;
+  --gap-md: 14px;
+  --gap-lg: 24px;
+
+  --shadow-1: none;
+  --shadow-2: none;
+  --backdrop-blur: 0px;
+  --motion-fast: 150ms;
+  --motion-med: 320ms;
+  --motion-slow: 500ms;
+  --overscan: 2vw;
+}
+
+/* Override the hardcoded Fraunces refs scattered through editorial
+ * tile components — MM² look needs sans across the board. !important
+ * is necessary because those rules are inline component styles with
+ * higher selector specificity than this theme override otherwise. */
+:root[data-theme='magic-mirror'] body,
+:root[data-theme='magic-mirror'] .eh,
+:root[data-theme='magic-mirror'] .brand,
+:root[data-theme='magic-mirror'] .kicker,
+:root[data-theme='magic-mirror'] .word-term,
+:root[data-theme='magic-mirror'] .word-pos,
+:root[data-theme='magic-mirror'] .word-def,
+:root[data-theme='magic-mirror'] .word-kicker,
+:root[data-theme='magic-mirror'] .quote-text,
+:root[data-theme='magic-mirror'] .quote-by,
+:root[data-theme='magic-mirror'] .quote-mark,
+:root[data-theme='magic-mirror'] .kb,
+:root[data-theme='magic-mirror'] .col-title,
+:root[data-theme='magic-mirror'] .col-empty,
+:root[data-theme='magic-mirror'] .col-count,
+:root[data-theme='magic-mirror'] li.card,
+:root[data-theme='magic-mirror'] li.more,
+:root[data-theme='magic-mirror'] .grocery,
+:root[data-theme='magic-mirror'] .store,
+:root[data-theme='magic-mirror'] .news,
+:root[data-theme='magic-mirror'] .notif,
+:root[data-theme='magic-mirror'] .wx,
+:root[data-theme='magic-mirror'] .cams,
+:root[data-theme='magic-mirror'] .t-item,
+:root[data-theme='magic-mirror'] .tag,
+:root[data-theme='magic-mirror'] .kpi-lbl,
+:root[data-theme='magic-mirror'] .kpi-val {
+  font-family: 'Roboto Condensed', system-ui, sans-serif !important;
+  font-style: normal !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Body weight — MM² traditionally goes light (300) but at our small
+ * sizes that reads as dim on the kiosk. Bumped to 400 with bright
+ * pure-white fg for clarity. */
+:root[data-theme='magic-mirror'] .word-def,
+:root[data-theme='magic-mirror'] .quote-text,
+:root[data-theme='magic-mirror'] li.card,
+:root[data-theme='magic-mirror'] .news .title,
+:root[data-theme='magic-mirror'] .grocery li,
+:root[data-theme='magic-mirror'] .t-item {
+  font-weight: 400 !important;
+  color: #ffffff !important;
+}
+
+/* Bump body sizes for clarity. */
+:root[data-theme='magic-mirror'] li.card {
+  font-size: 0.95rem !important;
+  padding: 0.32rem 0 !important;
+}
+:root[data-theme='magic-mirror'] .grocery li {
+  font-size: 0.95rem !important;
+  padding: 0.3rem 0 !important;
+}
+:root[data-theme='magic-mirror'] .t-item {
+  font-size: 0.82rem !important;
+}
+:root[data-theme='magic-mirror'] .news .title {
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+}
+
+/* Store group headings (India Bazar, Famous Meats, Kroger) — drop
+ * the italic Fraunces gold and render as solid MM² section headers. */
+:root[data-theme='magic-mirror'] .store {
+  font-family: 'Roboto Condensed', system-ui, sans-serif !important;
+  font-style: normal !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase;
+}
+:root[data-theme='magic-mirror'] .tot {
+  color: #999 !important;
+  font-style: normal !important;
+}
+
+/* Subscript metadata (PRODUCE / OTHER / qty) — brighten + slightly
+ * larger so they're scannable. */
+:root[data-theme='magic-mirror'] .c {
+  color: #888 !important;
+  font-size: 0.7rem !important;
+}
+:root[data-theme='magic-mirror'] .q {
+  color: #bbb !important;
+  font-size: 0.85rem !important;
+}
+:root[data-theme='magic-mirror'] .p {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+}
+
+/* Column titles (BACKLOG / IN PROGRESS) — MM² uses tracked-out caps. */
+:root[data-theme='magic-mirror'] .col-title {
+  color: #cccccc !important;
+  font-weight: 500 !important;
+  font-size: 0.8rem !important;
+}
+:root[data-theme='magic-mirror'] .col-count {
+  color: #777 !important;
+  font-size: 0.78rem !important;
+}
+
+/* Ticker (banner row) — slightly brighter so it reads as content. */
+:root[data-theme='magic-mirror'] .t-item {
+  color: #e5e5e5 !important;
+}
+:root[data-theme='magic-mirror'] .t-sep {
+  color: #555 !important;
+}
+
+/* Section pill labels (KANBAN/PANTRY/CAMERAS) — MM² has no pill
+ * chrome; flatten to uppercase tracked-out gray text. */
+:root[data-theme='magic-mirror'] .tag {
+  background: transparent !important;
+  color: #999 !important;
+  clip-path: none !important;
+  padding: 0 0 0 0.5rem !important;
+  border-bottom: 1px solid #222;
+  font-weight: 500 !important;
+}
+
+/* Brand "The Mirror Daily" — flatten the gold tail, swap to MM²
+ * weight scheme. */
+:root[data-theme='magic-mirror'] .brand .tail {
+  color: #ffffff !important;
+  text-shadow: none !important;
+}
+
+/* No editorial sweep / glow / mood tint in MM² — keep it clean. */
+:root[data-theme='magic-mirror'] .masthead.sweep,
+:root[data-theme='magic-mirror'] .masthead.sweep::before {
+  animation: none !important;
+  filter: none !important;
+}
+
+/* Kanban column tints flat. */
+:root[data-theme='magic-mirror'] .col[data-col] {
+  --col-bg: transparent !important;
+  --col-rule: #2c2c2c !important;
+}
+:root[data-theme='magic-mirror'] .col[data-col='in_progress'] li.card {
+  color: #ffffff !important;
+}
+
+/* KPI progress bars — MM² uses no color. Flatten bucket colors. */
+:root[data-theme='magic-mirror'] .kpi[data-bucket] {
+  --kpi-color: #ffffff !important;
+}
+:root[data-theme='magic-mirror'] .kpi-lbl {
+  color: #999 !important;
+  text-shadow: none !important;
+}

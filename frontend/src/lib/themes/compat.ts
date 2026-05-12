@@ -4,7 +4,8 @@ export const ALLOWED: Record<ModeName, ThemeName[]> = {
   morning: ['minimal-dark', 'editorial'],
   work: ['minimal-dark', 'editorial'],
   night: ['minimal-dark'],
-  editorial: ['editorial']
+  editorial: ['editorial'],
+  'magic-mirror': ['magic-mirror']
 };
 
 export interface CoerceResult {
