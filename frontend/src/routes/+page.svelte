@@ -43,6 +43,7 @@
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
   let localTimer: ReturnType<typeof setInterval> | null = null;
+  let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   let stopGestures: (() => void) | null = null;
   let stopGestureHandlers: (() => void) | null = null;
   let lastHash = '';
@@ -264,6 +265,17 @@
     void pollYtLocal();
     localTimer = setInterval(() => void pollYtLocal(), 2000);
 
+    // Browser heartbeat — proves the event loop is still ticking and
+    // fetch() still works. If this stops (DOM frozen, JS deadlocked,
+    // gpu process wedged), the watchdog notices the stale heartbeat
+    // file and bounces Chromium. Independent of HA / preset state on
+    // purpose so misconfig elsewhere never silences the liveness signal.
+    const sendHeartbeat = () => {
+      void fetch('/api/admin/heartbeat', { method: 'POST', keepalive: true }).catch(() => {});
+    };
+    sendHeartbeat();
+    heartbeatTimer = setInterval(sendHeartbeat, 5000);
+
     // Gesture subsystem: handlers register against the singleton router
     // unconditionally (they're cheap and safe in demo mode). The
     // poll-side wireGestures only does anything when HA creds are
@@ -328,6 +340,10 @@
     if (localTimer) {
       clearInterval(localTimer);
       localTimer = null;
+    }
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
     }
     if (stopGestures) {
       stopGestures();
