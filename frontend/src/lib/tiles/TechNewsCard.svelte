@@ -130,7 +130,7 @@
   ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }
   li { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.5rem; align-items: baseline; }
   .num { font-style: italic; font-weight: 700; color: var(--accent); font-feature-settings: 'tnum'; font-size: 0.85rem; }
-  .title { font-style: italic; font-size: 0.92rem; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
+  .title { font-family: 'Fraunces', Georgia, serif; font-style: normal; font-weight: 600; font-size: 0.96rem; line-height: 1.25; letter-spacing: -0.005em; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
   .rule { position: absolute; left: 0.8rem; right: 0.8rem; bottom: 0; height: 1px; background: var(--line); }
   .news[data-stale='true'] {
     opacity: 0.6;

@@ -957,6 +957,7 @@
     text-overflow: ellipsis;
   }
   .word-term {
+    /* Term itself stays Fraunces — it's the editorial accent. */
     font-family: 'Fraunces', Georgia, serif;
     font-style: italic;
     font-weight: 700;
@@ -969,7 +970,7 @@
     font-style: italic;
     font-size: 0.7rem;
     color: var(--dimmer);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
   }
   .word-sep {
     color: var(--dimmer);
@@ -977,7 +978,8 @@
   }
   .word-def {
     font-family: 'Fraunces', Georgia, serif;
-    font-style: italic;
+    font-style: normal;
+    font-weight: 450;
     font-size: 0.78rem;
     color: var(--fg);
     overflow: hidden;
@@ -1011,6 +1013,7 @@
   .quote-text {
     font-family: 'Fraunces', Georgia, serif;
     font-style: italic;
+    font-weight: 400;
     font-size: 0.75rem;
     color: var(--fg);
     overflow: hidden;
@@ -1019,10 +1022,11 @@
   }
   .quote-by {
     font-family: 'Fraunces', Georgia, serif;
-    font-style: italic;
+    font-style: normal;
+    font-weight: 500;
     font-size: 0.65rem;
     color: var(--dim);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     white-space: nowrap;
     flex: 0 0 auto;
   }

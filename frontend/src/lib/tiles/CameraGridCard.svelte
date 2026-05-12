@@ -189,12 +189,7 @@
 </script>
 
 <section class="cams" data-testid="camera-grid">
-  <EditorialTicker
-    tag="Cameras"
-    items={notifications}
-    durationSec={80}
-    fontFamily="'Rubik', system-ui, sans-serif"
-  />
+  <EditorialTicker tag="Cameras" items={notifications} durationSec={80} />
   <div class="grid">
     {#each cameras as cam, i (i)}
       {@const liveId = localOverrides[i] || bindings[i] || cam.entity_id || ''}

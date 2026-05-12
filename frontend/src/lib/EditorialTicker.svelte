@@ -103,10 +103,14 @@
     padding-left: 1rem;
   }
   .t-item {
+    /* Editorial newsprint body — Fraunces upright (not italic) at
+     * book-text weight. Reads clearly while keeping the serif
+     * newspaper feel. Override per-ticker via fontFamily prop. */
     font-family: var(--ticker-font, 'Fraunces', Georgia, serif);
-    font-style: italic;
-    font-size: 0.7rem;
-    letter-spacing: 0.06em;
+    font-style: normal;
+    font-weight: 450;
+    font-size: 0.78rem;
+    letter-spacing: 0;
     color: var(--fg);
   }
   .t-sep {
