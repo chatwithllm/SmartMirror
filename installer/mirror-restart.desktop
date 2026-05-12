@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Restart SmartMirror
+Comment=Restart the SmartMirror frontend + bounce the kiosk browser
+Exec=gnome-terminal --title="Restart SmartMirror" -- bash -c "/usr/local/bin/mirror-restart.sh; echo; echo 'Done. This window will close in 5s…'; sleep 5"
+Icon=view-refresh
+Terminal=false
+StartupNotify=true
+Categories=Utility;System;

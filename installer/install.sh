@@ -194,11 +194,12 @@ create_mirror_user() {
   fi
   run usermod -aG autologin mirror
 
-  # Grant mirror user NOPASSWD sudo for reboot only, so the HA "Reboot PC"
-  # control can shell out to /sbin/reboot without a password. Narrow scope
-  # keeps blast radius small.
+  # Grant mirror user NOPASSWD sudo for reboot + frontend restart. The
+  # HA "Reboot PC" + "Restart Frontend" buttons + the mirror-watchdog
+  # + the desktop "Restart SmartMirror" icon all need this. Narrow
+  # scope (only those exact commands) keeps blast radius small.
   local sudoers_file="/etc/sudoers.d/mirror-reboot"
-  local sudoers_content="mirror ALL=(root) NOPASSWD: /sbin/reboot, /usr/sbin/reboot, /usr/bin/systemctl reboot"
+  local sudoers_content="mirror ALL=(root) NOPASSWD: /sbin/reboot, /usr/sbin/reboot, /usr/bin/systemctl reboot, /usr/bin/systemctl restart mirror-frontend.service, /usr/bin/systemctl restart mirror-frontend, /bin/systemctl restart mirror-frontend.service"
   if [[ "$DRY_RUN" -eq 1 ]]; then
     log "would write $sudoers_file"
   else
@@ -478,12 +479,15 @@ KIOSK_EOF
 install_systemd_units() {
   local fe_src="$SCRIPT_DIR/systemd/mirror-frontend.service"
   local kiosk_src="$SCRIPT_DIR/systemd/mirror-kiosk.service"
+  local wd_src="$SCRIPT_DIR/systemd/mirror-watchdog.service"
   [[ -f "$fe_src" ]] || die "missing: $fe_src"
   [[ -f "$kiosk_src" ]] || die "missing: $kiosk_src"
+  [[ -f "$wd_src" ]] || die "missing: $wd_src"
   # Ensure units point at the right WorkingDirectory regardless of clone path.
   local fe_rendered
   fe_rendered=$(sed "s|^WorkingDirectory=.*|WorkingDirectory=$FRONTEND_DIR|" "$fe_src")
   write_file /etc/systemd/system/mirror-frontend.service "$fe_rendered"
+  write_file /etc/systemd/system/mirror-watchdog.service "$(cat "$wd_src")"
   write_file /etc/systemd/user/mirror-kiosk.service "$(cat "$kiosk_src")"
 
   run systemctl daemon-reload
@@ -494,10 +498,45 @@ install_systemd_units() {
   fi
 
   run systemctl enable --now mirror-frontend.service
+  run systemctl enable --now mirror-watchdog.service
   # user units need linger so they start after GDM autologs the mirror user
   run loginctl enable-linger mirror || true
   run systemctl --machine=mirror@ --user daemon-reload || true
   run systemctl --machine=mirror@ --user enable mirror-kiosk.service || true
+}
+
+# ---------- watchdog + restart helpers ----------
+install_helpers() {
+  local wd_src="$SCRIPT_DIR/mirror-watchdog.sh"
+  local restart_src="$SCRIPT_DIR/mirror-restart.sh"
+  local desktop_src="$SCRIPT_DIR/mirror-restart.desktop"
+  [[ -f "$wd_src" ]] || die "missing: $wd_src"
+  [[ -f "$restart_src" ]] || die "missing: $restart_src"
+  [[ -f "$desktop_src" ]] || die "missing: $desktop_src"
+
+  if [[ "$DRY_RUN" -eq 1 ]]; then
+    log "would install /usr/local/bin/mirror-watchdog.sh + mirror-restart.sh"
+    log "would install Desktop icon for mirror user"
+    return
+  fi
+
+  install -m 0755 "$wd_src" /usr/local/bin/mirror-watchdog.sh
+  install -m 0755 "$restart_src" /usr/local/bin/mirror-restart.sh
+
+  # Desktop icon — drop into mirror's Desktop folder so it appears on
+  # the GNOME desktop. jq for the watchdog's HA polling.
+  if ! command -v jq >/dev/null 2>&1; then
+    apt-get install -y --no-install-recommends jq
+  fi
+
+  install -d -o mirror -g mirror -m 0755 /home/mirror/Desktop
+  install -m 0755 -o mirror -g mirror "$desktop_src" \
+    /home/mirror/Desktop/Restart-SmartMirror.desktop
+  # Tell GNOME to trust the .desktop file so it's clickable, not text.
+  if command -v gio >/dev/null 2>&1; then
+    sudo -u mirror -H gio set /home/mirror/Desktop/Restart-SmartMirror.desktop \
+      metadata::trusted true 2>/dev/null || true
+  fi
 }
 
 # ---------- launch verification ----------
@@ -528,6 +567,7 @@ main() {
   install_rotation "$orient"
   write_config_env "$orient" "$ha_url" "$ha_token"
   install_kiosk_script
+  install_helpers
   build_frontend
   install_systemd_units
   launch_verify
