@@ -26,8 +26,8 @@ INTERVAL_S="${WATCHDOG_INTERVAL_S:-15}"
 FAIL_THRESHOLD="${WATCHDOG_FAIL_THRESHOLD:-3}"
 
 if [[ -f "$CONFIG" ]]; then
-  # shellcheck source=/dev/null
   set -a
+  # shellcheck source=/dev/null
   . "$CONFIG"
   set +a
 fi
