@@ -38,12 +38,11 @@
   let lastSuccessTs = $state(0);
   let timer: ReturnType<typeof setInterval> | null = null;
 
-  // Fixed column order — matches the kanban app left-to-right.
+  // Two visible columns: Backlog (left) + In Progress (right).
+  // Today + Done are surfaced via the marquee count only.
   const COLUMNS: { key: Status; label: string }[] = [
     { key: 'backlog', label: 'Backlog' },
-    { key: 'today', label: 'Today' },
-    { key: 'in_progress', label: 'In Progress' },
-    { key: 'done', label: 'Done' }
+    { key: 'in_progress', label: 'In Progress' }
   ];
 
   async function load() {
@@ -159,17 +158,20 @@
     return () => ro.disconnect();
   });
 
-  // Marquee items: counts summary + today + in-progress titles. Done
-  // skipped (not actionable). Backlog skipped (too noisy).
+  // Marquee items: counts summary + today + done titles (the hidden
+  // columns) so they're still visible at a glance.
   const tickerItems = $derived.by(() => {
     if (lastSuccessTs === 0 || !configured || grandTotal === 0) return [];
     const out: string[] = [];
     const today = byColumn.today;
+    const done = byColumn.done;
     const wip = byColumn.in_progress;
-    const counts = `${grandTotal} cards · ${today.length} today · ${wip.length} in progress`;
+    const counts =
+      `${grandTotal} cards · ${today.length} today · ` +
+      `${wip.length} in progress · ${done.length} done`;
     out.push(counts);
     for (const c of today) out.push(`Today · ${c.title}`);
-    for (const c of wip) out.push(`Doing · ${c.title}`);
+    for (const c of done) out.push(`Done · ${c.title}`);
     return out;
   });
 </script>
@@ -242,22 +244,14 @@
   }
   .fail { color: var(--dimmer); }
 
-  /* 2×2 board. DOM order is [backlog, today, in_progress, done];
-   * grid-auto-flow: column packs them down the left column first,
-   * then the right — yielding:
-   *   ┌─────────────┬──────────────┐
-   *   │  BACKLOG    │  IN PROGRESS │
-   *   ├─────────────┼──────────────┤
-   *   │  TODAY      │  DONE        │
-   *   └─────────────┴──────────────┘
-   * minmax(0, …) on both axes keeps text-overflow: ellipsis honest. */
+  /* 2-column board: Backlog (left) + In Progress (right). Today and
+   * Done counts surface via the marquee at the top instead.
+   * minmax(0, 1fr) keeps text-overflow: ellipsis honest. */
   .board {
     flex: 1;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(2, minmax(0, 1fr));
-    grid-auto-flow: column;
-    gap: 0.5rem 0.7rem;
+    gap: 0.7rem;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
