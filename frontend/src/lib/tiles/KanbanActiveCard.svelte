@@ -275,12 +275,17 @@
   }
   .fail { color: var(--dimmer); }
 
-  /* 4-column board */
+  /* 4-column board. `minmax(0, 1fr)` is critical: default `1fr` lets
+   * each column's intrinsic min-content (longest title pre-ellipsis)
+   * push its width past its share, which clipped the rightmost
+   * column (Done) off-card. minmax(0,1fr) forces equal widths and
+   * lets text-overflow: ellipsis actually do its job. */
   .board {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-    gap: 0.7rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+    min-width: 0;
     min-height: 0;
     overflow: hidden;
   }
@@ -288,6 +293,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+    min-width: 0;
     min-height: 0;
     /* Subtle column background tint per status — barely-there hue
      * change so columns read as separate without breaking editorial. */
