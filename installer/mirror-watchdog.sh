@@ -26,8 +26,10 @@ INTERVAL_S="${WATCHDOG_INTERVAL_S:-15}"
 FAIL_THRESHOLD="${WATCHDOG_FAIL_THRESHOLD:-3}"
 
 if [[ -f "$CONFIG" ]]; then
-  # shellcheck disable=SC1090
-  set -a; . "$CONFIG"; set +a
+  # shellcheck source=/dev/null
+  set -a
+  . "$CONFIG"
+  set +a
 fi
 
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
