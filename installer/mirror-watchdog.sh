@@ -24,6 +24,11 @@ LOG_TAG="mirror-watchdog"
 
 INTERVAL_S="${WATCHDOG_INTERVAL_S:-15}"
 FAIL_THRESHOLD="${WATCHDOG_FAIL_THRESHOLD:-3}"
+# How stale the browser heartbeat file may grow before we bounce
+# Chromium. Page sends a beat every 5s; 60s gives plenty of slack
+# for slow gpu processes / first paint while still catching wedges.
+HEARTBEAT_FILE="${HEARTBEAT_FILE:-/run/mirror/heartbeat}"
+HEARTBEAT_STALE_S="${HEARTBEAT_STALE_S:-60}"
 
 if [[ -f "$CONFIG" ]]; then
   set -a
@@ -77,6 +82,39 @@ check_liveness() {
   fi
 }
 
+# ---------- Browser heartbeat check ----------
+# Server is healthy but Chromium might still be wedged on a stale DOM.
+# Page POSTs /api/admin/heartbeat every 5s; if its file gets older
+# than HEARTBEAT_STALE_S the browser's event loop has stopped (or the
+# tab has been backgrounded for too long — kiosk doesn't background,
+# so any pause = real wedge). Bounce Chromium; mirror-kiosk respawns.
+hb_warned=0
+check_heartbeat() {
+  [[ -f "$HEARTBEAT_FILE" ]] || return 0   # file appears on first beat
+  local now mtime age
+  now=$(date +%s)
+  mtime=$(stat -c %Y "$HEARTBEAT_FILE" 2>/dev/null || echo 0)
+  (( mtime > 0 )) || return 0
+  age=$(( now - mtime ))
+  if (( age > HEARTBEAT_STALE_S )); then
+    log "browser heartbeat stale (${age}s > ${HEARTBEAT_STALE_S}s) — bouncing Chromium"
+    bounce_chromium
+    # Touch the file so we don't re-fire immediately while chrome
+    # respawns + first paints (next beat may take ~10-15s).
+    touch "$HEARTBEAT_FILE" 2>/dev/null || true
+    hb_warned=0
+    return
+  fi
+  # Half-stale warning, once per stretch, so logs don't drown.
+  if (( age > HEARTBEAT_STALE_S / 2 )) && (( hb_warned == 0 )); then
+    log "browser heartbeat aging (${age}s)"
+    hb_warned=1
+  fi
+  if (( age <= HEARTBEAT_STALE_S / 2 )); then
+    hb_warned=0
+  fi
+}
+
 # ---------- HA input_button fallback ----------
 ha_get_state() {
   # echoes the entity state, or empty string on failure
@@ -126,6 +164,7 @@ trap 'log "stopping"; exit 0' SIGTERM SIGINT
 
 while true; do
   check_liveness
+  check_heartbeat
   check_ha_buttons
   sleep "$INTERVAL_S"
 done

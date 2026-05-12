@@ -22,6 +22,14 @@ Group=mirror
 LogsDirectory=mirror
 LogsDirectoryMode=0755
 
+# Heartbeat sink — /run/mirror/heartbeat. /api/admin/heartbeat writes
+# the current timestamp here on every browser tick; the watchdog
+# reads its mtime to detect a frozen DOM (chrome alive, page stuck).
+# RuntimeDirectory is tmpfs + auto-cleaned on service stop, so a
+# stale file can't survive a restart.
+RuntimeDirectory=mirror
+RuntimeDirectoryMode=0755
+
 # Hardening (kept lenient so it actually starts on a fresh box).
 # NoNewPrivileges must be OFF: the admin endpoint shells out to
 # `sudo -n /usr/bin/systemctl reboot` for the HA "Reboot PC" control,
