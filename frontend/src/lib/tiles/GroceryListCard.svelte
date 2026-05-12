@@ -245,12 +245,7 @@
 </script>
 
 <section class="grocery" data-stale={stale ? 'true' : undefined}>
-  <EditorialTicker
-    tag="Pantry"
-    items={tickerItems}
-    durationSec={80}
-    fontFamily="'Rubik', system-ui, sans-serif"
-  />
+  <EditorialTicker tag="Pantry" items={tickerItems} durationSec={80} />
 
   {#if failed}
     <p class="fail">— card unavailable —</p>
@@ -363,20 +358,25 @@
     grid-template-columns: 1fr auto auto auto;
     gap: 0.5rem;
     align-items: baseline;
-    font-style: italic;
-    font-size: 0.78rem;
-    line-height: 1.25;
-    padding: 0.05rem 0;
+    /* Editorial newsprint body — matches Kanban card weight/size for
+     * consistent body type across the three section cards. */
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 0.82rem;
+    line-height: 1.3;
+    padding: 0.18rem 0;
+    border-bottom: 1px solid var(--line);
   }
   .n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg); }
   .c {
-    font-size: 0.55rem;
+    font-size: 0.65rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--dimmer);
     font-style: normal;
   }
-  .q { font-size: 0.65rem; color: var(--dim); font-feature-settings: 'tnum'; }
+  .q { font-size: 0.75rem; color: var(--dim); font-feature-settings: 'tnum'; }
   .p { font-feature-settings: 'tnum'; color: var(--accent); font-weight: 700; }
   .rule {
     position: absolute;

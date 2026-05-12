@@ -107,82 +107,54 @@
     markEmpty(configured && lastSuccessTs > 0 && grandTotal === 0);
   });
 
-  // Per-column visible-item count. Computed by measuring rendered DOM
-  // — render only as many items as fit fully in the column, hide the
-  // rest behind a "+N more" footer. User resizes the section to see
-  // more (no scrollbars, no clipped text).
+  // Fit-count per column. After paint we measure ul.clientHeight and
+  // one rendered card's offsetHeight, then render only the items that
+  // fully fit. Remainder collapses to "+N more". ResizeObserver
+  // re-measures on any board layout change.
   let boardEl: HTMLDivElement | null = $state(null);
-  let visibleCounts = $state<Record<string, number>>({
-    backlog: 9999,
-    today: 9999,
-    in_progress: 9999,
-    done: 9999
-  });
+  let fitCount = $state<Record<string, number>>({});
 
-  function recompute() {
+  function measureFit() {
     if (!boardEl) return;
-    const next: Record<string, number> = { ...visibleCounts };
-    let changed = false;
+    const next: Record<string, number> = {};
     for (const col of boardEl.querySelectorAll<HTMLElement>('.col')) {
       const key = col.dataset.col;
       if (!key) continue;
       const ul = col.querySelector<HTMLUListElement>('ul');
       if (!ul) continue;
-      const items = Array.from(ul.querySelectorAll<HTMLElement>('li.card'));
-      const more = ul.querySelector<HTMLElement>('li.more');
-      const total = byColumn[key as Status]?.length ?? items.length;
-      if (total === 0) {
-        if (next[key] !== 0) { next[key] = 0; changed = true; }
-        continue;
+      const trueTotal = byColumn[key as Status]?.length ?? 0;
+      if (trueTotal === 0) { next[key] = 0; continue; }
+      const ulH = ul.clientHeight;
+      const firstItem = ul.querySelector<HTMLElement>('li.card');
+      if (!firstItem) { next[key] = 0; continue; }
+      const itemH = firstItem.offsetHeight;
+      const cs = getComputedStyle(ul);
+      const gap =
+        parseFloat(cs.rowGap || '0') ||
+        parseFloat(cs.gap || '0') || 0;
+      const slot = itemH + gap;
+      const fitNoFooter = Math.max(1, Math.floor((ulH + gap) / slot));
+      // Compare against full data (trueTotal), not the currently-
+      // rendered DOM count — otherwise the fit count can never grow
+      // back when the column gets taller via drag-resize.
+      if (fitNoFooter >= trueTotal) {
+        next[key] = trueTotal;
+      } else {
+        next[key] = Math.max(1, fitNoFooter - 1);
       }
-      const ulRect = ul.getBoundingClientRect();
-      const moreH = more ? more.offsetHeight + 4 : 22;
-      const itemH =
-        items.length > 0 ? items[0].offsetHeight + 3 /* gap */ : 22;
-      // Count fully-fitting rendered cards.
-      let fitRendered = items.length;
-      for (let i = 0; i < items.length; i++) {
-        const r = items[i].getBoundingClientRect();
-        if (r.bottom > ulRect.bottom + 0.5) {
-          fitRendered = i;
-          break;
-        }
-      }
-      let fit = fitRendered;
-      // If we'd truncate, reserve one row for the "+N more" footer.
-      if (fit < total && fit > 0) {
-        const last = items[fit - 1].getBoundingClientRect();
-        if (last.bottom + moreH > ulRect.bottom + 0.5) fit -= 1;
-      }
-      // If all rendered fit AND there's leftover space, try to grow
-      // up to total. ResizeObserver re-runs after re-render so a
-      // single-step bump is safe — next pass either confirms or trims.
-      if (fitRendered === items.length && fit < total) {
-        const lastShownBottom =
-          items.length > 0
-            ? items[items.length - 1].getBoundingClientRect().bottom
-            : ulRect.top;
-        const remaining = ulRect.bottom - lastShownBottom;
-        const reserve = fit < total ? moreH : 0;
-        const slots = Math.max(0, Math.floor((remaining - reserve) / itemH));
-        fit = Math.min(total, fit + slots);
-      }
-      fit = Math.max(0, Math.min(total, fit));
-      if (next[key] !== fit) { next[key] = fit; changed = true; }
     }
-    if (changed) visibleCounts = next;
+    fitCount = next;
   }
 
   $effect(() => {
-    // Re-measure when data changes.
     void byColumn;
     if (!browser || !boardEl) return;
-    queueMicrotask(() => requestAnimationFrame(recompute));
+    requestAnimationFrame(measureFit);
   });
 
   $effect(() => {
     if (!browser || !boardEl) return;
-    const ro = new ResizeObserver(() => requestAnimationFrame(recompute));
+    const ro = new ResizeObserver(() => requestAnimationFrame(measureFit));
     ro.observe(boardEl);
     return () => ro.disconnect();
   });
@@ -203,12 +175,7 @@
 </script>
 
 <section class="kb" data-stale={stale ? 'true' : undefined}>
-  <EditorialTicker
-    tag="Kanban"
-    items={tickerItems}
-    durationSec={80}
-    fontFamily="'Rubik', system-ui, sans-serif"
-  />
+  <EditorialTicker tag="Kanban" items={tickerItems} durationSec={80} />
 
   {#if failed}
     <p class="fail">— card unavailable —</p>
@@ -228,8 +195,8 @@
     <div class="board" bind:this={boardEl}>
       {#each COLUMNS as col (col.key)}
         {@const items = byColumn[col.key]}
-        {@const vis = visibleCounts[col.key] ?? items.length}
-        {@const hidden = Math.max(0, items.length - vis)}
+        {@const fit = fitCount[col.key] ?? items.length}
+        {@const hidden = Math.max(0, items.length - fit)}
         <div class="col" data-col={col.key}>
           <div class="col-h">
             <span class="col-title">{col.label}</span>
@@ -239,7 +206,7 @@
             <div class="col-empty">—</div>
           {:else}
             <ul>
-              {#each items.slice(0, vis) as c (c.id)}
+              {#each items.slice(0, fit) as c (c.id)}
                 <li class="card">{c.title}</li>
               {/each}
               {#if hidden > 0}
@@ -275,16 +242,22 @@
   }
   .fail { color: var(--dimmer); }
 
-  /* 4-column board. `minmax(0, 1fr)` is critical: default `1fr` lets
-   * each column's intrinsic min-content (longest title pre-ellipsis)
-   * push its width past its share, which clipped the rightmost
-   * column (Done) off-card. minmax(0,1fr) forces equal widths and
-   * lets text-overflow: ellipsis actually do its job. */
+  /* 2×2 board. DOM order is [backlog, today, in_progress, done];
+   * grid-auto-flow: column packs them down the left column first,
+   * then the right — yielding:
+   *   ┌─────────────┬──────────────┐
+   *   │  BACKLOG    │  IN PROGRESS │
+   *   ├─────────────┼──────────────┤
+   *   │  TODAY      │  DONE        │
+   *   └─────────────┴──────────────┘
+   * minmax(0, …) on both axes keeps text-overflow: ellipsis honest. */
   .board {
     flex: 1;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.5rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: column;
+    gap: 0.5rem 0.7rem;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
@@ -342,41 +315,41 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.35rem;
     overflow: hidden;
     flex: 1;
     min-height: 0;
-    padding-right: 0.15rem;
-  }
-  li.card {
-    /* Inter for body — upright sans scans much faster than Fraunces
-     * italic at this size. Column headers stay Fraunces italic so
-     * the editorial chrome is preserved. */
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    font-style: normal;
-    font-weight: 450;
-    font-size: 0.78rem;
-    line-height: 1.3;
-    letter-spacing: -0.005em;
-    color: var(--fg);
-    padding: 0.22rem 0;
-    border-bottom: 1px solid var(--line);
-    /* Single line — no cramped clipping. Items that don't fit are
-     * folded under "+N more" via measurement. */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
   li.more {
+    flex: 0 0 auto;
+    font-family: 'Fraunces', Georgia, serif;
     font-style: italic;
     font-size: 0.7rem;
     color: var(--dim);
     padding: 0.18rem 0 0;
     margin-top: 0.1rem;
-    border-top: 1px dashed var(--line-strong);
     text-align: right;
     letter-spacing: 0.04em;
-    font-feature-settings: 'tnum';
+  }
+  li.card {
+    /* flex-shrink: 0 is critical — without it, flex column items
+     * squash to fit when ul has constrained height, which made every
+     * backlog item render as a 1-line-tall ghost regardless of
+     * font-size. With shrink off, each item keeps its natural height
+     * and overflow:hidden on ul cuts the ones that don't fit. */
+    flex: 0 0 auto;
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 0.82rem;
+    line-height: 1.3;
+    letter-spacing: 0;
+    color: var(--fg);
+    padding: 0.22rem 0;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .col[data-col='done'] li.card {
     color: var(--dim);
