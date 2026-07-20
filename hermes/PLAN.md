@@ -31,5 +31,5 @@
 
 ### Phase 4 — Stubs, hardening, ship
 - [x] P4.1 Stub adapters (Signal, Discord, IMAP, Meshtastic, Proxmox, UniFi, Frigate) implementing the interface, `health:'stub'`.
-- [ ] P4.2 Overnight **digest/replay**: reconstruct a written "what happened" brief from the log over a time range.
-- [ ] P4.3 `README.md` (env, `docker compose up`, register channel, issue device token); full-stack smoke against Target State; final done-gate.
+- [x] P4.2 Overnight **digest/replay**: reconstruct a written "what happened" brief from the log over a time range.
+- [x] P4.3 `README.md` (env, `docker compose up`, register channel, issue device token); full-stack smoke against Target State; final done-gate.

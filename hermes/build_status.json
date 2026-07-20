@@ -2,11 +2,11 @@
   "project": "hermes",
   "phases": ["P0 Skeleton", "P1 Spine", "P2 Correlation", "P3 Surface", "P4 Ship"],
   "total_tasks": 22,
-  "completed_tasks": 20,
+  "completed_tasks": 22,
   "current_phase": "P4 Ship",
-  "current_task": "P4.2",
+  "current_task": "done",
   "last_commit": "",
-  "last_gate_passed": "P3 — PWA/SSE/auth/resync (38 tests + 11 web e2e checks)",
+  "last_gate_passed": "P4.3 — full done-gate: 41 tests + 11 web e2e checks, compose valid",
   "open_issues": 0,
-  "updated_at": "2026-07-20T04:46:00Z"
+  "updated_at": "2026-07-20T04:52:00Z"
 }
