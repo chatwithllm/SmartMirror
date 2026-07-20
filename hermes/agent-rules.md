@@ -30,6 +30,10 @@
 
 **RULE 13 — Derived ids use library-valid seeds. [server]** UUIDv5 (or any derived id) must be seeded with a namespace the library actually accepts. Don't eyeball a UUID — validate it against the real library. Determinism is worthless if the call throws.
 
+**RULE 14 — Streaming endpoints defeat response buffering. [server]** SSE/chunked responses must flush immediately — disable gzip/compression on the stream, keep `x-accel-buffering: no`, and verify a byte reaches the client BEFORE the stream ends. A stream that only arrives on close is a broken stream.
+
+**RULE 15 — Auth the exact client path. [client][server]** When the real client can't set headers (EventSource, `<img>`, form GET), accept the token where that client can put it (query param) and normalise before the auth check. Test with the actual client transport, not just curl with a header.
+
 **ANTI-PATTERNS — never do these:** reading a field not on the envelope · decoding a bare array where the schema wraps · event and incident as two statements · `SELECT COUNT(*) … FOR UPDATE` (lock rows, count in code) · INSERT without reading constraints · editing an applied migration · SSE/effect with no teardown · storing local time · secret in source · fixing named lines and ignoring the rest of the file.
 
 **OPEN SCARS (promote to a numbered rule on next recurrence):** *(none yet — projects add their own via the learning loop.)*

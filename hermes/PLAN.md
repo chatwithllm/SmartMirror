@@ -22,14 +22,14 @@
 - [x] P2.3 Command round-trip: `/status ha` command envelope → Processor executes an HA query → writes command + response events → egress reply. Logs the whole exchange.
 
 ### Phase 3 — Surface (PWA)
-- [ ] P3.1 Next.js 15 app; Auth.js v5 + proxy-header trust + per-device token check on `/api/*`; `devices` token issue/revoke script.
-- [ ] P3.2 Timeline: server-rendered initial page (last N, newest-first) with interleaved human/machine rows + incident grouping.
-- [ ] P3.3 SSE `/api/stream` off `LISTEN hermes_events`; `id:` per event; heartbeat; disconnect cleanup.
-- [ ] P3.4 PWA: manifest + service worker + IndexedDB cache; installable.
-- [ ] P3.5 Offline→online resync via `Last-Event-ID` cursor replay; test: kill network, generate 3 events, restore → all 3 appear once, in order.
-- [ ] P3.6 `POST /api/command` → bus; reply surfaces through the stream.
+- [x] P3.1 Next.js 15 app; Auth.js v5 + proxy-header trust + per-device token check on `/api/*`; `devices` token issue/revoke script.
+- [x] P3.2 Timeline: server-rendered initial page (last N, newest-first) with interleaved human/machine rows + incident grouping.
+- [x] P3.3 SSE `/api/stream` off `LISTEN hermes_events`; `id:` per event; heartbeat; disconnect cleanup.
+- [x] P3.4 PWA: manifest + service worker + IndexedDB cache; installable.
+- [x] P3.5 Offline→online resync via `Last-Event-ID` cursor replay; test: kill network, generate 3 events, restore → all 3 appear once, in order.
+- [x] P3.6 `POST /api/command` → bus; reply surfaces through the stream.
 
 ### Phase 4 — Stubs, hardening, ship
-- [ ] P4.1 Stub adapters (Signal, Discord, IMAP, Meshtastic, Proxmox, UniFi, Frigate) implementing the interface, `health:'stub'`.
+- [x] P4.1 Stub adapters (Signal, Discord, IMAP, Meshtastic, Proxmox, UniFi, Frigate) implementing the interface, `health:'stub'`.
 - [ ] P4.2 Overnight **digest/replay**: reconstruct a written "what happened" brief from the log over a time range.
 - [ ] P4.3 `README.md` (env, `docker compose up`, register channel, issue device token); full-stack smoke against Target State; final done-gate.

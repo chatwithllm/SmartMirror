@@ -26,3 +26,23 @@
   ids (correlation/incident) stay deterministic.
 - **Rule added:** RULE 13 — Derived ids must use library-valid seeds; verify against the
   actual library, not by eye.
+
+## 2026-07-20 — SSE frames never reached the browser (P3.3)
+- **What happened:** The `/api/stream` route replayed and enqueued events server-side (logs
+  confirmed), but curl/EventSource received only `: connected` — no data frames until the
+  connection closed. Live tail and resync both looked broken.
+- **Root cause:** Next.js gzip compression buffers a `text/event-stream` response to compress
+  it, so nothing flushes until the buffer fills or the stream ends. SSE needs immediate flush.
+- **Fix:** `compress: false` in next.config.mjs (payloads are tiny LAN JSON). Verified frames
+  now flush the instant they are enqueued.
+- **Rule added:** RULE 14 — Streaming endpoints must defeat response buffering (disable gzip;
+  verify a byte flushes before the stream ends).
+
+## 2026-07-20 — EventSource connections silently 401'd (P3.1/P3.3)
+- **What happened:** SSE worked with a curl `Authorization` header but the browser client
+  (and the e2e using `?token=`) got 401 "missing device token". The stream stayed empty.
+- **Root cause:** `EventSource` cannot set request headers, so the device token can only ride
+  as a `?token=` query param — but the route only read the `Authorization` header.
+- **Fix:** The stream route normalises `?token=` into a Bearer header before `authorize()`.
+- **Rule added:** RULE 15 — For browser APIs that cannot set headers (EventSource), accept the
+  auth token via query and normalise it before the auth check; test the exact client path.

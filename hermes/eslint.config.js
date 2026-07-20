@@ -31,6 +31,9 @@ export default tseslint.config(
       },
     },
     rules: {
+      // TypeScript already resolves identifiers; no-undef only fights us over
+      // browser/node globals across the client + server files.
+      "no-undef": "off",
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
