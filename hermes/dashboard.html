@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hermes — Build Dashboard</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font: 15px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+      margin: 0; padding: 2rem; background: #0e1116; color: #e6edf3;
+    }
+    h1 { font-size: 1.4rem; margin: 0 0 .25rem; }
+    .sub { color: #7d8590; margin-bottom: 1.5rem; }
+    .bar { background: #21262d; border-radius: 6px; height: 22px; overflow: hidden; margin: .5rem 0 1.25rem; }
+    .bar > i { display: block; height: 100%; background: linear-gradient(90deg,#2f81f7,#3fb950); transition: width .4s; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .75rem; margin-bottom: 1.5rem; }
+    .card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: .75rem 1rem; }
+    .card b { display: block; color: #7d8590; font-weight: 400; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+    .card span { font-size: 1.1rem; }
+    .phases { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+    .phases li { padding: .35rem .7rem; border-radius: 999px; border: 1px solid #30363d; background: #161b22; }
+    .phases li.active { border-color: #2f81f7; color: #58a6ff; }
+    .stale { background: #7d2a2a; color: #ffdcdc; padding: .5rem 1rem; border-radius: 6px; margin-bottom: 1rem; display: none; }
+    .stale.show { display: block; }
+    code { color: #79c0ff; }
+  </style>
+</head>
+<body>
+  <h1>Hermes — Build Dashboard</h1>
+  <div class="sub">auto-refreshes every 5s from <code>build_status.json</code></div>
+  <div id="stale" class="stale">⚠ Build status is stale (no update in &gt;10 min) — build may be stalled.</div>
+
+  <div class="bar"><i id="barfill" style="width:0%"></i></div>
+  <div id="progress" class="sub"></div>
+
+  <div class="grid">
+    <div class="card"><b>Current phase</b><span id="phase">—</span></div>
+    <div class="card"><b>Current task</b><span id="task">—</span></div>
+    <div class="card"><b>Last gate passed</b><span id="gate">—</span></div>
+    <div class="card"><b>Open issues</b><span id="issues">—</span></div>
+    <div class="card"><b>Last commit</b><span id="commit">—</span></div>
+    <div class="card"><b>Updated</b><span id="updated">—</span></div>
+  </div>
+
+  <ul id="phases" class="phases"></ul>
+
+  <script>
+    async function tick() {
+      try {
+        const res = await fetch('build_status.json?_=' + Date.now(), { cache: 'no-store' });
+        const s = await res.json();
+        const pct = s.total_tasks ? Math.round((s.completed_tasks / s.total_tasks) * 100) : 0;
+        document.getElementById('barfill').style.width = pct + '%';
+        document.getElementById('progress').textContent =
+          s.completed_tasks + ' / ' + s.total_tasks + ' tasks (' + pct + '%)';
+        document.getElementById('phase').textContent = s.current_phase || '—';
+        document.getElementById('task').textContent = s.current_task || '—';
+        document.getElementById('gate').textContent = s.last_gate_passed || '—';
+        document.getElementById('issues').textContent = s.open_issues ?? '—';
+        document.getElementById('commit').textContent = s.last_commit || '—';
+        document.getElementById('updated').textContent = s.updated_at || '—';
+
+        const ul = document.getElementById('phases');
+        ul.innerHTML = '';
+        (s.phases || []).forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = p;
+          if (s.current_phase && p === s.current_phase) li.className = 'active';
+          ul.appendChild(li);
+        });
+
+        const stale = s.updated_at && (Date.now() - new Date(s.updated_at).getTime()) > 10 * 60 * 1000;
+        document.getElementById('stale').classList.toggle('show', !!stale);
+      } catch (e) {
+        console.error('dashboard fetch failed', e);
+      }
+    }
+    tick();
+    setInterval(tick, 5000);
+  </script>
+</body>
+</html>

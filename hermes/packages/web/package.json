@@ -1,0 +1,32 @@
+{
+  "name": "@hermes/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev -p ${WEB_PORT:-3000}",
+    "build": "next build",
+    "start": "next start -p ${WEB_PORT:-3000}",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint app lib",
+    "test": "vitest run",
+    "issue-token": "tsx scripts/device-token.ts"
+  },
+  "dependencies": {
+    "@hermes/shared": "workspace:*",
+    "mqtt": "^5.13.0",
+    "next": "^15.1.4",
+    "pg": "^8.13.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.10",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "eslint": "^9.18.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.2"
+  }
+}

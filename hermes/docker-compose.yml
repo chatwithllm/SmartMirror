@@ -1,0 +1,95 @@
+# Hermes stack: postgres + mosquitto + the three jobs from one image.
+# `docker compose up` brings all five to healthy. In production, drop the
+# mosquitto service and point MQTT_URL at the existing LAN broker.
+
+x-hermes-image: &hermes-image
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: hermes:latest
+  restart: unless-stopped
+  env_file:
+    - path: .env
+      required: false
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hermes}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hermes}
+      POSTGRES_DB: ${POSTGRES_DB:-hermes}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hermes} -d ${POSTGRES_DB:-hermes}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mqttdata:/mosquitto/data
+    ports:
+      - "1883:1883"
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -t '$$SYS/#' -C 1 -W 3 -h localhost || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  hermes-collector:
+    <<: *hermes-image
+    environment:
+      HERMES_ROLE: collector
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${COLLECTOR_HEALTH_PORT:-8081}/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    volumes:
+      - collectorbuf:/data/collector-buffer
+
+  hermes-processor:
+    <<: *hermes-image
+    environment:
+      HERMES_ROLE: processor
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mosquitto:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${PROCESSOR_HEALTH_PORT:-8082}/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  hermes-web:
+    <<: *hermes-image
+    environment:
+      HERMES_ROLE: web
+    depends_on:
+      postgres:
+        condition: service_healthy
+      hermes-processor:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+volumes:
+  pgdata:
+  mqttdata:
+  collectorbuf:

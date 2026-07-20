@@ -1,0 +1,21 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+.next/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Runtime data
+data/
+*-buffer/
+collector-buffer/
+
+# OS / editor
+.DS_Store
+*.swp

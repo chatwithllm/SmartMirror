@@ -1,0 +1,26 @@
+{
+  "name": "@hermes/processor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hermes/shared": "workspace:*",
+    "mqtt": "^5.13.0",
+    "pg": "^8.13.1",
+    "uuid": "^11.0.5"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.11.10",
+    "@types/uuid": "^10.0.0",
+    "aedes": "^0.51.3",
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.2"
+  }
+}
