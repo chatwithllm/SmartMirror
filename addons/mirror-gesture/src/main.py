@@ -155,6 +155,9 @@ def main() -> int:
     detected_frames = total_frames = 0
     last_stats_at = time.time()
     last_gesture = None
+    prev_gesture = None
+    last_recognised_at = 0.0
+    lum_sum = lum_n = 0.0
 
     def shutdown(*_: Any) -> None:
         log.info("shutting down")
@@ -212,13 +215,16 @@ def main() -> int:
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         result = hands.process(rgb)
         total_frames += 1
+        sample = frame[::8, ::8]
+        lum_sum += float(sample.mean()); lum_n += 1
         if result.multi_hand_landmarks:
             detected_frames += 1
         if now - last_stats_at >= 5.0:
-            log.info("stats: detect=%d%% of %d frames; last=%s",
+            log.info("stats: detect=%d%% of %d frames; brightness=%.0f; last=%s",
                      round(100 * detected_frames / max(1, total_frames)),
-                     total_frames, last_gesture or "none")
+                     total_frames, lum_sum / lum_n if lum_n else -1, last_gesture or "none")
             detected_frames = total_frames = 0
+            lum_sum = lum_n = 0.0
             last_stats_at = now
         if result.multi_hand_landmarks:
             last_hand_at = now
@@ -247,6 +253,10 @@ def main() -> int:
                     else cooldown.allow(gesture)
                 )
                 last_gesture = f"{gesture}({classification['confidence']})"
+                if gesture != prev_gesture or now - last_recognised_at > 3.0:
+                    log.info("recognised %s conf=%.2f allowed=%s", gesture,
+                             classification["confidence"], allowed)
+                    prev_gesture, last_recognised_at = gesture, now
                 if allowed:
                     publisher.publish(gesture, classification["confidence"], time.time())
         else:
