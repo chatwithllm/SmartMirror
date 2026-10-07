@@ -140,18 +140,21 @@ def main() -> int:
     # miss makes the next detection look like a fresh entry: `wake` re-fires
     # and one-shot poses re-arm, so a held palm emitted wake/media_pause about
     # twice a second (seen live as repeated "no media to pause" toasts).
-    #
-    # Tolerate a *count* of consecutive misses, not a duration: a duration
-    # shorter than a few frame intervals expires between two adjacent frames
-    # and changes nothing (measured: a 0.7 s grace still let a single dropped
-    # frame re-fire `wake` 0.6 s later at this frame rate).
-    hand_loss_frames = 6
-    misses = 0
+    # How long the hand must be absent before the interaction counts as
+    # over. Measured against wall time, not frames: detection drops one or
+    # two frames at a time, so a frame count either never expires (and
+    # `wake` can only fire once per service run) or expires between two
+    # adjacent frames at low frame rates.
+    hand_gone_s = 1.5
+    last_hand_at = 0.0
     frame_interval = 1.0 / max(1, cfg.fps_limit)
     enable_check_interval = 1.0
     last_tick = 0.0
     last_enable_check = 0.0
     enabled = True
+    detected_frames = total_frames = 0
+    last_stats_at = time.time()
+    last_gesture = None
 
     def shutdown(*_: Any) -> None:
         log.info("shutting down")
@@ -208,8 +211,17 @@ def main() -> int:
 
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         result = hands.process(rgb)
+        total_frames += 1
         if result.multi_hand_landmarks:
-            misses = 0
+            detected_frames += 1
+        if now - last_stats_at >= 5.0:
+            log.info("stats: detect=%d%% of %d frames; last=%s",
+                     round(100 * detected_frames / max(1, total_frames)),
+                     total_frames, last_gesture or "none")
+            detected_frames = total_frames = 0
+            last_stats_at = now
+        if result.multi_hand_landmarks:
+            last_hand_at = now
             # Rising edge — the hand has just entered the frame. This is the
             # documented meaning of `wake` ("an open palm enters frame"): it
             # is a transition, not a pose, so the classifier cannot infer it
@@ -234,13 +246,18 @@ def main() -> int:
                     holds.allow(gesture) if gesture in ONE_SHOT
                     else cooldown.allow(gesture)
                 )
+                last_gesture = f"{gesture}({classification['confidence']})"
                 if allowed:
                     publisher.publish(gesture, classification["confidence"], time.time())
         else:
-            # Only a sustained run of misses ends the interaction; a single
-            # dropped frame must not (see hand_loss_frames above).
-            misses += 1
-            if window and misses >= hand_loss_frames:
+            # The interaction ends when the hand has been *gone a while*, not
+            # after N missed frames. A frame count is wrong in both directions:
+            # detection drops one or two frames at a time, so it either never
+            # expires (and `wake` can then fire only once per service run) or it
+            # expires between two adjacent frames. A time horizon is
+            # frame-rate independent, tolerates flicker mid-pose, and re-arms
+            # `wake` after a genuine hand-away.
+            if window and (now - last_hand_at) > hand_gone_s:
                 window.clear()
 
 

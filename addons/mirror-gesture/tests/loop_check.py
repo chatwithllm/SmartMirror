@@ -123,7 +123,7 @@ def main() -> int:
         + [("none", None)]                      # ONE dropped detection frame
         + [("h", [open_palm])] * 3              # palm still held
         + [("h", [shifted(open_palm, dx)]) for dx in (-step, 0.0, step)]
-        + [("none", None)] * 14                 # hand genuinely leaves (>0.7s)
+        + [("none", None)] * 30                 # hand genuinely leaves (>0.7s)
         + [("h", [fist])] * 5
     )
     calls = {"i": 0}
@@ -199,9 +199,9 @@ def main() -> int:
     # Regression: a dropped detection frame must not look like a new entry.
     wake_ts = [float(r["body"]["ts"]) for r in received
                if r["body"].get("gesture") == "wake"]
-    too_close = [round(b - a, 2) for a, b in zip(wake_ts, wake_ts[1:]) if b - a < 0.7]
+    too_close = [round(b - a, 2) for a, b in zip(wake_ts, wake_ts[1:]) if b - a < 1.5]
     if too_close:
-        fails.append(f"wake re-fired inside the 0.7s hand-loss grace: {too_close}")
+        fails.append(f"wake re-fired inside the 1.5s hand-gone horizon: {too_close}")
     if not gestures or gestures[0] != "wake":
         fails.append("hand entering frame did not publish wake first "
                      "(the demo's proof-of-life step)")
