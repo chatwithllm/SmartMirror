@@ -27,7 +27,7 @@ from typing import Any
 
 from .camera_pick import pick as pick_camera
 from .config import Config, load as load_config
-from .gestures import Cooldown, classify
+from .gestures import ONE_SHOT, Cooldown, HoldGate, classify
 from .http_publisher import HttpPublisher
 from .privacy import blur_faces
 
@@ -76,7 +76,19 @@ class CameraHandle:
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.cfg.width)
         if self.cfg.height:
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.cfg.height)
-        log.info("camera opened: index=%d %dx%d", idx, self.cfg.width, self.cfg.height)
+        # Say WHICH failure this is. "camera read failed" alone sends the
+        # operator chasing a dead camera when the real cause is a
+        # permissions problem — the mirror user must be in the `video`
+        # group, or the uaccess ACL for the seated user must apply.
+        if not cap.isOpened():
+            log.error(
+                "camera index=%d will not open — not in the `video` group, "
+                "device absent, or already held by another process "
+                "(check: groups mirror | tr ' ' '\\n' | grep video; ls -l /dev/video*)",
+                idx,
+            )
+        else:
+            log.info("camera opened: index=%d %dx%d", idx, self.cfg.width, self.cfg.height)
         self._cap = cap
         self._index = idx
         return cap
@@ -120,8 +132,21 @@ def main() -> int:
     handle = CameraHandle(cfg)
     publisher = HttpPublisher(cfg.local_url, cfg.local_token, cfg.ha_url, cfg.ha_token)
     cooldown = Cooldown(cfg.cooldown_ms)
+    holds = HoldGate()
 
     window: list[Any] = []
+    # A dropped detection frame is not the hand leaving. MediaPipe loses a
+    # hand for a frame or two regularly, and clearing the window on the first
+    # miss makes the next detection look like a fresh entry: `wake` re-fires
+    # and one-shot poses re-arm, so a held palm emitted wake/media_pause about
+    # twice a second (seen live as repeated "no media to pause" toasts).
+    #
+    # Tolerate a *count* of consecutive misses, not a duration: a duration
+    # shorter than a few frame intervals expires between two adjacent frames
+    # and changes nothing (measured: a 0.7 s grace still let a single dropped
+    # frame re-fire `wake` 0.6 s later at this frame rate).
+    hand_loss_frames = 6
+    misses = 0
     frame_interval = 1.0 / max(1, cfg.fps_limit)
     enable_check_interval = 1.0
     last_tick = 0.0
@@ -168,28 +193,55 @@ def main() -> int:
             time.sleep(1.0)
             continue
 
+        # Mirror the frame horizontally. The user views the screen through a
+        # one-way mirror, so they see their own reflection: a hand moving to
+        # the user's RIGHT moves toward the IMAGE's left in the raw camera
+        # feed (the camera faces them), which inverted every left/right
+        # gesture — a rightward swipe emitted `mode_prev`. Flipping here puts
+        # the whole pipeline in the user's own frame of reference, so any
+        # future pointing/cursor mapping inherits the correct handedness too.
+        # MediaPipe's handedness labels come out user-correct as a side effect.
+        frame = cv2.flip(frame, 1)
+
         if cfg.face_blur:
             frame = blur_faces(frame)
 
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         result = hands.process(rgb)
         if result.multi_hand_landmarks:
+            misses = 0
+            # Rising edge — the hand has just entered the frame. This is the
+            # documented meaning of `wake` ("an open palm enters frame"): it
+            # is a transition, not a pose, so the classifier cannot infer it
+            # from landmark geometry alone. Emitting it here is what makes
+            # the demo's first step ("wave a palm → toast 'gesture · awake'")
+            # observable at all — as a pure catch-all the classifier only
+            # reached `wake` for a palm drifting slower than a swipe, which
+            # a real wave never is.
+            if not window and holds.allow("wake"):
+                publisher.publish("wake", 0.9, time.time())
             window.append(result.multi_hand_landmarks[0])
             if len(window) > 3:
                 window.pop(0)
             classification = classify(window)
-            if (
-                classification
-                and classification["confidence"] >= cfg.confidence_floor
-                and cooldown.allow(classification["gesture"])
-            ):
-                publisher.publish(
-                    classification["gesture"],
-                    classification["confidence"],
-                    time.time(),
+            if classification and classification["confidence"] >= cfg.confidence_floor:
+                gesture = classification["gesture"]
+                # A held pose (fist, still palm, pinch) fires once per
+                # occurrence; a movement gesture (focus, swipe) keeps the
+                # per-gesture cooldown, so a sustained point can still
+                # advance the focus.
+                allowed = (
+                    holds.allow(gesture) if gesture in ONE_SHOT
+                    else cooldown.allow(gesture)
                 )
+                if allowed:
+                    publisher.publish(gesture, classification["confidence"], time.time())
         else:
-            window.clear()
+            # Only a sustained run of misses ends the interaction; a single
+            # dropped frame must not (see hand_loss_frames above).
+            misses += 1
+            if window and misses >= hand_loss_frames:
+                window.clear()
 
 
 if __name__ == "__main__":
