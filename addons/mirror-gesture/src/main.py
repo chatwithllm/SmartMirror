@@ -154,6 +154,7 @@ def main() -> int:
     enabled = True
     detected_frames = total_frames = 0
     last_stats_at = time.time()
+    last_dump_at = 0.0
     last_gesture = None
     prev_gesture = None
     last_recognised_at = 0.0
@@ -223,6 +224,14 @@ def main() -> int:
             log.info("stats: detect=%d%% of %d frames; brightness=%.0f; last=%s",
                      round(100 * detected_frames / max(1, total_frames)),
                      total_frames, lum_sum / lum_n if lum_n else -1, last_gesture or "none")
+            if detected_frames == 0 and now - last_dump_at > 10.0:
+                # Look at the frame instead of theorising about exposure: a
+                # one-way mirror is only ~10-15% transmissive each way, so the
+                # camera's view of the user may simply be too dark for the
+                # detector, and a saved JPEG settles it in one look.
+                cv2.imwrite("/tmp/gesture-debug.jpg", frame)
+                log.info("no hand in %d frames; wrote /tmp/gesture-debug.jpg", total_frames)
+                last_dump_at = now
             detected_frames = total_frames = 0
             lum_sum = lum_n = 0.0
             last_stats_at = now
