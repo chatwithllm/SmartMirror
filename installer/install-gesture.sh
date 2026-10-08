@@ -51,6 +51,20 @@ ensure_token() {
   fi
 }
 
+# The frontend reads /etc/mirror/config.env into process.env at boot
+# ($env/dynamic/private), so a token written while it is running does not
+# exist as far as it is concerned: it answers every gesture POST with 403
+# until it is restarted. Restart it whenever we install, so the running
+# frontend and the running addon always share one token.
+restart_frontend() {
+  if systemctl cat mirror-frontend.service >/dev/null 2>&1; then
+    systemctl restart mirror-frontend.service
+    echo "restarted mirror-frontend.service to pick up $ENV_FILE"
+  else
+    echo "mirror-frontend.service not installed yet — nothing to restart"
+  fi
+}
+
 sync_source() {
   install -d -m 0755 -o mirror -g mirror "$TARGET_DIR"
   # Copy src/ + pyproject.toml; not the deleted addon shell.
@@ -84,6 +98,7 @@ main() {
   sync_source
   build_venv
   install_unit
+  restart_frontend
   systemctl --no-pager --full status mirror-gesture.service || true
   echo "done. tail logs with: journalctl -u mirror-gesture.service -f"
 }
