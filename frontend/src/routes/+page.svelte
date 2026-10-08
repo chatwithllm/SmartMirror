@@ -9,6 +9,7 @@
   import { connection, toasts } from '$lib/stores/connection.js';
   import { wireGestures } from '$lib/gesture/sse.js';
   import { registerDefaultHandlers } from '$lib/gesture/handlers.js';
+  import GestureHud from '$lib/gesture/GestureHud.svelte';
   import { applyTheme } from '$lib/themes/loader.js';
   import { coerceTheme } from '$lib/themes/compat.js';
   import { resolveLayout } from '$lib/layout/resolver.js';
@@ -407,6 +408,8 @@
       {/each}
     </ul>
   {/if}
+
+  <GestureHud />
 
   <StatsFooter />
 </main>

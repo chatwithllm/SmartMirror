@@ -31,6 +31,7 @@ const STALE_MS = 30_000;
 export interface GesturePayload {
   gesture: Gesture;
   ts: number;
+  confidence?: number;
   payload?: unknown;
 }
 
@@ -42,11 +43,20 @@ export function parseGestureMessage(raw: string): GesturePayload | null {
     return null;
   }
   if (!j || typeof j !== 'object') return null;
-  const o = j as { gesture?: unknown; ts?: unknown; payload?: unknown };
+  const o = j as {
+    gesture?: unknown;
+    ts?: unknown;
+    confidence?: unknown;
+    payload?: unknown;
+  };
   if (typeof o.gesture !== 'string' || !KNOWN.has(o.gesture as Gesture)) return null;
   const ts = typeof o.ts === 'number' ? o.ts : Number(o.ts);
   if (!Number.isFinite(ts) || ts <= 0) return null;
-  return { gesture: o.gesture as Gesture, ts, payload: o.payload };
+  const confidence =
+    typeof o.confidence === 'number' && Number.isFinite(o.confidence)
+      ? o.confidence
+      : undefined;
+  return { gesture: o.gesture as Gesture, ts, confidence, payload: o.payload };
 }
 
 export interface WireOptions {
@@ -73,7 +83,7 @@ export function wireGestures(opts: WireOptions = {}): () => void {
     // Drop events older than 30 s — guards against a buffered SSE
     // backlog on reconnect replaying ancient state.
     if (now() - p.ts > STALE_MS / 1000) return;
-    gestureRouter.dispatch(p.gesture, p.payload);
+    gestureRouter.dispatch(p.gesture, { confidence: p.confidence });
   };
 
   // The server tags real gestures as `event: gesture`; heartbeats are

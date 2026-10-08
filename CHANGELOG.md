@@ -6,6 +6,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Gesture feedback — every recognised gesture acknowledges
+- New `GestureHud` component: a transient pill (hand glyph + gesture name
+  + confidence) that appears on **every** gesture dispatch, independent of
+  what the handler did. This closes the failure mode where a recognised
+  `media_pause` with no player mounted produced no visible change and was
+  indistinguishable from "not recognised".
+- `sse.ts` now forwards the `confidence` the server already sends (it was
+  being dropped between `/api/gesture` and the router); `router.ts` writes
+  a `gestureHud` store on every dispatch; `+page.svelte` mounts the HUD.
+
 ### Phase 13.3 — the gesture addon runs for real (PR #154)
 - `addons/mirror-gesture`: fixed the defects that kept the Phase 13
   subsystem from running on the kiosk — the package layout that made
