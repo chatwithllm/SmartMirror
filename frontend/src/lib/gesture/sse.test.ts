@@ -60,6 +60,14 @@ describe('parseGestureMessage', () => {
       payload: { x: 1 }
     });
   });
+
+  it('carries confidence through when present', () => {
+    expect(parseGestureMessage('{"gesture":"media_pause","ts":12,"confidence":0.72}')).toEqual({
+      gesture: 'media_pause',
+      ts: 12,
+      confidence: 0.72
+    });
+  });
 });
 
 describe('wireGestures', () => {
