@@ -13,8 +13,10 @@ dependencies = [
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
+# Explicit package list. `packages.find where=["src"]` (the previous
+# config) discovers packages *inside* src/ and therefore found none,
+# so `pip install -e .` produced an editable finder mapping nothing and
+# `python -m mirror_gesture` died with ModuleNotFoundError.
 [tool.setuptools]
+packages = ["mirror_gesture"]
 package-dir = { "mirror_gesture" = "src" }
-
-[tool.setuptools.packages.find]
-where = ["src"]

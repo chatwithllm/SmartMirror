@@ -6,6 +6,31 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [S
 
 ## [Unreleased]
 
+### Phase 13.3 — the gesture addon runs for real (PR #154)
+- `addons/mirror-gesture`: fixed the defects that kept the Phase 13
+  subsystem from running on the kiosk — the package layout that made
+  `python -m mirror_gesture` die with `ModuleNotFoundError`, the inverted
+  x-axis a one-way mirror produces, detection flicker re-firing `wake`,
+  and the classifier's `wake` catch-all that flapped against
+  `media_pause` frame-to-frame and re-armed each one-shot pose.
+- `addons/mirror-gesture/src/selftest.py`: new per-link diagnostic
+  (`python -m mirror_gesture.selftest [--fire]`). It probes imports,
+  config, camera, `POST /api/gesture`, the SSE channel and the HA entity
+  separately, so a failure names the broken link instead of surfacing as
+  "gestures don't work".
+- `addons/mirror-gesture/tests/`: `pose_check.py` checks the classifier
+  against the landmark prototxts Google ships for named poses;
+  `loop_check.py` drives the real main loop with the camera and detector
+  stubbed and asserts the wire format, bearer header, cooldown, mirror
+  geometry and one-shot behaviour at a stub HTTP server.
+- `.github/workflows/ci.yml`: new `Gesture addon` job running both
+  suites. The addon previously had no CI coverage at all, so the Python
+  half of the gesture path could only be tested by hand on the kiosk.
+- `installer/install-gesture.sh`: restart `mirror-frontend` after the
+  token is written. The frontend reads `/etc/mirror/config.env` into
+  `process.env` at boot, so a token appended while it runs is invisible
+  to it and every gesture is rejected with 403.
+
 ### Theme cleanup — drop ops-cyberpunk, light-mode covers dark/light
 - Dropped `ops-cyberpunk` theme entirely. No active preset uses it
   (work landscape was the last reference and migrated to

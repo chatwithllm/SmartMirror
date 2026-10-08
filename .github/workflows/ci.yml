@@ -83,3 +83,40 @@ jobs:
           pnpm check
           pnpm test -- --run
           pnpm build
+
+  gesture:
+    name: Gesture addon
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skip if no addon
+        id: check
+        run: |
+          if [ -f addons/mirror-gesture/pyproject.toml ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "addons/mirror-gesture not present; skipping"
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.check.outputs.present == 'true'
+        with:
+          python-version: "3.11"
+      - name: Install addon (opencv needs libGL even headless)
+        if: steps.check.outputs.present == 'true'
+        working-directory: addons/mirror-gesture
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libgl1 libglib2.0-0
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Classifier against real MediaPipe landmark geometry
+        if: steps.check.outputs.present == 'true'
+        working-directory: addons/mirror-gesture
+        run: python tests/pose_check.py tests/fixtures
+      - name: End-to-end loop, camera and detector stubbed
+        if: steps.check.outputs.present == 'true'
+        working-directory: addons/mirror-gesture
+        env:
+          HAND_DIR: tests/fixtures
+        run: python tests/loop_check.py
